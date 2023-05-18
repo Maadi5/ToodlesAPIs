@@ -4,8 +4,8 @@ import config
 
 class WATI_APIS:
     def __init__(self):
-        self.wati_endpoint = config.wati_end_point#'live-server-106096.wati.io'
-        self.wati_auth = config.wati_auth#"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIxOWZkYmIyZC0wODVkLTQ4NTUtODRjZC0xOWM2MGIxNGUyN2YiLCJ1bmlxdWVfbmFtZSI6Im9wZXJhdGlvbnNAdG9vZGxlcy5pbiIsIm5hbWVpZCI6Im9wZXJhdGlvbnNAdG9vZGxlcy5pbiIsImVtYWlsIjoib3BlcmF0aW9uc0B0b29kbGVzLmluIiwiYXV0aF90aW1lIjoiMDUvMTUvMjAyMyAxODoxOTowNiIsImRiX25hbWUiOiIxMDYwOTYiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJBRE1JTklTVFJBVE9SIiwiZXhwIjoyNTM0MDIzMDA4MDAsImlzcyI6IkNsYXJlX0FJIiwiYXVkIjoiQ2xhcmVfQUkifQ.4lApLxn8boU1H1IMN8HqDJlfzdHC3j5fwyZ7dzaUpjg"
+        self.wati_endpoint = config.wati_end_point
+        self.wati_auth = config.wati_auth
         self.significant_keys = {'phone': 'phone_number', 'fullName': 'name'}
         self.preloaded_contacts = self.get_contact_list()
 
