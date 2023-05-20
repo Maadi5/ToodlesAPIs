@@ -20,7 +20,7 @@ class WATI_APIS:
         url = "https://" + self.wati_endpoint +"/api/v2/sendTemplateMessage?whatsappNumber=" + contact_number
 
         contactlist = self.preloaded_contacts
-        phone_number_list = [val['phone'] for val in contactlist]
+        phone_number_list = [val['phone_number'] for val in contactlist]
 
         print('phone number list: ', phone_number_list)
 
