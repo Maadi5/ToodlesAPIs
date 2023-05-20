@@ -9,11 +9,11 @@ app = Flask(__name__)
 wati = WATI_APIS()
 
 #Swagger UI endpoint to accept phone number and message
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/send-whatsapp', methods=['GET', 'POST'])
 def send_whatsapp():
-    phone_number = request.json['contact-number']
-    person_name = request.json['contact-name']
-    message_template = request.json['message']
+    phone_number = str(request.json['contact-number'])
+    person_name = str(request.json['contact-name'])
+    message_template = str(request.json['message'])
 
     # WATI API call
     if not message_template:
