@@ -17,7 +17,7 @@ class WATI_APIS:
         if 'name' not in [v['name'] for v in custom_params]:
             custom_params.append({'name': 'name', 'value': contact_name})
 
-        url = "https://" + self.wati_endpoint +"/api/v2/sendTemplateMessage?whatsappNumber=" + contact_number
+        url = "https://" + self.wati_endpoint +"/api/v2/sendTemplateMessage?whatsappNumber=" + str(contact_number)
 
         contactlist = self.preloaded_contacts
         phone_number_list = [val['phone_number'] for val in contactlist]
@@ -61,7 +61,7 @@ class WATI_APIS:
         if custom_params is None:
             custom_params = [{"name": "country","value": "india"}]
 
-        url = "https://" + self.wati_endpoint +"/api/v2/sendTemplateMessage?whatsappNumber=" + contact_number
+        url = "https://" + self.wati_endpoint +"/api/v2/sendTemplateMessage?whatsappNumber=" + str(contact_number)
 
         headers = {
             "content-type": "text/json",
