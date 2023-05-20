@@ -13,4 +13,4 @@ def receive_wati_webhook():
     return jsonify(webhook_response), 200
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5005)
+    app.run(host= '0.0.0.0', debug=True, port=5005)
