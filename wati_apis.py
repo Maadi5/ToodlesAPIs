@@ -139,3 +139,8 @@ class WATI_APIS:
                 dct[self.significant_keys[k]] = val[k]
             simplified_list.append(dct)
         return simplified_list
+
+
+if __name__ == '__main__':
+    test = WATI_APIS()
+    test.send_text_message_response(text_to_send='hi this is a test', contact_number='919176270768')
