@@ -55,7 +55,7 @@ class WATI_APIS:
             print('phone number add failed')
             return False
 
-    def send_text_message_response(self, text_to_send, contact_number):
+    def send_text_message_response(self, text_to_send, contact_number, contact_name):
         conversion_dict = {"'": '%27', ' ': '%20', '.': '.'}
 
         ntext = []
@@ -143,4 +143,4 @@ class WATI_APIS:
 
 if __name__ == '__main__':
     test = WATI_APIS()
-    test.send_text_message_response(text_to_send='hi this is a test', contact_number='919176270768')
+    test.send_text_message_response(text_to_send='hi this is a test', contact_number='919176270768', contact_name='M A Adithya')

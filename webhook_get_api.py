@@ -16,10 +16,11 @@ def receive_wati_webhook():
     print(webhook_response)
     phone_num = webhook_response['waId']
     text = webhook_response['text']
+    person_name = webhook_response['senderName']
     response = gpt_inference.get_response(text)
 
     try:
-        wati_triggers.send_text_message_response(text_to_send=response, contact_number=phone_num)
+        wati_triggers.send_text_message_response(text_to_send=response, contact_number=phone_num, contact_name=person_name)
     except:
         print('send failed')
     return jsonify(webhook_response), 200
