@@ -55,6 +55,46 @@ class WATI_APIS:
             print('phone number add failed')
             return False
 
+    def send_text_message_response(self, text_to_send, contact_number):
+        conversion_dict = {"'": '%27', ' ': '%20', '.': '.'}
+
+        ntext = []
+        for t in text_to_send:
+            if not (t.isalpha() or t.isdigit()):
+                if t in conversion_dict:
+                    ntext.append(conversion_dict[t])
+                else:
+                    ntext.append(conversion_dict[' '])
+            else:
+                ntext.append(t)
+        ntext = ''.join(ntext)
+
+        url = "https://" + self.wati_endpoint + "/api/v1/sendSessionMessage/" + contact_number + "?messageText=" + ntext
+
+        contactlist = self.preloaded_contacts
+        phone_number_list = [val['phone_number'] for val in contactlist]
+
+        print('phone number list: ', phone_number_list)
+
+        if contact_number not in phone_number_list:
+            is_added = self.add_contact_number(contact_number= contact_number, contact_name= contact_name)
+        else:
+            print('phone number already exists')
+            is_added = True
+
+        if is_added:
+            response = requests.post(url)
+            if str(response) == '<Response [200]>':
+                print('successfully sent template message to ', contact_number)
+                return True
+
+            else:
+                print(response.text)
+                return False
+        else:
+            print('sent text message response failed')
+
+
     def add_contact_number(self, contact_number, contact_name,
                               custom_params= None):
 
