@@ -10,7 +10,7 @@ wati_triggers = WATI_APIS()
 gpt_inference = GPT_Inference()
 app = Flask(__name__)
 
-@app.route('/wati_webhook', methods=['GET'])
+@app.route('/wati_webhook', methods=['POST'])
 def receive_wati_webhook():
     webhook_response = request.json
     print(webhook_response)
