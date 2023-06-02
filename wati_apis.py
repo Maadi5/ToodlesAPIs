@@ -71,6 +71,9 @@ class WATI_APIS:
 
         url = "https://" + self.wati_endpoint + "/api/v1/sendSessionMessage/" + contact_number + "?messageText=" + ntext
 
+        headers = {
+            "Authorization": self.wati_auth
+        }
         contactlist = self.preloaded_contacts
         phone_number_list = [val['phone_number'] for val in contactlist]
 
@@ -84,7 +87,7 @@ class WATI_APIS:
 
         if is_added:
             print('url: ', url)
-            response = requests.post(url)
+            response = requests.post(url, headers=headers)
             print('response: ', response)
             if str(response) == '<Response [200]>':
                 print('successfully sent template message to ', contact_number)
