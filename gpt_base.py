@@ -16,7 +16,7 @@ class GPT_Inference():
         self.chunk_size_limit = chunk_size_limit
         self.model_name = model_name
         self.temperature = temperature
-        self.vector_index = self.construct_index(config.prompthelper_path)
+        self.vector_index = self.construct_index(os.path.join(os.getcwd(), config.prompthelper_path))
 
 
 
