@@ -83,7 +83,9 @@ class WATI_APIS:
             is_added = True
 
         if is_added:
+            print('url: ', url)
             response = requests.post(url)
+            print('response: ', response)
             if str(response) == '<Response [200]>':
                 print('successfully sent template message to ', contact_number)
                 return True
