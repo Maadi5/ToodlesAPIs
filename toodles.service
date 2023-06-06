@@ -1,0 +1,15 @@
+[Unit]
+Description=Toodles
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=ubuntu
+Group=ubuntu
+Type=simple
+Restart=on-failure
+
+ExecStart=/home/ubuntu/venv3/bin/python3 /home/ubuntu/ToodlesAPIs/app.py
+
+[Install]
+WantedBy=multi-user.target
