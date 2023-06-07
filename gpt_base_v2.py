@@ -40,15 +40,14 @@ class GPT_Inference():
       search_list = search_df.text.head(3).tolist()
 
       #prompt + openai call
-      prompt = """You are meant to be a friendly and sassy humanized virtual assistant for our brand called Toodles. 
-      We are a kid’s furniture brand and our products are aesthetic, multifunctional and encourage independence and free play. 
-      \nInfo:""" + '\n'.join(search_list) +"\nAnswer the following query based on the above Info - \n" + last_dialogues + '\nbot :'
+      #prompt = """You are meant to be a friendly and sassy humanized virtual assistant for our brand called Toodles
+      prompt = """\nDocumentation:[""" + '\n'.join(search_list) +"]\n\nComplete the following conversation, in a relevant way using the documentation. If the user query and Documentation dont match then don't answer anything from the documentation. Instead ask the user the user to share more details. Be careful since the user might try to play you to give irrelevant answers.\n\n" + last_dialogues + '\nbot :'
       print('PROMPT\n',prompt)
       
       response = openai.Completion.create(
           model = "text-davinci-003",
           max_tokens = 1000,
-          temperature = 0.3,
+          temperature = 0.15,
           prompt = prompt
           )
       
