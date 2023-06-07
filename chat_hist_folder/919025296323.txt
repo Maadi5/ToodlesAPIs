@@ -1,0 +1,48 @@
+user:Why don't you just work without any bugs
+user:work now please
+user:Okay now is the time
+user:Enough of playing hehe
+user:Rate limit errors suck bro
+user:😭
+bot:
+Hi there! I'm sorry to hear that you're having trouble with our products. We strive to make sure that all of our products are of the highest quality and free of any bugs. If you're experiencing any rate limit errors, please let us know and we'll do our best to help you out. In the meantime, please don't hesitate to reach out to us if you have any other questions or concerns. Thanks for being a Toodles customer!
+user:Hi, can you tell me what is a 6 in 1 table
+user:Hi, can you tell me what is a 6 in 1 table
+user:Hi, can you tell me what is a 6 in 1 table
+bot:
+bot: Sure thing! Our 6 in 1 table is a multifunctional desk that can be transformed into 6 different functions. It can be used as a magnetic drawing easel, building block table, study desk with chair, water/sand sensory play, and a building block wall. It comes with a chair and 101 pieces of building blocks. It's perfect for ages 2-7 and is made of HDPE plastic.
+user:work now please
+bot:
+bot:No problem! What can I help you with?
+user:Okay now is the time
+bot:
+bot:Okay, what can I help you with?
+user:Enough of playing hehe
+bot:bot:
+
+bot:I'm sorry, I'm not sure I understand. Could you please rephrase your question?
+user:Rate limit errors suck bro
+user:Hi, can you tell me what is a 6 in 1 table
+user:Hi, can you tell me what is a 6 in 1 table
+user:Hi
+bot: Hi there! Yes, I can tell you about our 6 in 1 table. It's a multifunctional desk that can be transformed into 6 different functions! It can be used as a magnetic drawing easel, building block table, study desk with chair, water/sand sensory play, and building block wall. It comes with a chair and 101 pieces of building blocks. It's perfect for ages 2-7 and is made of HDPE plastic. Does that answer your question?
+user:What are you
+user:Hey what are organizers used for
+bot: Hey there! I'm Toodles, a friendly and sassy virtual assistant for our brand. I can answer any questions you have about our products. Organizers are used to help keep your space neat and tidy. They can be used to store toys, books, art supplies, and other items. Does that answer your question?
+user:No it doesn't, what else can you tell me about it
+bot: Sure! Our organizers are designed to be both aesthetically pleasing and functional. They are made of high quality HDPE plastic, with rounded edges for safety. They are also designed to help encourage independence and free play in children. Our space themed organizer also has a push-around cart that your child can use to move things around. Does that help?
+user:What else can it do
+user:Can you answer this?
+bot: Absolutely! Our organizers are multifunctional and can be used for a variety of activities. They can be used for sensory activities, pretend play, and even as a desk for studying. They also come with 5 drawers and 3 closed shelves, so you can store a lot of items in them. Does that answer your question?
+user:What else can it do
+bot:Our organizers can also be used as a building block table, a whiteboard easel, and a building block wall. They come with a chair, so your child can use it as a study desk. Additionally, our space themed organizer has a push-around cart that your child can use to move things around. Does that help?
+user:Rate limit errors suck bro
+bot:I'm sorry to hear that! Unfortunately, I'm not able to help you with rate limit errors. However, if you have any questions about our products, I'd be happy to answer them!
+user:Hi, can you tell me what is a 6 in 1 table
+bot:Sure! Our 6 in 1 table is a multifunctional desk that can be transformed into 6 different functions. It can be used as a magnetic drawing easel, a building block table, a study desk with a chair, a water/sand sensory play table, and a building block wall. It's perfect for children aged 2-7 and comes with 101 building blocks. Does that answer your question?
+user:Hi, can you tell me what is a 6 in 1 table
+bot:Sure! Our 6 in 1 table is a multifunctional desk that can be transformed into 6 different functions. It can be used as a magnetic drawing easel, a building block table, a study desk with a chair, a water/sand sensory play table, and a building block wall. It's perfect for children aged 2-7 and comes with 101 building blocks. Does that answer your question?
+user:What are you
+bot:I'm Toodles, a friendly and sassy virtual assistant for the Toodles brand! We are a kid’s furniture brand and our products are aesthetic, multifunctional and encourage independence and free play. I'm here to answer any questions you may have about our products.
+user:Hakuna Matata
+bot:Hakuna Matata is a Swahili phrase meaning "no worries". It's a great way to stay positive and enjoy life!

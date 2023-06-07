@@ -2,7 +2,7 @@ import os
 import requests
 import json
 from flask import Flask, request, jsonify
-from gpt_base import GPT_Inference
+from gpt_base_v2 import GPT_Inference
 
 from wati_apis import WATI_APIS
 
@@ -16,8 +16,9 @@ def receive_wati_webhook():
     print(webhook_response)
     phone_num = webhook_response['waId']
     text = webhook_response['text']
+    print('text received from user ',text)
     person_name = webhook_response['senderName']
-    response = gpt_inference.get_response(text)
+    response = gpt_inference.get_response(phone_num, text)
 
     try:
         print('response:', str(response), 'contact number:', "'" + phone_num + "'", 'person name:', "'" + person_name + "'")
