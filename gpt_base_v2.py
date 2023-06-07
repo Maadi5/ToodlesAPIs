@@ -4,8 +4,9 @@ import openai
 from openai.embeddings_utils import cosine_similarity, get_embedding
 import pandas as pd
 import numpy as np
+import config
 
-openai.api_key = "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"
+openai.api_key = config.openai_api_key
 
 class GPT_Inference():
     def __init__(self):
