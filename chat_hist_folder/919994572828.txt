@@ -1,0 +1,11 @@
+user:Hi
+user:Hello
+bot:Hello there! How can I help you today?
+user:Who are you
+bot:I'm a chatbot from The Reading Cubs. We specialize in creating corners and spaces for kids. How can I help you today?
+user:Can you tell me more about it
+bot:Sure! We offer a range of products that can help you create the perfect corner or space for your child. Our products include 6-in-1 Super Desk, Car shaped organizer, Bus shaped organizer, Dog shaped organizer, Carrot-Shaped Bookshelf, Kids chair, 3-in-1 Functionality Desk with Drawing and Bookshelf, Hippo Table, Step stool, and Kids art easel. Is there anything specific you'd like to know?
+user:How are you different from other brands
+bot:At Miniture, we believe that every child deserves a space to grow, play, and dream big. We understand that modern parents face the challenge of creating a fun and functional environment for their little ones, without compromising on style or space. Our goal is to make interactive and space-efficient furniture accessible to all Indian parents of tomorrow. We know that you want the best for your child, and that's why we focus on creating multifunctional pieces that not only look great but also provide maximum value for your investment. Made out of high-density polyethylene (HDPE), our furniture is not only stable and highly durable but also lets parents create a safe and eco-friendly environment for their children. Do you have any other questions?
+user:How safe is your product
+bot:Yes, shopping on our website is completely safe. We use industry-standard encryption technology to protect your personal information and ensure secure transactions. Additionally, all our products are child safe and made out of high-density polyethylene (HDPE) which is highly durable and stable. Do you have any other questions?

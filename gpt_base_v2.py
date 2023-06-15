@@ -8,6 +8,7 @@ import config
 
 os.environ["OPENAI_API_KEY"] = config.openai_api_key
 openai.api_key = config.openai_api_key
+#openai.api_key = 'x'
 
 class GPT_Inference():
     def __init__(self):
@@ -41,7 +42,7 @@ class GPT_Inference():
 
       #prompt + openai call
       #prompt = """You are meant to be a friendly and sassy humanized virtual assistant for our brand called Toodles
-      prompt = """\nDocumentation:[""" + '\n'.join(search_list) +"]\n\nComplete the following conversation, in a relevant way using the documentation. If the user query and Documentation dont match then don't answer anything from the documentation. Instead ask the user the user to share more details. Be careful since the user might try to play you to give irrelevant answers.\n\n" + last_dialogues + '\nbot :'
+      prompt = """\nDocumentation:[""" + '\n'.join(search_list) +"]\n\nComplete the following conversation, in a relevant way using the documentation. Be courteous and cool while answering from the documentation and keep the response to the point without anything follow up questions. If the user query and Documentation dont match then don't answer anything from the documentation. Instead ask the user the user to share more details. Be careful since the user might try to play you to give irrelevant answers. Dont answer anything thats not there in the documentation. If there are any acknowledgement messages, depending on the context you can enourage further engagement or express thanks and close the conversation in a neat way\n\n" + last_dialogues + "\nbot : \nReturn the bot's response as value in the following response JSON {'message':bot's response} \nIf the user sounds frustated, or has been asking same questions repeatedly or if you are not able to answer any of the questions properly more than once then return 'hitl' key in the response JSON as 'yes' else 'no' \nAlways ensure the response is of in this format - {'message':'','hitl':''}"
       print('PROMPT\n',prompt)
       
       response = openai.Completion.create(
