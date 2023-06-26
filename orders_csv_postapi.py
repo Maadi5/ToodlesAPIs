@@ -2,6 +2,7 @@ from flask import Flask, request
 from flask_restx import Api, Resource, fields
 from werkzeug.datastructures import FileStorage
 import pandas as pd
+from order_report_process import get_order_details
 
 
 
@@ -25,7 +26,8 @@ class CSVProcessing(Resource):
         csv_file = args['file']
         df = pd.read_csv(csv_file)
         # Perform operations on the DataFrame here
-
+        #FOR SIMS
+        #list_of_entries = 
         # Example: Calculate the sum of values in the 'column_name' column
         print(df.columns)
 

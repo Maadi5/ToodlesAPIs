@@ -432,3 +432,11 @@ user:Yes which date
 bot:
 
 {'message':'Your order was dispatched on [date]. Please contact us if you have any further queries.','hitl':'no'}
+user:Hi
+bot:
+
+{'message':'Hello! How can I help you?','hitl':'no'}
+user:Hello
+bot:
+
+{'message':'Hello! How can I help you?','hitl':'no'}

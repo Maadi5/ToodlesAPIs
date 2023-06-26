@@ -71,7 +71,8 @@ class GPT_Inference():
             with open(filepath, "r") as file:
                 lines = file.readlines()
                 last_dialogues = lines[-6:]  # Retrieve last 3 dialogues for both user and bot, or all available dialogues if less than 3
-                
+                print('last_dialogues in get_response function',last_dialogues)
+
                 # Extract user and bot dialogues
                 user_dialogues = [dialogue.strip() for dialogue in last_dialogues if dialogue.startswith("user:")]
                 bot_dialogues = [dialogue.strip() for dialogue in last_dialogues if dialogue.startswith("bot:")]
