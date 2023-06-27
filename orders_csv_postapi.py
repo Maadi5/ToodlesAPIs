@@ -6,6 +6,7 @@ import os
 from order_report_process import get_order_details
 from email_sender import send_dispatch_email
 from wati_apis import WATI_APIS
+import traceback
 
 
 wati = WATI_APIS()
@@ -29,7 +30,7 @@ class CSVProcessing(Resource):
         csv_file = args['file']
         df = pd.read_csv(csv_file)
         to_be_pushed = get_order_details(df)
-        trackerdf = pd.read_csv(os.path.join(os.get_cwd(), 'order_tracker.csv'))
+        trackerdf = pd.read_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index_col=False)
 
         statuses = []
 
@@ -42,8 +43,8 @@ class CSVProcessing(Resource):
                 awb = row['awb']
                 ## send template message
                 try:
-                    custom_params=[{'name': 'awb', 'value': awb}]
-                    status = wati.send_template_message(contact_name=name, template_name='order_dispatched_with_awb', 
+                    custom_params=[{'name': 'awb_number', 'value': awb}]
+                    status = wati.send_template_message(contact_name=name, contact_number= phone_num, template_name='order_dispatched_with_awb',
                                             custom_params=custom_params)
                     if not status:
                         trackerdf[trackerdf['unique_id'] == id]['whatsapp_status'] = 'Failure'
@@ -54,6 +55,7 @@ class CSVProcessing(Resource):
                 except:
                     trackerdf[trackerdf['unique_id'] == id]['whatsapp_status'] = 'Failure_exception'
                     wa_status = 'Failure_exception'
+                    print('whatsapp failed: ', traceback.format_exc())
                 
                 ## send email
                 try:
@@ -63,12 +65,13 @@ class CSVProcessing(Resource):
                 except:
                     trackerdf[trackerdf['unique_id'] == id]['email_status'] = 'Failure_exception'
                     email_status = 'Failure_exception'
+                    print('email failed: ', traceback.format_exc())
                 statuses.append({'id': id, 'email_status': email_status, 'wa_status': wa_status})
             except:
-                trackerdf.to_csv(os.path.join(os.get_cwd(), 'order_tracker.csv'))
+                trackerdf.to_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index = False)
             
 
-        trackerdf.to_csv(os.path.join(os.get_cwd(), 'order_tracker.csv'))
+        trackerdf.to_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index= False)
 
 
         return statuses
