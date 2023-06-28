@@ -4,8 +4,8 @@ import pandas as pd
 
 def get_order_details(df):
     if not os.path.exists(os.path.join(os.getcwd(), 'order_tracker.csv')):
-        tracker_df = pd.DataFrame({'unique_id': [], 'name': [], 'phone_num': [], 'email_id': [], 'awb': [], 
-                                   'email_status': [], 'whatsapp_status': []})
+        tracker_df = pd.DataFrame({'unique_id': [], 'name': [], 'phone_num': [], 'email_id': [], 'awb': [], 'sku': [], 
+                                   'email_status': [], 'whatsapp_status': [], 'usermanual_whatsapp_status': [], 'usermanual_email_status': []})
         new_ids = set(df['Order Id'])
     else:
         tracker_df = pd.read_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index_col = False)
@@ -25,6 +25,7 @@ def get_order_details(df):
             dfdict['email_id'] = str(row['Customer Email'])
             dfdict['phone_num'] = phone_num
             dfdict['awb'] = str(row['Courier Tracking Number'])
+            dfdict['sku'] = str(row['SKU Codes'])
             to_be_pushed.append(dfdict)
             dfdict['email_status'] = ''
             dfdict['whatsapp_status'] = ''

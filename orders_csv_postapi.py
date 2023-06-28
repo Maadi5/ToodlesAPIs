@@ -7,6 +7,7 @@ from order_report_process import get_order_details
 from email_sender import send_dispatch_email
 from wati_apis import WATI_APIS
 import traceback
+from product_manual_map import get_product_name_manual
 
 
 wati = WATI_APIS()
@@ -37,6 +38,7 @@ class CSVProcessing(Resource):
         for idx, row in to_be_pushed.iterrows():
             try:
                 id = row['unique_id']
+                sku = row['sku']
                 email = row['email_id']
                 phone_num = row['phone_num']
                 name = row['name']
@@ -56,6 +58,24 @@ class CSVProcessing(Resource):
                     trackerdf[trackerdf['unique_id'] == id]['whatsapp_status'] = 'Failure_exception'
                     wa_status = 'Failure_exception'
                     print('whatsapp failed: ', traceback.format_exc())
+
+                # ## send manual pdf
+                # try:
+                #     product_name, product_manual = get_product_name_manual(sku=sku)
+                #     custom_params=[{'name': 'product_name', 'value': str(product_name)},
+                #                    {'name': 'media_url', 'value': str(product_manual)}]
+                #     status = wati.send_template_message(contact_name=name, contact_number= phone_num, 
+                #     template_name='product_instructions_short_manual',custom_params=custom_params)
+                #     if not status:
+                #         trackerdf[trackerdf['unique_id'] == id]['usermanual_whatsapp_status'] = 'Failure'
+                #         wa_manual_status = 'Failure'
+                #     else:
+                #         trackerdf[trackerdf['unique_id'] == id]['usermanual_whatsapp_status'] = 'Success'
+                #         wa_manual_status = 'Success'
+                # except:
+                #     trackerdf[trackerdf['unique_id'] == id]['usermanual_whatsapp_status'] = 'Failure_exception'
+                #     wa_manual_status = 'Failure_exception'
+                #     print('whatsapp usermanual failed: ', traceback.format_exc())
                 
                 ## send email
                 try:
@@ -66,7 +86,8 @@ class CSVProcessing(Resource):
                     trackerdf[trackerdf['unique_id'] == id]['email_status'] = 'Failure_exception'
                     email_status = 'Failure_exception'
                     print('email failed: ', traceback.format_exc())
-                statuses.append({'id': id, 'email_status': email_status, 'wa_status': wa_status})
+                statuses.append({'id': id, 'email_status': email_status, 'wa_status': wa_status, 
+                'wa_manual_status': wa_manual_status})
             except:
                 trackerdf.to_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index = False)
             
