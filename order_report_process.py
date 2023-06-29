@@ -29,6 +29,8 @@ def get_order_details(df):
             to_be_pushed.append(dfdict)
             dfdict['email_status'] = ''
             dfdict['whatsapp_status'] = ''
+            dfdict['usermanual_email_status'] = ''
+            dfdict['usermanual_whatsapp_status'] = ''
             trackerdf.append(dfdict)
     del df
     to_be_pushed_df = pd.DataFrame(to_be_pushed)
@@ -37,6 +39,9 @@ def get_order_details(df):
     del trackerdf
     tracker_df.to_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index = False)
     return to_be_pushed_df
+
+# def create_zoho_invoice_csv(df):
+    
 
 
         
