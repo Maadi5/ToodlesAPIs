@@ -2,6 +2,8 @@ import os
 import json
 import pandas as pd 
 
+state_code_map = json.load(open(os.path.join(os.getcwd(), 'state_code_map.json'), encoding='utf8'))
+
 def get_order_details(df):
     if not os.path.exists(os.path.join(os.getcwd(), 'order_tracker.csv')):
         tracker_df = pd.DataFrame({'unique_id': [], 'name': [], 'phone_num': [], 'email_id': [], 'awb': [], 'sku': [], 
