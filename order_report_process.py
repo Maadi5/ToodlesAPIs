@@ -35,9 +35,10 @@ def get_order_details(df):
     del df
     to_be_pushed_df = pd.DataFrame(to_be_pushed)
     del to_be_pushed
-    tracker_df = pd.DataFrame(trackerdf)
+    tracker_df_new = pd.DataFrame(trackerdf)
     del trackerdf
-    tracker_df.to_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index = False)
+    updated_tracker_df = pd.concat([tracker_df, tracker_df_new])
+    updated_tracker_df.to_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index = False)
     return to_be_pushed_df
 
 # def create_zoho_invoice_csv(df):

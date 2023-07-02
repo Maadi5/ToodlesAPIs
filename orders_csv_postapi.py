@@ -4,7 +4,7 @@ from werkzeug.datastructures import FileStorage
 import pandas as pd
 import os
 from order_report_process import get_order_details
-from email_sender import send_dispatch_email, send_usermanual_email, send_dispatch_usermanual_email
+from email_sender import send_dispatch_email, send_usermanual_email, send_dispatch_usermanual_email, send_sales_report
 from wati_apis import WATI_APIS
 import traceback
 from product_manual_map import get_product_name_manual
@@ -96,6 +96,18 @@ class CSVProcessing(Resource):
                         email_status = 'Failure_exception'
                         print('email failed: ', traceback.format_exc())
 
+                    ## send csv email
+                    try:
+                        status = send_sales_report(name= name, to_address= email, csvfile= os.path.join(os.getcwd(), 'order_tracker.csv'))
+                        # idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
+                        # trackerdf.at[idx, 'email_status'] = status
+                        # email_status = status
+                    except:
+                        # idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
+                        # trackerdf.at[idx, 'email_status'] = 'Failure_exception'
+                        # email_status = 'Failure_exception'
+                        print('email csv failed: ', traceback.format_exc())
+
                     # ## send manual email
                     # try:
                     #     status = send_usermanual_email(name= name, to_address= email, product_name=product_name, product_manual_link= product_manual)
@@ -110,12 +122,12 @@ class CSVProcessing(Resource):
                 except:
                     print(traceback.format_exc())
                     statuses.append({'id': id, 'email_status': 'Failure', 'wa_status': 'Failure'})
-                    trackerdf_original = pd.read_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index_col = False)
-                    trackerdf = pd.concat([trackerdf_original,trackerdf])
+                    #trackerdf_original = pd.read_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index_col = False)
+                    #trackerdf = pd.concat([trackerdf_original,trackerdf])
                     # trackerdf.to_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index = False)
             
-            trackerdf_original = pd.read_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index_col = False)
-            trackerdf = pd.concat([trackerdf_original,trackerdf])
+            #trackerdf_original = pd.read_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index_col = False)
+            #trackerdf = pd.concat([trackerdf_original,trackerdf])
             trackerdf.to_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index = False)
 
             return statuses

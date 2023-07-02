@@ -3,6 +3,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import config
 from datetime import datetime as d
+import mimetypes
 
 def send_email(message, subject, to_address):
     sender_email = 'toodlesims@gmail.com'
@@ -182,8 +183,8 @@ def send_sales_report(name, to_address, csvfile):
         attachment.set_payload(fp.read())
         fp.close()
         encoders.encode_base64(attachment)
-    attachment.add_header("Content-Disposition", "attachment", filename=zoho_csv)
-    msg.attach(attachment)
+    attachment.add_header("Content-Disposition", "attachment", filename=csvfile)
+    email_message.attach(attachment)
 
     smtp_server = 'smtp.gmail.com'
     smtp_port = 587
