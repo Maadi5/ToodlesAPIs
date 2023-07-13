@@ -6,8 +6,8 @@ state_code_map = json.load(open(os.path.join(os.getcwd(), 'state_code_map.json')
 
 def get_order_details(df):
     if not os.path.exists(os.path.join(os.getcwd(), 'order_tracker.csv')):
-        tracker_df = pd.DataFrame({'unique_id': [], 'name': [], 'phone_num': [], 'email_id': [], 'awb': [], 'sku': [], 
-                                   'email_status': [], 'whatsapp_status': [], 'usermanual_whatsapp_status': [], 
+        tracker_df = pd.DataFrame({'unique_id': [], 'name': [], 'phone_num': [], 'email_id': [], 'awb': [], 'sku': [],
+                                    'pincode': [],'state' = [], 'city' = [], 'email_status': [], 'whatsapp_status': [], 'usermanual_whatsapp_status': [], 
                                    'usermanual_email_status': [],'awb_message_timestamp': [], 'usermanual_message_timestamp': []})
         new_ids = set(df['Order Id'])
     else:
@@ -29,6 +29,9 @@ def get_order_details(df):
             dfdict['phone_num'] = phone_num
             dfdict['awb'] = str(row['Courier Tracking Number'])
             dfdict['sku'] = str(row['SKU Codes'])
+            dfdict['pincode'] = str(row['Pincode'])
+            dfdict['state'] = str(row['State'])
+            dfdict['city'] = str(row['City'])
             to_be_pushed.append(dfdict)
             dfdict['email_status'] = ''
             dfdict['whatsapp_status'] = ''

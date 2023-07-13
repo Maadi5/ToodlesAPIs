@@ -88,8 +88,7 @@ class CSVProcessing(Resource):
                     
                     ## send email
                     try:
-                        status = send_dispatch_email(name= name, to_address= email, product_name=product_name, 
-                                                    product_manual_link= product_manual, awb_number=awb)
+                        status = send_dispatch_email(name= name, to_address= email,awb_number=awb)
                         idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
                         trackerdf.at[idx, 'email_status'] = status
                         trackerdf.at[idx, 'awb_message_timestamp'] = time.time()
