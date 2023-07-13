@@ -6,7 +6,7 @@ from datetime import datetime as d
 import mimetypes
 
 def send_email(message, subject, to_address):
-    sender_email = 'toodlesims@gmail.com'
+    sender_email = 'operations@toodles.in'
     sender_password = config.gmail_key
 
     #message object
@@ -32,23 +32,23 @@ def send_email(message, subject, to_address):
     smtp_connection.quit()
 
 def send_dispatch_email(name, awb_number, to_address):
-    sender_email = 'toodlesims@gmail.com'
+    sender_email = 'operations@toodles.in'
     sender_password = config.gmail_key
 
     email_message = MIMEMultipart()
     email_message['From'] = sender_email
     email_message['To'] = to_address
-    email_message['Subject'] = 'Toodles: Your order is dispatched!'
+    email_message['Subject'] = 'Toodles: Track your product'
 
-    message = 'Hi ' + name + '!\n' + \
-              "We're thrilled to inform you that your long-awaited pre-ordered Toodles furniture is now ready to be dispatched!✨\n\n" + \
+    message = '<html><body><div style="font-family:verdana;overflow:auto"><p>Hi ' + name + '!\n' + \
+              "We're thrilled to inform you that your Toodles furniture is now ready to be dispatched!✨\n\n" + \
               "Here's the Bluedart tracking number for your order: " + awb_number + '\n' + \
               '(You can track your order at https://www.bluedart.com/tracking)\n'  + '\n' + \
               'If you have any questions or need further assistance, feel free to reach out to our customer support team.\n' + \
               'Thank you for choosing Toodles :)\n' + '\n' + \
-              'Yours truly,\n' + 'Team Toodles'
+              'Yours truly,\n' + 'Team Toodles</p></div></body></html>'
 
-    email_message.attach(MIMEText(message, 'plain'))
+    email_message.attach(MIMEText(message, 'html'))
 
     smtp_server = 'smtp.gmail.com'
     smtp_port = 587
@@ -66,7 +66,7 @@ def send_dispatch_email(name, awb_number, to_address):
         return "Failure"
 
 def send_usermanual_email(name, product_name, product_manual_link, to_address):
-    sender_email = 'toodlesims@gmail.com'
+    sender_email = 'operations@toodles.in'
     sender_password = config.gmail_key
 
     email_message = MIMEMultipart()
@@ -106,7 +106,7 @@ def send_usermanual_email(name, product_name, product_manual_link, to_address):
         return "Failure"
 
 def send_dispatch_usermanual_email(name, product_name, product_manual_link, to_address, awb_number):
-    sender_email = 'toodlesims@gmail.com'
+    sender_email = 'operations@toodles.in'
     sender_password = config.gmail_key
 
     email_message = MIMEMultipart()
@@ -143,13 +143,13 @@ def send_dispatch_usermanual_email(name, product_name, product_manual_link, to_a
 
 
 
-def send_sales_report(name, to_address, csvfile):
-    sender_email = 'toodlesims@gmail.com'
+def send_sales_report(name, csvfile):
+    sender_email = 'operations@toodles.in'
     sender_password = config.gmail_key
 
     email_message = MIMEMultipart()
     email_message['From'] = sender_email
-    email_message['To'] = to_address
+    email_message['To'] = sender_email
     date_time = d.now()
     date_time = date_time.strftime("%d/%m/%Y")
     email_message['Subject'] = 'Daily Order Report for ' + str(date_time)

@@ -8,6 +8,7 @@ from email_sender import send_dispatch_email, send_usermanual_email, send_dispat
 from wati_apis import WATI_APIS
 import traceback
 from product_manual_map import get_product_name_manual
+import time
 
 
 wati = WATI_APIS()
@@ -59,6 +60,7 @@ class CSVProcessing(Resource):
                             idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
                             print('idx: ', idx)
                             trackerdf.at[idx, 'whatsapp_status'] = 'Success'
+                            trackerdf.at[idx, 'awb_message_timestamp'] = time.time()
                             wa_status = 'Success'
                     except:
                         idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
@@ -86,9 +88,11 @@ class CSVProcessing(Resource):
                     
                     ## send email
                     try:
-                        status = send_dispatch_usermanual_email(name= name, to_address= email, product_name=product_name, product_manual_link= product_manual, awb_number=awb)
+                        status = send_dispatch_email(name= name, to_address= email, product_name=product_name, 
+                                                    product_manual_link= product_manual, awb_number=awb)
                         idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
                         trackerdf.at[idx, 'email_status'] = status
+                        trackerdf.at[idx, 'awb_message_timestamp'] = time.time()
                         email_status = status
                     except:
                         idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]

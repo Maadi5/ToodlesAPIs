@@ -7,7 +7,8 @@ state_code_map = json.load(open(os.path.join(os.getcwd(), 'state_code_map.json')
 def get_order_details(df):
     if not os.path.exists(os.path.join(os.getcwd(), 'order_tracker.csv')):
         tracker_df = pd.DataFrame({'unique_id': [], 'name': [], 'phone_num': [], 'email_id': [], 'awb': [], 'sku': [], 
-                                   'email_status': [], 'whatsapp_status': [], 'usermanual_whatsapp_status': [], 'usermanual_email_status': []})
+                                   'email_status': [], 'whatsapp_status': [], 'usermanual_whatsapp_status': [], 
+                                   'usermanual_email_status': [],'awb_message_timestamp': [], 'usermanual_message_timestamp': []})
         new_ids = set(df['Order Id'])
     else:
         tracker_df = pd.read_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index_col = False)
@@ -33,6 +34,8 @@ def get_order_details(df):
             dfdict['whatsapp_status'] = ''
             dfdict['usermanual_email_status'] = ''
             dfdict['usermanual_whatsapp_status'] = ''
+            dfdict['awb_message_timestamp'] = ''
+            dfdict['usermanual_message_timestamp'] = ''
             trackerdf.append(dfdict)
     del df
     to_be_pushed_df = pd.DataFrame(to_be_pushed)
@@ -44,7 +47,33 @@ def get_order_details(df):
     return to_be_pushed_df
 
 # def create_zoho_invoice_csv(df):
-    
+#     bt_zoho_field_map = {'Order Id':'PurchaseOrder',
+#                    'Customer Name':'Customer Name',
+#                    'State':'Place of Supply',
+#                    'Item Titles': 'Item Name',
+#                    'Quantity': 'Quantity',
+#                    'SKU Codes': 'SKU',
+#                    'HSN Code': 'HSN/SAC',
+#                    'Item Total': 'Item Price',
+#                    'Item Total Discount Value':'Discount Amount',
+#                    'Net Shipping':'Shipping Charge',
+#                    }
+#     bt_zoho_static_vals = {'Invoice Status': 'Overdue',
+#                            'Currency Code': 'INR',
+#                            'GST Treatment': 'consumer',
+#                            'Discount Type': 'item_level',
+#                            'Is Discount Before Tax': 'FALSE',
+#                            'GST Identification Number (GSTIN)': '',
+#                            'Item Type': 'goods',
+#                            'Usage unit': 'count',
+#                            'Is Inclusive Tax': 'TRUE',
+#                            'Item Tax': 'GST18',
+#                            'Item Tax Type': 'Tax Group',
+#                            'Item Tax %': '18%',
+#                            'Supply Type': 'Taxable',
+#                            'Account': 'Sales',
+#                            'Template Name': 'Spreadsheet Template',
+#                            }
 
 
         
