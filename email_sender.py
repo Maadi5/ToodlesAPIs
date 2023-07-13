@@ -40,13 +40,13 @@ def send_dispatch_email(name, awb_number, to_address):
     email_message['To'] = to_address
     email_message['Subject'] = 'Toodles: Track your product'
 
-    message = '<html><body><div style="font-family:verdana;overflow:auto"><p>Hi ' + name + '!\n' + \
+    message = '<html><body><div style="font-family:verdana;overflow:auto"><p><pre>Hi ' + name + '!\n' + \
               "We're thrilled to inform you that your Toodles furniture is now ready to be dispatched!✨\n\n" + \
               "Here's the Bluedart tracking number for your order: " + awb_number + '\n' + \
               '(You can track your order at https://www.bluedart.com/tracking)\n'  + '\n' + \
               'If you have any questions or need further assistance, feel free to reach out to our customer support team.\n' + \
               'Thank you for choosing Toodles :)\n' + '\n' + \
-              'Yours truly,\n' + 'Team Toodles</p></div></body></html>'
+              'Yours truly,\n' + 'Team Toodles</pre></p></div></body></html>'
 
     email_message.attach(MIMEText(message, 'html'))
 

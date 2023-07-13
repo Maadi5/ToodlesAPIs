@@ -49,7 +49,7 @@ class CSVProcessing(Resource):
                     ## send template message
                     try:
                         custom_params=[{'name': 'awb_number', 'value': awb}]
-                        status = wati.send_template_message(contact_name=name, contact_number= phone_num, template_name='order_dispatched_with_awb',
+                        status = wati.send_template_message(contact_name=name, contact_number= phone_num, template_name='order_dispatched_with_awb2',
                                                 custom_params=custom_params)
                         if not status:
                             idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]

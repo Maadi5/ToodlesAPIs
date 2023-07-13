@@ -4,6 +4,10 @@ import time
 import pandas as pd
 from product_manual_map import get_product_name_manual
 import traceback
+from email_sender import send_usermanual_email
+from wati_apis import WATI_APIS
+
+wati = WATI_APIS()
 
 def job():
     trackerdf = pd.read_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index_col=False)
@@ -11,6 +15,12 @@ def job():
     bluedart_approx_csv = pd.read_csv(os.path.join(os.getcwd(), 'approx_delivery_times.csv'), index_col=False)
     trackerdf.fillna('', inplace=True)
     for idx, row in trackerdf.iterrows():
+        id = row['unique_id']
+        name = row['name']
+        email = row['email_id']
+        sku = row['sku']
+        phone_num = row['phone_num']
+        product_name, product_manual = get_product_name_manual(sku=sku)
         if row['usermanual_whatsapp_status'] == '' or row['usermanual_whatsapp_status'] == 'Failure_exception':
             try:
                 approx_time = list(bluedart_csv[bluedart_csv['Pincode'] == row['pincode']]['TAT'])[0]
@@ -36,45 +46,47 @@ def job():
                 timediff_in_days = 1
             
             ##Time logic on when to send user manuals
-            if timediff_in_days>= (approx_time_in_days/2):
+            if timediff_in_days>= (approx_time_in_days/2) or True:
             ## send manual pdf whatsapp
+                print('entering if loop')
                 try:  
                     custom_params=[{'name': 'product_name', 'value': str(product_name)},
                                 {'name': 'media_url', 'value': str(product_manual)}]
                     status = wati.send_template_message(contact_name=name, contact_number= phone_num, 
                     template_name='product_instructions_short_manual',custom_params=custom_params)
+                    print('Status of whatsapp: ', status)
                     if not status:
-                        trackerdf[trackerdf['unique_id'] == row['unique_id']]['usermanual_whatsapp_status'] = 'Failure'
+                        trackerdf.at[idx, 'usermanual_whatsapp_status'] = 'Failure'
                         wa_manual_status = 'Failure'
                     else:
-                        trackerdf[trackerdf['unique_id'] == row['unique_id']]['usermanual_whatsapp_status'] = 'Success'
+                        trackerdf.at[idx, 'usermanual_whatsapp_status'] = 'Success'
                         wa_manual_status = 'Success'
                 except:
-                    trackerdf[trackerdf['unique_id'] == row['unique_id']]['usermanual_whatsapp_status'] = 'Failure_exception'
+                    trackerdf.at[idx, 'usermanual_whatsapp_status'] = 'Failure_exception'
                     wa_manual_status = 'Failure_exception'
                     print('whatsapp usermanual failed: ', traceback.format_exc())
                 
-            ##send manual email
-            if row['usermanual_email_status'] == '' or row['usermanual_email_status'] == 'Failure_exception':
-                try:
-                    sku = row['sku']
-                    product_name, product_manual = get_product_name_manual(sku=sku)
-                    status = send_usermanual_email(name= name, to_address= email, product_name=product_name, 
-                                                product_manual_link= product_manual)
-                    idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
-                    trackerdf.at[idx, 'usermanual_email_status'] = status
-                    email_status = status
-                except:
-                    idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
-                    trackerdf.at[idx, 'usermanual_email_status'] = 'Failure_exception'
-                    email_status = 'Failure_exception'
-                    print('email failed: ', traceback.format_exc())
+                ##send manual email
+                if row['usermanual_email_status'] == '' or row['usermanual_email_status'] == 'Failure_exception':
+                    try:
+                        status = send_usermanual_email(name= name, to_address= email, product_name=product_name, 
+                                                    product_manual_link= product_manual)
+                        idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
+                        trackerdf.at[idx, 'usermanual_email_status'] = status
+                        email_status = status
+                    except:
+                        
+                        idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
+                        trackerdf.at[idx, 'usermanual_email_status'] = 'Failure_exception'
+                        email_status = 'Failure_exception'
+                        print('email failed: ', traceback.format_exc())
 
     print("This is a cron job!")
 
-# Schedule the job to run every day at 8:00 AM
-schedule.every().day.at("17:00").do(job)
+# # Schedule the job to run every day at 8:00 AM
+# schedule.every().day.at("17:00").do(job)
 
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+# while True:
+#     schedule.run_pending()
+#     time.sleep(1)
+job()
