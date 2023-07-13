@@ -1,6 +1,7 @@
 import os
 import pandas as pd
-import json 
+import json
+import os
 
 product_manual_csv = pd.read_csv(os.path.join(os.getcwd(), 'product_manual_links_updated.csv'))
 
