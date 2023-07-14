@@ -84,7 +84,7 @@ def send_usermanual_email(name, product_name, product_manual_link, to_address):
     message_html = '<body style=”font-family: Georgia !important;”><pre>Hi ' + name + '!\n' + \
             "We're excited to help you assemble your kid's new furniture with ease.\n" + \
             'Please find the user manual for your product with step-be-step assembly instructions here: <a href="' + product_manual_link + '">click here</a>\n' + \
-            "If you have any questions, please don't hesitate to reach out to us. We're here to help! 📞\n" + \
+            "If you have any questions, please reply to this email. We're here to help! 📞\n" + \
             'We hope you and your little one enjoy your new '+ product_name + '. \n' + '\n' + \
             'Yours truly,\n' + 'Team Toodles</pre></body>'
 
