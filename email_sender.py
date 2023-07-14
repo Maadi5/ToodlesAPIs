@@ -72,7 +72,7 @@ def send_usermanual_email(name, product_name, product_manual_link, to_address):
     email_message = MIMEMultipart()
     email_message['From'] = sender_email
     email_message['To'] = to_address
-    email_message['Subject'] = 'Toodles: Your order is dispatched!'
+    email_message['Subject'] = 'Toodles: ' + product_name + '- Assembly Guide'
 
     message = 'Hi ' + name + '!\n' + \
               "We're excited to help you assemble your kid's new furniture with ease.\n" + \
