@@ -46,7 +46,7 @@ def job():
                 timediff_in_days = 1
             
             ##Time logic on when to send user manuals
-            if timediff_in_days>= (approx_time_in_days/2) or True:
+            if timediff_in_days>= (approx_time_in_days/2): # or True:
             ## send manual pdf whatsapp
                 print('entering if loop')
                 try:  
@@ -83,10 +83,10 @@ def job():
 
     print("This is a cron job!")
 
-# # Schedule the job to run every day at 8:00 AM
-# schedule.every().day.at("17:00").do(job)
+# Schedule the job to run every day at 4:40pm (test)
+schedule.every().day.at("13:00").do(job)
 
-# while True:
-#     schedule.run_pending()
-#     time.sleep(1)
-job()
+while True:
+    schedule.run_pending()
+    time.sleep(1)
+# job()

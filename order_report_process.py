@@ -19,7 +19,7 @@ def get_order_details(df):
     trackerdf = []
     for idx, row in df.iterrows():
         dfdict = {}
-        if row['Order Id'] in new_ids:
+        if row['Order Id'] in new_ids and row['Fulfillment Status'] != 'cancelled':
             phone_num = ''.join(''.join(str(row['Phone']).split(' ')).split('+'))
             phone_num = '91' + phone_num if len(phone_num)!=12 else phone_num
             print('processed phone num: ', phone_num)
