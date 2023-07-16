@@ -143,7 +143,7 @@ def send_dispatch_usermanual_email(name, product_name, product_manual_link, to_a
 
 
 
-def send_sales_report(name, csvfile):
+def send_csv(csvfile, subject='order_report'):
     sender_email = 'operations@toodles.in'
     sender_password = config.gmail_key
 
@@ -152,10 +152,13 @@ def send_sales_report(name, csvfile):
     email_message['To'] = sender_email
     date_time = d.now()
     date_time = date_time.strftime("%d/%m/%Y")
-    email_message['Subject'] = 'Daily Order Report for ' + str(date_time)
+    if subject == 'order_report':
+        email_message['Subject'] = 'Daily Order Report for ' + str(date_time)
+    elif subject == 'incomplete_orders':
+        email_message['Subject'] = 'Incomplete Orders for ' + str(date_time)
 
     
-    message = 'PFA Daily Order Report'
+    message = 'PFA Daily Report'
 
     email_message.attach(MIMEText(message, 'text'))
     ctype, encoding = mimetypes.guess_type(csvfile)

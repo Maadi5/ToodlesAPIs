@@ -17,9 +17,10 @@ def get_order_details(df):
     
     to_be_pushed = []
     trackerdf = []
+    incomplete_orders = []
     for idx, row in df.iterrows():
         dfdict = {}
-        if row['Order Id'] in new_ids and row['Fulfillment Status'] != 'cancelled':
+        if row['Order Id'] in new_ids and row['Fulfillment Status'] in {'shipped', 'delivered'}:
             phone_num = ''.join(''.join(str(row['Phone']).split(' ')).split('+'))
             phone_num = '91' + phone_num if len(phone_num)!=12 else phone_num
             print('processed phone num: ', phone_num)
@@ -40,6 +41,11 @@ def get_order_details(df):
             dfdict['awb_message_timestamp'] = ''
             dfdict['usermanual_message_timestamp'] = ''
             trackerdf.append(dfdict)
+
+        if row['Fulfillment Status'] not in {'shipped', 'delivered', 'cancelled', 'returned'}:
+            incomplete_orders.append(row)
+
+    incomplete_orders_csv = pd.DataFrame(incomplete_orders)
     del df
     to_be_pushed_df = pd.DataFrame(to_be_pushed)
     del to_be_pushed
@@ -47,7 +53,7 @@ def get_order_details(df):
     del trackerdf
     updated_tracker_df = pd.concat([tracker_df, tracker_df_new])
     updated_tracker_df.to_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index = False)
-    return to_be_pushed_df
+    return to_be_pushed_df, incomplete_orders_csv
 
 # def create_zoho_invoice_csv(df):
 #     bt_zoho_field_map = {'Order Id':'PurchaseOrder',

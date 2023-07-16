@@ -4,7 +4,7 @@ from werkzeug.datastructures import FileStorage
 import pandas as pd
 import os
 from order_report_process import get_order_details
-from email_sender import send_dispatch_email, send_usermanual_email, send_dispatch_usermanual_email, send_sales_report
+from email_sender import send_dispatch_email, send_usermanual_email, send_dispatch_usermanual_email, send_csv
 from wati_apis import WATI_APIS
 import traceback
 from product_manual_map import get_product_name_manual
@@ -23,6 +23,7 @@ upload_parser = api.parser()
 upload_parser.add_argument('file', location='files',
                            type=FileStorage, required=True)
 
+incomplete_csv_path = os.path.join(os.getcwd(), 'incomplete_csv.csv')
 
 @api.route('/process_csv')
 class CSVProcessing(Resource):
@@ -33,8 +34,9 @@ class CSVProcessing(Resource):
             csv_file = args['file']
             df = pd.read_csv(csv_file)
             to_be_pushed = get_order_details(df)
-            trackerdf = pd.read_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index_col=False)
+            trackerdf, incomplete_csv = pd.read_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index_col=False)
 
+            incomplete_csv.to_csv(incomplete_csv_path, index= False)
             statuses = []
 
             for idx, row in to_be_pushed.iterrows():
@@ -101,7 +103,7 @@ class CSVProcessing(Resource):
 
                     ## send csv email
                     try:
-                        status = send_sales_report(name= name, to_address= email, csvfile= os.path.join(os.getcwd(), 'order_tracker.csv'))
+                        status = send_csv(csvfile= incomplete_csv_path, subject='incomplete_orders')
                         # idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
                         # trackerdf.at[idx, 'email_status'] = status
                         # email_status = status
