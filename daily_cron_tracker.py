@@ -80,13 +80,13 @@ def job():
                         trackerdf.at[idx, 'usermanual_email_status'] = 'Failure_exception'
                         email_status = 'Failure_exception'
                         print('email failed: ', traceback.format_exc())
-
+    trackerdf.to_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index = False)
     print("This is a cron job!")
 
 # Schedule the job to run every day at 4:40pm (test)
-schedule.every().day.at("13:00").do(job)
-
-while True:
-    schedule.run_pending()
-    time.sleep(1)
-# job()
+# schedule.every().day.at("13:00").do(job)
+#
+# while True:
+#     schedule.run_pending()
+#     time.sleep(1)
+job()
