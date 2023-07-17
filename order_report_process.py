@@ -1,6 +1,6 @@
 import os 
 import json
-import pandas as pd 
+import pandas as pd
 
 state_code_map = json.load(open(os.path.join(os.getcwd(), 'state_code_map.json'), encoding='utf8'))
 

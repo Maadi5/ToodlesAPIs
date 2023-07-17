@@ -66,43 +66,48 @@ def send_dispatch_email(name, awb_number, to_address):
         return "Failure"
 
 def send_usermanual_email(name, product_name, product_manual_link, to_address):
-    sender_email = 'operations@toodles.in'
-    sender_password = config.gmail_key
-
-    email_message = MIMEMultipart()
-    email_message['From'] = sender_email
-    email_message['To'] = to_address
-    email_message['Subject'] = 'Toodles: ' + product_name + '- Assembly Guide'
-
-    message = 'Hi ' + name + '!\n' + \
-              "We're excited to help you assemble your kid's new furniture with ease.\n" + \
-              'Please find the user manual for your product with step-be-step assembly instructions here: <a href="' + product_manual_link + '">click here</a>\n' + \
-              "If you have any questions, please don't hesitate to reach out to us. We're here to help! 📞\n" + \
-              'We hope you and your little one enjoy your new '+ product_name + '. \n' + '\n' + \
-              'Yours truly,\n' + 'Team Toodles'
-    
-    message_html = '<body style=”font-family: Georgia !important;”><pre>Hi ' + name + '!\n' + \
-            "We're excited to help you assemble your kid's new furniture with ease.\n" + \
-            'Please find the user manual for your product with step-be-step assembly instructions here: <a href="' + product_manual_link + '">click here</a>\n' + \
-            "If you have any questions, please reply to this email. We're here to help! 📞\n" + \
-            'We hope you and your little one enjoy your new '+ product_name + '. \n' + '\n' + \
-            'Yours truly,\n' + 'Team Toodles</pre></body>'
-
-    email_message.attach(MIMEText(message_html, 'html'))
-
-    smtp_server = 'smtp.gmail.com'
-    smtp_port = 587
-    smtp_connection = smtplib.SMTP(smtp_server, smtp_port)
-    smtp_connection.starttls()
-
     try:
-        smtp_connection.login(sender_email, sender_password)
-        smtp_connection.send_message(email_message)
-        smtp_connection.quit()
-        return "Success"
+        sender_email = 'operations@toodles.in'
+        sender_password = config.gmail_key
+
+        email_message = MIMEMultipart()
+        email_message['From'] = sender_email
+        email_message['To'] = to_address
+        email_message['Subject'] = 'Toodles: ' + product_name + '- Assembly Guide'
+
+        message = 'Hi ' + name + '!\n' + \
+                  "We're excited to help you assemble your kid's new furniture with ease.\n" + \
+                  'Please find the user manual for your product with step-be-step assembly instructions here: <a href="' + product_manual_link + '">click here</a>\n' + \
+                  "If you have any questions, please don't hesitate to reach out to us. We're here to help! 📞\n" + \
+                  'We hope you and your little one enjoy your new '+ product_name + '. \n' + '\n' + \
+                  'Yours truly,\n' + 'Team Toodles'
+
+        message_html = '<body style=”font-family: Georgia !important;”><pre>Hi ' + name + '!\n' + \
+                "We're excited to help you assemble your kid's new furniture with ease.\n" + \
+                'Please find the user manual for your product with step-be-step assembly instructions here: <a href="' + product_manual_link + '">click here</a>\n' + \
+                "If you have any questions, please reply to this email. We're here to help! 📞\n" + \
+                'We hope you and your little one enjoy your new '+ product_name + '. \n' + '\n' + \
+                'Yours truly,\n' + 'Team Toodles</pre></body>'
+
+        email_message.attach(MIMEText(message_html, 'html'))
+
+        smtp_server = 'smtp.gmail.com'
+        smtp_port = 587
+        smtp_connection = smtplib.SMTP(smtp_server, smtp_port)
+        smtp_connection.starttls()
+
+        try:
+            smtp_connection.login(sender_email, sender_password)
+            smtp_connection.send_message(email_message)
+            smtp_connection.quit()
+            return "Success"
+
+        except Exception as e:
+            print(f"An error occurred while sending the email: {str(e)}")
+            return "Failure"
 
     except Exception as e:
-        print(f"An error occurred while sending the email: {str(e)}")
+        print('email send error main loop: ', {str(e)})
         return "Failure"
 
 def send_dispatch_usermanual_email(name, product_name, product_manual_link, to_address, awb_number):
