@@ -4,11 +4,12 @@ import json
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 import pandas as pd
+import config
 
 
 class googlesheets_apis():
 
-    def __init__(self, spreadsheet_id, sheet_name, credentials_path):
+    def __init__(self, spreadsheet_id= config.spreadsheet_id, sheet_name='Sheet1', credentials_path= config.gsheet_credentails_path):
         # Load the credentials from the JSON key file
         self.credentials = service_account.Credentials.from_service_account_file(
             str(credentials_path),
@@ -180,8 +181,7 @@ class googlesheets_apis():
 
 
 if __name__ == '__main__':
-    googlesheet = googlesheets_apis(spreadsheet_id='1dnLgADu0BgLKIh2riM2OZ6SVEQvHADJ3pZ6AsglLttY',
-                                    sheet_name= 'Sheet1', credentials_path= r'C:\Users\Adithya\Downloads\userdataminiture-8a7384575c3f.json')
+    googlesheet = googlesheets_apis()
 
     cols, coldict = googlesheet.get_column_names()
     # # googlesheet.append_csv_to_google_sheets(os.path.join(os.getcwd(), 'order_tracker2.csv'))

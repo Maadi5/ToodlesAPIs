@@ -10,8 +10,7 @@ from google_sheets_apis import googlesheets_apis
 from validation_utils import match_cols
 
 wati = WATI_APIS()
-gsheets = googlesheets_apis(spreadsheet_id='1dnLgADu0BgLKIh2riM2OZ6SVEQvHADJ3pZ6AsglLttY',
-                                    sheet_name= 'Sheet1', credentials_path= r'C:\Users\Adithya\Downloads\userdataminiture-8a7384575c3f.json')
+gsheets = googlesheets_apis()
 
 columns_list, column_dict = gsheets.get_column_names()
 
