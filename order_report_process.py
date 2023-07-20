@@ -7,14 +7,18 @@ state_code_map = json.load(open(os.path.join(os.getcwd(), 'state_code_map.json')
 def get_order_details(browntape_df, tracker_df):
 
     unique_ids = set(tracker_df['unique_id'])
-    new_ids = set(browntape_df['Order Id']).difference(unique_ids)
+    print('unique_ids: ', unique_ids)
+    browntape_ids = [str(val) for val in list(browntape_df['Order Id'])]
+    new_ids = [val for val in browntape_ids if val not in unique_ids]
+
+    print('new ids: ', new_ids)
     
     to_be_pushed = []
     trackerdf = []
     incomplete_orders = []
     for idx, row in browntape_df.iterrows():
         dfdict = {}
-        if row['Order Id'] in new_ids and row['Fulfillment Status'] in {'shipped', 'delivered'}:
+        if str(row['Order Id']) in new_ids and row['Fulfillment Status'] in {'shipped', 'delivered'}:
             phone_num = ''.join(''.join(str(row['Phone']).split(' ')).split('+'))
             phone_num = '91' + phone_num if len(phone_num)!=12 else phone_num
             print('processed phone num: ', phone_num)
@@ -27,6 +31,7 @@ def get_order_details(browntape_df, tracker_df):
             dfdict['pincode'] = str(row['Pincode'])
             dfdict['state'] = str(row['State'])
             dfdict['city'] = str(row['City'])
+            dfdict['status'] = str(row['Fulfillment Status'])
             dfdict['email_status'] = ''
             dfdict['whatsapp_status'] = ''
             dfdict['usermanual_email_status'] = ''

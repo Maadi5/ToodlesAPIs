@@ -19,7 +19,6 @@ class googlesheets_apis():
         # Build the Sheets API service
         self.service = build('sheets', 'v4', credentials=self.credentials)
 
-
     def get_column_names(self):
 
         # Define the range to retrieve (first row in the sheet)

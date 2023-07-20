@@ -40,6 +40,8 @@ class CSVProcessing(Resource):
             csv_file = args['file']
             df = pd.read_csv(csv_file)
             tracker_df = gsheets.load_sheet_as_csv()
+            print('loaded tracker df again')
+            print('ids: ', set(tracker_df['unique_id']))
             live_data, incomplete_csv = get_order_details(browntape_df=df, tracker_df=tracker_df)
 
             incomplete_csv.to_csv(incomplete_csv_path, index= False)
@@ -53,7 +55,7 @@ class CSVProcessing(Resource):
                     phone_num = row['phone_num']
                     name = row['name']
                     awb = row['awb']
-                    product_name, product_manual = get_product_name_manual(sku=sku)
+                    #product_name, product_manual = get_product_name_manual(sku=sku)
                     ## send template message
                     try:
                         custom_params=[{'name': 'awb_number', 'value': awb}]
@@ -141,8 +143,8 @@ class CSVProcessing(Resource):
             #trackerdf = pd.concat([trackerdf_original,trackerdf])
             try:
                 live_data = match_cols(live_data, col_names=columns_list)
-                live_data.to_csv(os.path.join(os.getcwd(), 'livedata.csv'))
-                gsheets.append_csv_to_google_sheets(live_data)
+                live_data.to_csv(os.path.join(os.getcwd(), 'livedata.csv'), index=False)
+                gsheets.append_csv_to_google_sheets(os.path.join(os.getcwd(), 'livedata.csv'))
             except:
                 print('Failure at pushing to LIVE: ')
                 print(traceback.format_exc())
