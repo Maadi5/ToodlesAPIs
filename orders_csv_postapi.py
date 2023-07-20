@@ -9,9 +9,15 @@ from wati_apis import WATI_APIS
 import traceback
 from product_manual_map import get_product_name_manual
 import time
-
+from google_sheets_apis import googlesheets_apis
+from validation_utils import match_cols
 
 wati = WATI_APIS()
+gsheets = googlesheets_apis(spreadsheet_id='1dnLgADu0BgLKIh2riM2OZ6SVEQvHADJ3pZ6AsglLttY',
+                                    sheet_name= 'Sheet1', credentials_path= r'C:\Users\Adithya\Downloads\userdataminiture-8a7384575c3f.json')
+
+columns_list = gsheets.get_column_names()
+
 app = Flask(__name__)
 api = Api(app, version='1.0', title='CSV API', description='API for processing CSV files')
 
@@ -33,13 +39,13 @@ class CSVProcessing(Resource):
             args = upload_parser.parse_args()
             csv_file = args['file']
             df = pd.read_csv(csv_file)
-            to_be_pushed = get_order_details(df)
-            trackerdf, incomplete_csv = pd.read_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index_col=False)
+            tracker_df = gsheets.load_sheet_as_csv()
+            live_data, incomplete_csv = get_order_details(browntape_df=df, tracker_df=tracker_df)
 
             incomplete_csv.to_csv(incomplete_csv_path, index= False)
             statuses = []
 
-            for idx, row in to_be_pushed.iterrows():
+            for idx, row in live_data.iterrows():
                 try:
                     id = row['unique_id']
                     sku = row['sku']
@@ -54,19 +60,19 @@ class CSVProcessing(Resource):
                         status = wati.send_template_message(contact_name=name, contact_number= phone_num, template_name='order_dispatched_with_awb2',
                                                 custom_params=custom_params)
                         if not status:
-                            idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
+                            idx = live_data.index[live_data['unique_id'] == id].tolist()[0]
                             print('idx: ', idx)
-                            trackerdf.at[idx, 'whatsapp_status'] = 'Failure'
+                            live_data.at[idx, 'whatsapp_status'] = 'Failure'
                             wa_status = 'Failure'
                         else:
-                            idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
+                            idx = live_data.index[live_data['unique_id'] == id].tolist()[0]
                             print('idx: ', idx)
-                            trackerdf.at[idx, 'whatsapp_status'] = 'Success'
-                            trackerdf.at[idx, 'awb_message_timestamp'] = time.time()
+                            live_data.at[idx, 'whatsapp_status'] = 'Success'
+                            live_data.at[idx, 'awb_message_timestamp'] = time.time()
                             wa_status = 'Success'
                     except:
-                        idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
-                        trackerdf.at[idx, 'whatsapp_status'] = 'Failure_exception'
+                        idx = live_data.index[live_data['unique_id'] == id].tolist()[0]
+                        live_data.at[idx, 'whatsapp_status'] = 'Failure_exception'
                         wa_status = 'Failure_exception'
                         print('whatsapp failed: ', traceback.format_exc())
 
@@ -91,13 +97,13 @@ class CSVProcessing(Resource):
                     ## send email
                     try:
                         status = send_dispatch_email(name= name, to_address= email,awb_number=awb)
-                        idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
-                        trackerdf.at[idx, 'email_status'] = status
-                        trackerdf.at[idx, 'awb_message_timestamp'] = time.time()
+                        idx = live_data.index[live_data['unique_id'] == id].tolist()[0]
+                        live_data.at[idx, 'email_status'] = status
+                        live_data.at[idx, 'awb_message_timestamp'] = time.time()
                         email_status = status
                     except:
-                        idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
-                        trackerdf.at[idx, 'email_status'] = 'Failure_exception'
+                        idx = live_data.index[live_data['unique_id'] == id].tolist()[0]
+                        live_data.at[idx, 'email_status'] = 'Failure_exception'
                         email_status = 'Failure_exception'
                         print('email failed: ', traceback.format_exc())
 
@@ -133,7 +139,15 @@ class CSVProcessing(Resource):
             
             #trackerdf_original = pd.read_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index_col = False)
             #trackerdf = pd.concat([trackerdf_original,trackerdf])
-            trackerdf.to_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index = False)
+            try:
+                live_data = match_cols(live_data, col_names=columns_list)
+                live_data.to_csv(os.path.join(os.getcwd(), 'livedata.csv'))
+                gsheets.append_csv_to_google_sheets(live_data)
+            except:
+                print('Failure at pushing to LIVE: ')
+                print(traceback.format_exc())
+                statuses = {'Failed to push to main data!'}
+
 
             return statuses
 

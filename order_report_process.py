@@ -4,21 +4,15 @@ import pandas as pd
 
 state_code_map = json.load(open(os.path.join(os.getcwd(), 'state_code_map.json'), encoding='utf8'))
 
-def get_order_details(df):
-    if not os.path.exists(os.path.join(os.getcwd(), 'order_tracker.csv')):
-        tracker_df = pd.DataFrame({'unique_id': [], 'name': [], 'phone_num': [], 'email_id': [], 'awb': [], 'sku': [],
-                                    'pincode': [],'state' : [], 'city' : [], 'email_status': [], 'whatsapp_status': [], 'usermanual_whatsapp_status': [], 
-                                   'usermanual_email_status': [],'awb_message_timestamp': [], 'usermanual_message_timestamp': []})
-        new_ids = set(df['Order Id'])
-    else:
-        tracker_df = pd.read_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index_col = False)
-        unique_ids = set(tracker_df['unique_id'])
-        new_ids = set(df['Order Id']).difference(unique_ids)
+def get_order_details(browntape_df, tracker_df):
+
+    unique_ids = set(tracker_df['unique_id'])
+    new_ids = set(browntape_df['Order Id']).difference(unique_ids)
     
     to_be_pushed = []
     trackerdf = []
     incomplete_orders = []
-    for idx, row in df.iterrows():
+    for idx, row in browntape_df.iterrows():
         dfdict = {}
         if row['Order Id'] in new_ids and row['Fulfillment Status'] in {'shipped', 'delivered'}:
             phone_num = ''.join(''.join(str(row['Phone']).split(' ')).split('+'))
@@ -33,7 +27,6 @@ def get_order_details(df):
             dfdict['pincode'] = str(row['Pincode'])
             dfdict['state'] = str(row['State'])
             dfdict['city'] = str(row['City'])
-            to_be_pushed.append(dfdict)
             dfdict['email_status'] = ''
             dfdict['whatsapp_status'] = ''
             dfdict['usermanual_email_status'] = ''
@@ -46,13 +39,7 @@ def get_order_details(df):
             incomplete_orders.append(row)
 
     incomplete_orders_csv = pd.DataFrame(incomplete_orders)
-    del df
-    to_be_pushed_df = pd.DataFrame(to_be_pushed)
-    del to_be_pushed
-    tracker_df_new = pd.DataFrame(trackerdf)
-    del trackerdf
-    updated_tracker_df = pd.concat([tracker_df, tracker_df_new])
-    updated_tracker_df.to_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index = False)
+    to_be_pushed_df = pd.DataFrame(trackerdf)
     return to_be_pushed_df, incomplete_orders_csv
 
 # def create_zoho_invoice_csv(df):
