@@ -57,7 +57,7 @@ def job():
                 timediff_in_days = 1
 
             ##Time logic on when to send user manuals
-            if timediff_in_days>= (approx_time_in_days/2) or True:
+            if timediff_in_days>= (approx_time_in_days/2):
                 ## send manual pdf whatsapp
                 if row['usermanual_whatsapp_status'] == '' or row['usermanual_whatsapp_status'] == 'Failure_exception':
                     print('entering if loop')
