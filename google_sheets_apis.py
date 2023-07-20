@@ -33,7 +33,9 @@ class googlesheets_apis():
         # Extract the column names from the result
         column_names = result.get('values', [])[0]
 
-        return column_names
+        column_dict = {col_name: chr(idx + 65) for idx, col_name in enumerate(column_names)}
+
+        return column_names, column_dict
 
 
     def append_csv_to_google_sheets(self, csv_path):
@@ -157,6 +159,17 @@ class googlesheets_apis():
 
         return None
 
+    def update_cell(self, values_to_update):
+        # Replace A1, B2, etc., with the cell addresses you want to update
+        cell_updates = [{'range': f'{self.sheet_name}!' + str(dct['col']) + str(dct['row']), 'values': [[dct['value']]]} for dct in values_to_update]
+
+        # Perform the batch update to update multiple cells at once
+        request = self.service.spreadsheets().values().batchUpdate(
+            spreadsheetId=self.spreadsheet_id,
+            body={'valueInputOption': 'RAW', 'data': cell_updates}
+        )
+        response = request.execute()
+
 
 # # Usage example:
 # csv_file_path = os.path.join(os.getcwd(), 'order_tracker2.csv')
@@ -170,11 +183,13 @@ if __name__ == '__main__':
     googlesheet = googlesheets_apis(spreadsheet_id='1dnLgADu0BgLKIh2riM2OZ6SVEQvHADJ3pZ6AsglLttY',
                                     sheet_name= 'Sheet1', credentials_path= r'C:\Users\Adithya\Downloads\userdataminiture-8a7384575c3f.json')
 
-    cols = googlesheet.get_column_names()
-    # googlesheet.append_csv_to_google_sheets(os.path.join(os.getcwd(), 'order_tracker2.csv'))
-    out = googlesheet.load_sheet_as_csv()
-    id = googlesheet.get_sheet_id()
-    print('id: ', id)
-    googlesheet.add_columns_to_sheet(['hi da', 'h2blu'])
-    print(out.columns)
+    cols, coldict = googlesheet.get_column_names()
+    # # googlesheet.append_csv_to_google_sheets(os.path.join(os.getcwd(), 'order_tracker2.csv'))
+    # out = googlesheet.load_sheet_as_csv()
+    # id = googlesheet.get_sheet_id()
+    # print('id: ', id)
+    # googlesheet.add_columns_to_sheet(['hi da', 'h2blu'])
+    # print(out.columns)
     # out.to_csv(os.path.join(os.getcwd(), 'testing.csv'))
+    print('cols: ', cols, 'col_dict: ', coldict)
+    googlesheet.update_cell([{'col':'Q', 'row':'1', 'value':'Success'}])

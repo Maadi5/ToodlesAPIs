@@ -16,7 +16,7 @@ wati = WATI_APIS()
 gsheets = googlesheets_apis(spreadsheet_id='1dnLgADu0BgLKIh2riM2OZ6SVEQvHADJ3pZ6AsglLttY',
                                     sheet_name= 'Sheet1', credentials_path= r'C:\Users\Adithya\Downloads\userdataminiture-8a7384575c3f.json')
 
-columns_list = gsheets.get_column_names()
+columns_list, _ = gsheets.get_column_names()
 
 app = Flask(__name__)
 api = Api(app, version='1.0', title='CSV API', description='API for processing CSV files')
@@ -77,24 +77,6 @@ class CSVProcessing(Resource):
                         live_data.at[idx, 'whatsapp_status'] = 'Failure_exception'
                         wa_status = 'Failure_exception'
                         print('whatsapp failed: ', traceback.format_exc())
-
-                    # ## send manual pdf
-                    # try:
-                    #     
-                    #     custom_params=[{'name': 'product_name', 'value': str(product_name)},
-                    #                    {'name': 'media_url', 'value': str(product_manual)}]
-                    #     status = wati.send_template_message(contact_name=name, contact_number= phone_num, 
-                    #     template_name='product_instructions_short_manual',custom_params=custom_params)
-                    #     if not status:
-                    #         trackerdf[trackerdf['unique_id'] == id]['usermanual_whatsapp_status'] = 'Failure'
-                    #         wa_manual_status = 'Failure'
-                    #     else:
-                    #         trackerdf[trackerdf['unique_id'] == id]['usermanual_whatsapp_status'] = 'Success'
-                    #         wa_manual_status = 'Success'
-                    # except:
-                    #     trackerdf[trackerdf['unique_id'] == id]['usermanual_whatsapp_status'] = 'Failure_exception'
-                    #     wa_manual_status = 'Failure_exception'
-                    #     print('whatsapp usermanual failed: ', traceback.format_exc())
                     
                     ## send email
                     try:

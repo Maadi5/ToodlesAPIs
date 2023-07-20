@@ -47,7 +47,7 @@ def get_order_details(browntape_df, tracker_df):
     to_be_pushed_df = pd.DataFrame(trackerdf)
     return to_be_pushed_df, incomplete_orders_csv
 
-# def create_zoho_invoice_csv(df):
+# def create_zoho_invoice_csv(new_browntape_df):
 #     bt_zoho_field_map = {'Order Id':'PurchaseOrder',
 #                    'Customer Name':'Customer Name',
 #                    'State':'Place of Supply',
