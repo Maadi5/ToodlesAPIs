@@ -121,8 +121,9 @@ def job():
     print("This is a cron job!")
 
 # Schedule the job to run every day at 3pm (test)
-schedule.every().day.at("9:30").do(job)
+schedule.every().day.at("09:30").do(job)
 #
+print('running cron...')
 while True:
     schedule.run_pending()
     time.sleep(1)
