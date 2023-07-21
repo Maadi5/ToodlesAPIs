@@ -32,7 +32,7 @@ def get_order_details(browntape_df, tracker_df):
     incomplete_orders = []
     for idx, row in browntape_df.iterrows():
         dfdict = {}
-        if str(row['Order Id']) in new_ids and row['Fulfillment Status'] in {'shipped', 'delivered'}:
+        if str(row['Order Id']) in new_ids and row['Fulfillment Status'] in {'shipped', 'delivered', 'packed','packing', 'manifested'}:
             phone_num = ''.join(''.join(str(row['Phone']).split(' ')).split('+'))
             phone_num = '91' + phone_num if len(phone_num)!=12 else phone_num
             print('processed phone num: ', phone_num)
@@ -54,7 +54,7 @@ def get_order_details(browntape_df, tracker_df):
             dfdict['usermanual_message_timestamp'] = ''
             trackerdf.append(dfdict)
 
-        if row['Fulfillment Status'] not in {'shipped', 'delivered', 'cancelled', 'returned'}:
+        if row['Fulfillment Status'] not in {'shipped', 'delivered', 'packed','packing', 'manifested', 'cancelled', 'returned'}:
             incomplete_orders.append(row)
 
     incomplete_orders_csv = pd.DataFrame(incomplete_orders)
