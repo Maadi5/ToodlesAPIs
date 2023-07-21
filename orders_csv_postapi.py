@@ -3,7 +3,7 @@ from flask_restx import Api, Resource, fields
 from werkzeug.datastructures import FileStorage
 import pandas as pd
 import os
-from order_report_process import get_order_details
+from order_report_process import get_order_details, create_zoho_invoice_csv
 from email_sender import send_dispatch_email, send_usermanual_email, send_dispatch_usermanual_email, send_csv
 from wati_apis import WATI_APIS
 import traceback
@@ -29,6 +29,7 @@ upload_parser.add_argument('file', location='files',
                            type=FileStorage, required=True)
 
 incomplete_csv_path = os.path.join(os.getcwd(), 'incomplete_csv.csv')
+zoho_invoice_csv_path = os.path.join(os.getcwd(), 'zohocsv.csv')
 
 @api.route('/process_csv')
 class CSVProcessing(Resource):
@@ -90,7 +91,7 @@ class CSVProcessing(Resource):
                         email_status = 'Failure_exception'
                         print('email failed: ', traceback.format_exc())
 
-                    ## send csv email
+                    ## send csv email for incomplete orders
                     try:
                         status = send_csv(csvfile= incomplete_csv_path, subject='incomplete_orders')
                         # idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
@@ -101,6 +102,7 @@ class CSVProcessing(Resource):
                         # trackerdf.at[idx, 'email_status'] = 'Failure_exception'
                         # email_status = 'Failure_exception'
                         print('email csv failed: ', traceback.format_exc())
+
 
                     # ## send manual email
                     # try:
@@ -125,6 +127,15 @@ class CSVProcessing(Resource):
             try:
                 live_data = match_cols(live_data, col_names=columns_list)
                 live_data.to_csv(os.path.join(os.getcwd(), 'livedata.csv'), index=False)
+
+                ## send csv email for zoho invoice sheet
+                try:
+                    invoice_csv = create_zoho_invoice_csv(live_data)
+                    invoice_csv.to_csv(zoho_invoice_csv_path, index=False)
+                    status = send_csv(csvfile=zoho_invoice_csv_path, subject='order_report')
+                except:
+                    print('email csv failed for zoho invoice: ', traceback.format_exc())
+
                 gsheets.append_csv_to_google_sheets(os.path.join(os.getcwd(), 'livedata.csv'))
             except:
                 print('Failure at pushing to LIVE: ')
