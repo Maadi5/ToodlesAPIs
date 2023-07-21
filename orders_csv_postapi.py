@@ -44,18 +44,19 @@ class CSVProcessing(Resource):
             print('ids: ', set(tracker_df['unique_id']))
             live_data, incomplete_csv = get_order_details(browntape_df=df, tracker_df=tracker_df)
 
-            incomplete_csv.to_csv(incomplete_csv_path, index= False)
-            ## send csv email for incomplete orders
-            try:
-                status = send_csv(csvfile=incomplete_csv_path, subject='incomplete_orders')
-                # idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
-                # trackerdf.at[idx, 'email_status'] = status
-                # email_status = status
-            except:
-                # idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
-                # trackerdf.at[idx, 'email_status'] = 'Failure_exception'
-                # email_status = 'Failure_exception'
-                print('email csv failed: ', traceback.format_exc())
+            if incomplete_csv is not None:
+                incomplete_csv.to_csv(incomplete_csv_path, index= False)
+                ## send csv email for incomplete orders
+                try:
+                    status = send_csv(csvfile=incomplete_csv_path, subject='incomplete_orders')
+                    # idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
+                    # trackerdf.at[idx, 'email_status'] = status
+                    # email_status = status
+                except:
+                    # idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
+                    # trackerdf.at[idx, 'email_status'] = 'Failure_exception'
+                    # email_status = 'Failure_exception'
+                    print('email csv failed: ', traceback.format_exc())
             statuses = []
 
             for idx, row in live_data.iterrows():

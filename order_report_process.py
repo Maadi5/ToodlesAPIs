@@ -57,7 +57,10 @@ def get_order_details(browntape_df, tracker_df):
         if row['Fulfillment Status'] not in {'shipped', 'delivered', 'packed','packing', 'manifested', 'cancelled', 'returned'}:
             incomplete_orders.append(row)
 
-    incomplete_orders_csv = pd.DataFrame(incomplete_orders)
+    if incomplete_orders:
+        incomplete_orders_csv = pd.DataFrame(incomplete_orders)
+    else:
+        incomplete_orders_csv = None
     to_be_pushed_df = pd.DataFrame(trackerdf)
     return to_be_pushed_df, incomplete_orders_csv
 
