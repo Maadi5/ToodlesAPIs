@@ -45,6 +45,17 @@ class CSVProcessing(Resource):
             live_data, incomplete_csv = get_order_details(browntape_df=df, tracker_df=tracker_df)
 
             incomplete_csv.to_csv(incomplete_csv_path, index= False)
+            ## send csv email for incomplete orders
+            try:
+                status = send_csv(csvfile=incomplete_csv_path, subject='incomplete_orders')
+                # idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
+                # trackerdf.at[idx, 'email_status'] = status
+                # email_status = status
+            except:
+                # idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
+                # trackerdf.at[idx, 'email_status'] = 'Failure_exception'
+                # email_status = 'Failure_exception'
+                print('email csv failed: ', traceback.format_exc())
             statuses = []
 
             for idx, row in live_data.iterrows():
@@ -90,20 +101,6 @@ class CSVProcessing(Resource):
                         live_data.at[idx, 'email_status'] = 'Failure_exception'
                         email_status = 'Failure_exception'
                         print('email failed: ', traceback.format_exc())
-
-                    ## send csv email for incomplete orders
-                    try:
-                        status = send_csv(csvfile= incomplete_csv_path, subject='incomplete_orders')
-                        # idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
-                        # trackerdf.at[idx, 'email_status'] = status
-                        # email_status = status
-                    except:
-                        # idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
-                        # trackerdf.at[idx, 'email_status'] = 'Failure_exception'
-                        # email_status = 'Failure_exception'
-                        print('email csv failed: ', traceback.format_exc())
-
-
                     # ## send manual email
                     # try:
                     #     status = send_usermanual_email(name= name, to_address= email, product_name=product_name, product_manual_link= product_manual)
