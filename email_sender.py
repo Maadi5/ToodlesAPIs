@@ -210,9 +210,10 @@ def send_csv(csvfile, subject='order_report'):
         return "Failure"
 
 if __name__ == '__main__':
-    import smtplib
-    from email.mime.text import MIMEText
-    from email.mime.multipart import MIMEMultipart
-    import config
-    from datetime import datetime as d
-    import mimetypes
+    # import smtplib
+    # from email.mime.text import MIMEText
+    # from email.mime.multipart import MIMEMultipart
+    # import config
+    # from datetime import datetime as d
+    # import mimemutypes
+    pass
