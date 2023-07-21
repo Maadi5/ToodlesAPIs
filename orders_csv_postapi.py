@@ -49,12 +49,12 @@ class CSVProcessing(Resource):
 
             for idx, row in live_data.iterrows():
                 try:
-                    id = row['unique_id']
-                    sku = row['sku']
-                    email = row['email_id']
-                    phone_num = row['phone_num']
-                    name = row['name']
-                    awb = row['awb']
+                    id = str(row['unique_id'])
+                    sku = str(row['sku'])
+                    email = str(row['email_id'])
+                    phone_num = str(row['phone_num'])
+                    name = str(row['name'])
+                    awb = str(int(row['awb']))
                     #product_name, product_manual = get_product_name_manual(sku=sku)
                     ## send template message
                     try:
