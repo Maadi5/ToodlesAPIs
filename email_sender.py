@@ -212,10 +212,20 @@ def send_csv(csvfile, subject='order_report'):
         return "Failure"
 
 if __name__ == '__main__':
-    # import smtplib
-    # from email.mime.text import MIMEText
-    # from email.mime.multipart import MIMEMultipart
-    # import config
-    # from datetime import datetime as d
-    # import mimemutypes
-    pass
+    from email_sender import send_dispatch_email, send_usermanual_email, send_dispatch_usermanual_email, send_csv
+    import traceback
+    import os
+    incomplete_csv_path = os.path.join(os.getcwd(), 'incomplete_csv.csv')
+    #if incomplete_csv is not None:
+    # incomplete_csv.to_csv(incomplete_csv_path, index= False)
+    ## send csv email for incomplete orders
+    try:
+        status = send_csv(csvfile=incomplete_csv_path, subject='incomplete_orders')
+        # idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
+        # trackerdf.at[idx, 'email_status'] = status
+        # email_status = status
+    except:
+        # idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
+        # trackerdf.at[idx, 'email_status'] = 'Failure_exception'
+        # email_status = 'Failure_exception'
+        print('email csv failed: ', traceback.format_exc())
