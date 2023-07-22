@@ -94,7 +94,7 @@ class CSVProcessing(Resource):
                     email = str(row['email_id'])
                     phone_num = str(row['phone_num'])
                     name = str(row['name'])
-                    awb = str(int(row['awb']))
+                    awb = str(int(float(row['awb'])))
                     #product_name, product_manual = get_product_name_manual(sku=sku)
                     ## send template message
                     try:
