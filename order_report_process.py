@@ -30,16 +30,17 @@ def get_order_details(browntape_df, tracker_df):
     to_be_pushed = []
     trackerdf = []
     incomplete_orders = []
+    cancelled_cod_orders = []
     for idx, row in browntape_df.iterrows():
         dfdict = {}
         if str(row['Order Id']) in new_ids and row['Fulfillment Status'] in {'shipped', 'delivered', 'packed','packing', 'manifested'}:
             phone_num = ''.join(''.join(str(row['Phone']).split(' ')).split('+'))
             phone_num = '91' + phone_num if len(phone_num)!=12 else phone_num
             print('processed phone num: ', phone_num)
-            dfdict['unique_id'] = row['Order Id']
+            dfdict['unique_id'] = str(row['Order Id'])
             dfdict['name'] = str(row['Customer Name'])
             dfdict['email_id'] = str(row['Customer Email'])
-            dfdict['phone_num'] = phone_num
+            dfdict['phone_num'] = str(phone_num)
             dfdict['awb'] = str(row['Courier Tracking Number'])
             dfdict['sku'] = str(row['SKU Codes'])
             dfdict['pincode'] = str(row['Pincode'])
@@ -54,15 +55,49 @@ def get_order_details(browntape_df, tracker_df):
             dfdict['usermanual_message_timestamp'] = ''
             trackerdf.append(dfdict)
 
-        if row['Fulfillment Status'] not in {'shipped', 'delivered', 'packed','packing', 'manifested', 'cancelled', 'returned'}:
+        elif str(row['Order Id']) in new_ids and row['Fulfillment Status'] not in {'shipped', 'delivered', 'packed','packing', 'manifested', 'cancelled', 'returned'}:
             incomplete_orders.append(row)
+
+        elif row['Fulfillment Status'] == 'cancelled' and row['Order Type'] == 'COD':
+            cancelled_cod_orders.append(row)
 
     if incomplete_orders:
         incomplete_orders_csv = pd.DataFrame(incomplete_orders)
     else:
         incomplete_orders_csv = None
+
+    if cancelled_cod_orders:
+        cancelled_cod_orders_csv = pd.DataFrame(cancelled_cod_orders)
+    else:
+        cancelled_cod_orders_csv = None
+
+    print('trackerdf: ', trackerdf)
     to_be_pushed_df = pd.DataFrame(trackerdf)
-    return to_be_pushed_df, incomplete_orders_csv
+    return to_be_pushed_df, incomplete_orders_csv, cancelled_cod_orders_csv
+
+
+def check_cod_cancellations(tracker_df, cancelled_orders_df):
+    cancelled_ids = set(cancelled_orders_df['Order Id'])
+    tracker_ids = set(tracker_df['unique_id'])
+    id_matches = tracker_ids.intersection(cancelled_ids)
+
+    cancelled_ids_tracker = []
+    cancelled_ids_original_df = []
+    print('id matches: ', id_matches)
+    for idx in id_matches:
+        ind = tracker_df.index[tracker_df['unique_id'] == idx].tolist()[0]
+        for val in list(cancelled_orders_df['Order Id']):
+            print(val, type(val))
+        print('idx val: ', idx)
+        index_original = cancelled_orders_df.index[cancelled_orders_df['Order Id'] == idx].tolist()[0]
+        status_value = tracker_df.at[ind, 'status']
+        if status_value not in {'delivered', 'cancelled'}:
+            cancelled_ids_tracker.append(idx)
+            cancelled_ids_original_df.append(index_original)
+    print('original indexes: ', cancelled_ids_original_df)
+    original_df_cancelled = cancelled_orders_df.iloc[cancelled_ids_original_df]
+
+    return cancelled_ids_tracker, original_df_cancelled
 
 def create_zoho_invoice_csv(new_browntape_df):
     bt_zoho_field_map = {'Invoice Number': 'Invoice Number',

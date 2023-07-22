@@ -161,6 +161,8 @@ def send_csv(csvfile, subject='order_report'):
         email_message['Subject'] = 'Daily Order Report for ' + str(date_time)
     elif subject == 'incomplete_orders':
         email_message['Subject'] = 'Incomplete Orders for ' + str(date_time)
+    elif subject == 'cancelled_orders':
+        email_message['Subject'] = 'New Cancellations ' + str(date_time)
 
     
     message = 'PFA Daily Report'

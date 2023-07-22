@@ -3,19 +3,19 @@ from flask_restx import Api, Resource, fields
 from werkzeug.datastructures import FileStorage
 import pandas as pd
 import os
-from order_report_process import get_order_details, create_zoho_invoice_csv
+from order_report_process import get_order_details, create_zoho_invoice_csv, check_cod_cancellations
 from email_sender import send_dispatch_email, send_usermanual_email, send_dispatch_usermanual_email, send_csv
 from wati_apis import WATI_APIS
 import traceback
 from product_manual_map import get_product_name_manual
 import time
 from google_sheets_apis import googlesheets_apis
-from validation_utils import match_cols
+from validation_utils import match_cols, input_df_preprocessing
 
 wati = WATI_APIS()
 gsheets = googlesheets_apis()
 
-columns_list, _ = gsheets.get_column_names()
+columns_list, column_dict = gsheets.get_column_names()
 
 app = Flask(__name__)
 api = Api(app, version='1.0', title='CSV API', description='API for processing CSV files')
@@ -30,6 +30,17 @@ upload_parser.add_argument('file', location='files',
 
 incomplete_csv_path = os.path.join(os.getcwd(), 'incomplete_csv.csv')
 zoho_invoice_csv_path = os.path.join(os.getcwd(), 'zohocsv.csv')
+cancelled_csv_path = os.path.join(os.getcwd(), 'cancelled_csv.csv')
+
+
+def updated_cancelled_records_in_db(cancelled_ids):
+    col_id = column_dict['unique_id']
+    row_numbers = gsheets.get_row_numbers(column_name= col_id, target_values = cancelled_ids)
+    col_id_status = column_dict['status']
+    values_to_update = []
+    for val in row_numbers:
+        values_to_update.append({'col': col_id_status, 'row': val, 'value': 'cancelled'})
+    gsheets.update_cell(values_to_update=values_to_update)
 
 @api.route('/process_csv')
 class CSVProcessing(Resource):
@@ -39,10 +50,27 @@ class CSVProcessing(Resource):
             args = upload_parser.parse_args()
             csv_file = args['file']
             df = pd.read_csv(csv_file)
+            df = input_df_preprocessing(df)
             tracker_df = gsheets.load_sheet_as_csv()
-            print('loaded tracker df again')
-            print('ids: ', set(tracker_df['unique_id']))
-            live_data, incomplete_csv = get_order_details(browntape_df=df, tracker_df=tracker_df)
+            live_data, incomplete_csv, cancelled_orders_csv = get_order_details(browntape_df=df, tracker_df=tracker_df)
+
+            if cancelled_orders_csv is not None:
+                cancelled_unique_ids, cancelled_orders_df = check_cod_cancellations(tracker_df= tracker_df, cancelled_orders_df=cancelled_orders_csv)
+                cancelled_orders_df.to_csv(cancelled_csv_path, index= False)
+                updated_cancelled_records_in_db(cancelled_ids= cancelled_unique_ids)
+                ## send csv email for cancelled orders
+                try:
+                    status = send_csv(csvfile=cancelled_csv_path, subject='cancelled_orders')
+                    # idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
+                    # trackerdf.at[idx, 'email_status'] = status
+                    # email_status = status
+                except:
+                    # idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
+                    # trackerdf.at[idx, 'email_status'] = 'Failure_exception'
+                    # email_status = 'Failure_exception'
+                    print('email csv failed: ', traceback.format_exc())
+
+
 
             if incomplete_csv is not None:
                 incomplete_csv.to_csv(incomplete_csv_path, index= False)
@@ -79,6 +107,12 @@ class CSVProcessing(Resource):
                             live_data.at[idx, 'whatsapp_status'] = 'Failure'
                             wa_status = 'Failure'
                         else:
+                            print(live_data)
+                            print(live_data.shape)
+                            print(list(live_data['unique_id']))
+                            for v in list(live_data['unique_id']):
+                                print(v, type(v))
+                            print('val: ', live_data.index[live_data['unique_id'] == id])
                             idx = live_data.index[live_data['unique_id'] == id].tolist()[0]
                             print('idx: ', idx)
                             live_data.at[idx, 'whatsapp_status'] = 'Success'

@@ -20,3 +20,7 @@ def match_cols(csvfile, col_names):
                     dfdict[c] = 'Not Applicable'
             fixed_dflist.append(dfdict)
     return pd.DataFrame(fixed_dflist)
+
+def input_df_preprocessing(df):
+    df['Order Id'] = df['Order Id'].astype(str)
+    return df

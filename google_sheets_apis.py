@@ -171,6 +171,29 @@ class googlesheets_apis():
         )
         response = request.execute()
 
+    def get_row_numbers(self, column_name, target_values):
+
+        # Get the range of the column data (e.g., 'Sheet1!A:A')
+        column_range = f"{self.sheet_name}!{column_name}:{column_name}"
+
+        # Retrieve the values from the specified column
+        result = self.service.spreadsheets().values().get(
+            spreadsheetId=self.spreadsheet_id,
+            range=column_range,
+        ).execute()
+
+        # Extract the values from the result
+        column_values = result.get('values', [])
+
+        # Find the row numbers of the target values in the column
+        row_numbers = []
+        for row_number, row_value in enumerate(column_values, 1):
+            for target_value in target_values:
+                if target_value in row_value:
+                    row_numbers.append(row_number)
+
+        return row_numbers
+
 
 # # Usage example:
 # csv_file_path = os.path.join(os.getcwd(), 'order_tracker2.csv')
@@ -183,13 +206,17 @@ class googlesheets_apis():
 if __name__ == '__main__':
     googlesheet = googlesheets_apis()
 
-    cols, coldict = googlesheet.get_column_names()
-    # # googlesheet.append_csv_to_google_sheets(os.path.join(os.getcwd(), 'order_tracker2.csv'))
-    # out = googlesheet.load_sheet_as_csv()
-    # id = googlesheet.get_sheet_id()
-    # print('id: ', id)
-    # googlesheet.add_columns_to_sheet(['hi da', 'h2blu'])
-    # print(out.columns)
-    # out.to_csv(os.path.join(os.getcwd(), 'testing.csv'))
-    print('cols: ', cols, 'col_dict: ', coldict)
-    googlesheet.update_cell([{'col':'Q', 'row':'1', 'value':'Success'}])
+    # cols, coldict = googlesheet.get_column_names()
+    # # # googlesheet.append_csv_to_google_sheets(os.path.join(os.getcwd(), 'order_tracker2.csv'))
+    # # out = googlesheet.load_sheet_as_csv()
+    # # id = googlesheet.get_sheet_id()
+    # # print('id: ', id)
+    # # googlesheet.add_columns_to_sheet(['hi da', 'h2blu'])
+    # # print(out.columns)
+    # # out.to_csv(os.path.join(os.getcwd(), 'testing.csv'))
+    # print('cols: ', cols, 'col_dict: ', coldict)
+    # googlesheet.update_cell([{'col':'Q', 'row':'1', 'value':'Success'}])
+
+
+    out = googlesheet.get_row_numbers(column_name='A', target_values=['13892283644'])
+    print(out)
