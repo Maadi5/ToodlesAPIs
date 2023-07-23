@@ -154,15 +154,17 @@ def send_csv(csvfile, subject='order_report'):
 
     email_message = MIMEMultipart()
     email_message['From'] = sender_email
-    email_message['To'] = sender_email
     date_time = d.now()
     date_time = date_time.strftime("%d/%m/%Y")
     if subject == 'order_report':
         email_message['Subject'] = 'Daily Order Report for ' + str(date_time)
+        email_message['To'] = 'finance@miniture.in'
     elif subject == 'incomplete_orders':
         email_message['Subject'] = 'Incomplete Orders for ' + str(date_time)
+        email_message['To'] = sender_email
     elif subject == 'cancelled_orders':
         email_message['Subject'] = 'New Cancellations ' + str(date_time)
+        email_message['To'] = sender_email
 
     
     message = 'PFA Daily Report'

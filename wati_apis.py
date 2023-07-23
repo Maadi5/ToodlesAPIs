@@ -147,8 +147,19 @@ class WATI_APIS:
 
 
 if __name__ == '__main__':
+    import pandas as pd
+
     test = WATI_APIS()
     test.send_text_message_response(text_to_send='Sure! The 6 in 1 super desk is a multifunctional desk that can be transformed into 6 different functions. It can be used as a magnetic drawing easel, building block table, study desk with chair, water/sand sensory play, and a building block wall. It comes with a chair and 101 pcs of building blocks. It is suitable for ages 2-7 and is made of HDPE plastic. You can use any duplo blocks with it, and whiteboard/washable markers like crayola markers with the whiteboard easel. It folds back completely in 3 steps and can be stowed away when not in use.', contact_number='919176270768', contact_name='M A Adithya')
-    # custom_params=[{'name': 'awb_number', 'value': '50912597842'}]
-    # status = test.send_template_message(contact_name='Chandni Shah', contact_number= '919727622200', template_name='order_dispatched_with_awb2',
-    #                         custom_params=custom_params)
+    contactlist = test.preloaded_contacts
+    phone_number_list = [val['phone_number'] for val in contactlist]
+
+    print('phone number list: ', phone_number_list)
+    print(len(phone_number_list))
+    woocommerce_contacts = pd.read_csv(r'C:\\woocommerce_contacts_w_names.csv')
+
+    # for idx, row in woocommerce_contacts.iterrows():
+    #     contact_name = row['Name']
+    #     contact_number = str(row['Phone'])
+    #     if contact_number not in phone_number_list:
+    #         is_added = test.add_contact_number(contact_number=contact_number, contact_name=contact_name)
