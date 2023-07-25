@@ -24,13 +24,14 @@ def get_order_details(browntape_df, tracker_df):
     print('unique_ids: ', unique_ids)
     browntape_ids = [str(val) for val in list(browntape_df['Order Id'])]
     new_ids = [val for val in browntape_ids if val not in unique_ids]
-
     print('new ids: ', new_ids)
     
     to_be_pushed = []
     trackerdf = []
+    new_orders_browntape_subset = []
     incomplete_orders = []
     cancelled_cod_orders = []
+
     for idx, row in browntape_df.iterrows():
         dfdict = {}
         if str(row['Order Id']) in new_ids and row['Fulfillment Status'] in {'shipped', 'delivered', 'packed','packing', 'manifested'}:
@@ -54,12 +55,14 @@ def get_order_details(browntape_df, tracker_df):
             dfdict['awb_message_timestamp'] = ''
             dfdict['usermanual_message_timestamp'] = ''
             trackerdf.append(dfdict)
+            new_orders_browntape_subset.append(row)
 
         elif str(row['Order Id']) in new_ids and row['Fulfillment Status'] not in {'shipped', 'delivered', 'packed','packing', 'manifested', 'cancelled', 'returned'}:
             incomplete_orders.append(row)
 
         elif row['Fulfillment Status'] == 'cancelled' and row['Order Type'] == 'COD':
             cancelled_cod_orders.append(row)
+
 
     if incomplete_orders:
         incomplete_orders_csv = pd.DataFrame(incomplete_orders)
@@ -73,7 +76,11 @@ def get_order_details(browntape_df, tracker_df):
 
     print('trackerdf: ', trackerdf)
     to_be_pushed_df = pd.DataFrame(trackerdf)
-    return to_be_pushed_df, incomplete_orders_csv, cancelled_cod_orders_csv
+    if new_orders_browntape_subset:
+        new_browntape_subset_df = pd.DataFrame(new_orders_browntape_subset)
+    else:
+        new_browntape_subset_df = None
+    return to_be_pushed_df, incomplete_orders_csv, cancelled_cod_orders_csv, new_browntape_subset_df
 
 
 def check_cod_cancellations(tracker_df, cancelled_orders_df):
@@ -101,18 +108,28 @@ def check_cod_cancellations(tracker_df, cancelled_orders_df):
 
 def create_zoho_invoice_csv(new_browntape_df):
     bt_zoho_field_map = {'Invoice Number': 'Invoice Number',
-                    'Channel Ref':'PurchaseOrder',
+                    'Channel Ref':'Reference#',
                    'Customer Name':'Customer Name',
                     'Invoiced Date': 'Invoice Date',
-                   'State':'Place of Supply',
+                   # 'State':'Place of Supply',
                    'Item Titles': 'Item Name',
                    'Quantity': 'Quantity',
                    'SKU Codes': 'SKU',
                    'HSN Code': 'HSN/SAC',
-                   'Item Total': 'Item Price',
+                   'Order Total Amount': 'Item Price',
                    'Item Total Discount Value':'Discount Amount',
-                   'Net Shipping':'Shipping Charge',
-                   }
+                   'Net Shipping':'Shipping Charge'}
+
+    bt_address_fields_map ={
+        'Address Line 1': {'Billing Address', 'Shipping Address'},
+        'Address Line 2': {'Billing Street2', 'Shipping Street2'},
+        'City': {'Billing City', 'Shipping City'},
+        'State': {'Billing State', 'Shipping State'},
+        'Country': {'Billing Country', 'Shipping Country'},
+        'Pincode': {'Billing Code', 'Shipping Code'},
+        'Phone': {'Billing Phone', 'Shipping Phone'},
+    }
+
     bt_zoho_static_vals = {'Invoice Status': 'Overdue',
                            'Currency Code': 'INR',
                            'GST Treatment': 'consumer',
@@ -134,11 +151,12 @@ def create_zoho_invoice_csv(new_browntape_df):
     for idx, row in new_browntape_df.iterrows():
         dfdict = {}
         for c in bt_cols:
-            if c in bt_zoho_field_map and c != 'State' and 'Date' not in c:
+            if c in bt_zoho_field_map and c != 'State' and 'Date' not in c and c!='Invoice Number':
                 dfdict[bt_zoho_field_map[c]] = row[c]
             elif c == 'State':
                 try:
-                    dfdict[bt_zoho_field_map[c]] = state_code_map[row[c].lower()]
+                    dfdict['Place of Supply'] = state_code_map[row[c].lower()]
+                    dfdict[bt_zoho_field_map[c]] = row[c]
                 except:
                     pass
             elif 'Date' in c and str(row[c]) != 'nan':
@@ -147,10 +165,11 @@ def create_zoho_invoice_csv(new_browntape_df):
                     print('original date: ', date_val)
                     try:
                         newdate = str(convert_date_format(date_val))
+                        dfdict[bt_zoho_field_map[c]] = newdate
                     except:
-                        print(traceback.format_exc())
-                    print('new date: ', newdate)
-                    dfdict[bt_zoho_field_map[c]] = newdate
+                        #print(traceback.format_exc())
+                        pass
+                    #print('new date: ', newdate)
                 except:
                     pass
             elif c == 'TAX type':
@@ -158,6 +177,11 @@ def create_zoho_invoice_csv(new_browntape_df):
             elif c == 'Invoice Number':
                 invoice_num = str(row[c]).replace('23-24_', 'FY24-')
                 dfdict[c] = invoice_num
+
+            elif c in bt_address_fields_map:
+                for val in bt_address_fields_map[c]:
+                    dfdict[val] = row[c]
+
         for cols in bt_zoho_static_vals:
             dfdict[cols] = bt_zoho_static_vals[cols]
         zoho_csv.append(dfdict)

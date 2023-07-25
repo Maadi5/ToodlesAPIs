@@ -52,7 +52,16 @@ class CSVProcessing(Resource):
             df = pd.read_csv(csv_file)
             df = input_df_preprocessing(df)
             tracker_df = gsheets.load_sheet_as_csv()
-            live_data, incomplete_csv, cancelled_orders_csv = get_order_details(browntape_df=df, tracker_df=tracker_df)
+            live_data, incomplete_csv, cancelled_orders_csv, browntape_new_csv = get_order_details(browntape_df=df, tracker_df=tracker_df)
+
+            if browntape_new_csv is not None:
+                ## send csv email for zoho invoice sheet
+                try:
+                    invoice_csv = create_zoho_invoice_csv(browntape_new_csv)
+                    invoice_csv.to_csv(zoho_invoice_csv_path, index=False)
+                    status = send_csv(csvfile=zoho_invoice_csv_path, subject='order_report')
+                except:
+                    print('email csv failed for zoho invoice: ', traceback.format_exc())
 
             if cancelled_orders_csv is not None:
                 cancelled_unique_ids, cancelled_orders_df = check_cod_cancellations(tracker_df= tracker_df, cancelled_orders_df=cancelled_orders_csv)
@@ -159,15 +168,6 @@ class CSVProcessing(Resource):
             try:
                 live_data = match_cols(live_data, col_names=columns_list)
                 live_data.to_csv(os.path.join(os.getcwd(), 'livedata.csv'), index=False)
-
-                ## send csv email for zoho invoice sheet
-                try:
-                    invoice_csv = create_zoho_invoice_csv(live_data)
-                    invoice_csv.to_csv(zoho_invoice_csv_path, index=False)
-                    status = send_csv(csvfile=zoho_invoice_csv_path, subject='order_report')
-                except:
-                    print('email csv failed for zoho invoice: ', traceback.format_exc())
-
                 gsheets.append_csv_to_google_sheets(os.path.join(os.getcwd(), 'livedata.csv'))
             except:
                 print('Failure at pushing to LIVE: ')
