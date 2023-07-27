@@ -9,6 +9,7 @@ from wati_apis import WATI_APIS
 import traceback
 from product_manual_map import get_product_name_manual
 import time
+from datetime import datetime
 from google_sheets_apis import googlesheets_apis
 from validation_utils import match_cols, input_df_preprocessing
 
@@ -151,6 +152,12 @@ class CSVProcessing(Resource):
                                 live_data.at[idx, 'email_status'] = 'Failure_exception'
                             email_status = 'Failure_exception'
                             print('email failed: ', traceback.format_exc())
+
+                    processing_time_stamp = time.strftime('%d-%m-%Y %H:%M', time.localtime(time.time()))
+
+                    idxs = live_data.index[live_data['unique_id'] == id].tolist()
+                    for idx in idxs:
+                        live_data.at[idx, 'timestamp'] = processing_time_stamp
 
                     statuses.append({'id': id, 'email_status': email_status, 'wa_status': wa_status})#, 'email_manual_status': email_manual_status,})
                     #'wa_manual_status': wa_manual_status})

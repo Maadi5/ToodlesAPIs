@@ -17,6 +17,7 @@ def convert_date_format(input_date):
 
 state_code_map = json.load(open(os.path.join(os.getcwd(), 'state_code_map_2.json'), encoding='utf8'))
 
+print(state_code_map)
 
 def get_order_details(browntape_df, tracker_df):
 
@@ -38,6 +39,7 @@ def get_order_details(browntape_df, tracker_df):
             phone_num = ''.join(''.join(str(row['Phone']).split(' ')).split('+'))
             phone_num = '91' + phone_num if len(phone_num)!=12 else phone_num
             print('processed phone num: ', phone_num)
+            dfdict['timestamp'] = ''
             dfdict['unique_id'] = str(row['Order Id'])
             dfdict['name'] = str(row['Customer Name'])
             dfdict['email_id'] = str(row['Customer Email'])
@@ -120,7 +122,8 @@ def create_zoho_invoice_csv(new_browntape_df):
                    'Item Total Discount Value':'Discount Amount',
                    'Net Shipping':'Shipping Charge'}
 
-    bt_address_fields_map ={
+    bt_customer_fields_map ={
+        'Customer Name': {'Customer Name'},
         'Address Line 1': {'Billing Address', 'Shipping Address'},
         'Address Line 2': {'Billing Street2', 'Shipping Street2'},
         'City': {'Billing City', 'Shipping City'},
@@ -128,6 +131,26 @@ def create_zoho_invoice_csv(new_browntape_df):
         'Country': {'Billing Country', 'Shipping Country'},
         'Pincode': {'Billing Code', 'Shipping Code'},
         'Phone': {'Billing Phone', 'Shipping Phone'},
+    }
+
+    firstcry_details_map = {
+        'Customer Name': 'Digital Age Retail Pvt.Ltd',
+        'Billing Address': 'NO.16 GANDHI NAGAR MAIN ROAD EXTN',
+        'Shipping Address': 'NO.16 GANDHI NAGAR MAIN ROAD EXTN',
+        'Shipping Street2': 'EKKATTUTHANGAL',
+        'Billing Street2': 'EKKATTUTHANGAL',
+        'Billing City': 'Chennai',
+        'Shipping City': 'Chennai',
+        'Billing State': 'Tamil Nadu',
+        'Shipping State': 'Tamil Nadu',
+        'Billing Country': 'India',
+        'Shipping Country': 'India',
+        'Billing Code': '600032',
+        'Shipping Code': '600032',
+        'Billing Phone': '',
+        'Shipping Phone': '',
+        'GST Identification Number (GSTIN)': '33AADCD8136E1ZY',
+        'GST Treatment': 'business_gst'
     }
 
     bt_zoho_static_vals = {'Invoice Status': 'Overdue',
@@ -140,7 +163,6 @@ def create_zoho_invoice_csv(new_browntape_df):
                            'Usage unit': 'count',
                            'Is Inclusive Tax': 'TRUE',
                            # 'Item Tax Type': 'Tax Group',
-                           'Item Tax %': '18',
                            'Supply Type': 'Taxable',
                            'Account': 'Sales',
                            'Template Name': 'Spreadsheet Template',
@@ -151,18 +173,21 @@ def create_zoho_invoice_csv(new_browntape_df):
     for idx, row in new_browntape_df.iterrows():
         dfdict = {}
         for c in bt_cols:
-            if c in bt_zoho_field_map and c != 'State' and 'Date' not in c and c!='Invoice Number':
+            if c in bt_zoho_field_map and c != 'State' and 'Date' not in c and c!='Invoice Number' and c!= 'HSN Code':
                 dfdict[bt_zoho_field_map[c]] = row[c]
             elif c == 'State':
                 try:
-                    dfdict['Place of Supply'] = state_code_map[row[c].lower()]
-                    dfdict[bt_zoho_field_map[c]] = row[c]
+                    print(row[c])
+                    #print(state_code_map[row[c].lower()])
+                    dfdict['Place of Supply'] = state_code_map[row[c].strip().lower()]
+                    #dfdict[bt_zoho_field_map[c]] = row[c]
                 except:
+                    print(traceback.format_exc())
                     pass
             elif 'Date' in c and str(row[c]) != 'nan':
                 try:
                     date_val = str(row[c]).split(' ')[0]
-                    print('original date: ', date_val)
+                    #print('original date: ', date_val)
                     try:
                         newdate = str(convert_date_format(date_val))
                         dfdict[bt_zoho_field_map[c]] = newdate
@@ -173,26 +198,45 @@ def create_zoho_invoice_csv(new_browntape_df):
                 except:
                     pass
             elif c == 'TAX type':
-                dfdict['Item Tax'] = str(row[c]) + '18'
+                if row[c] == 'IGST':
+                    taxval = '18'
+                    dfdict['Item Tax'] = str(row[c]) + taxval
+                    dfdict['Item Tax %'] = taxval
+                    dfdict['Item Tax Type'] = 'Simple'
+                elif row[c] == 'SGST/CGST':
+                    taxval = '18'
+                    dfdict['Item Tax'] = 'GST' + taxval
+                    dfdict['Item Tax %'] = taxval
+                    dfdict['Item Tax Type'] = 'Tax Group'
             elif c == 'Invoice Number':
                 invoice_num = str(row[c]).replace('23-24_', 'FY24-')
                 dfdict[c] = invoice_num
 
-            elif c in bt_address_fields_map:
-                for val in bt_address_fields_map[c]:
+            elif c in bt_customer_fields_map:
+                for val in bt_customer_fields_map[c]:
                     dfdict[val] = row[c]
+            elif c == 'HSN Code':
+                try:
+                    if type(row[c]) == str:
+                        dfdict[bt_zoho_field_map[c]] = ''.join(str(row[c])[:-2])
+                except:
+                    print(traceback.format_exc())
 
         for cols in bt_zoho_static_vals:
             dfdict[cols] = bt_zoho_static_vals[cols]
+
+        if 'FRC' in row['Invoice Number']:
+            for key in firstcry_details_map:
+                dfdict[key] = str(firstcry_details_map[key])
         zoho_csv.append(dfdict)
 
     return pd.DataFrame(zoho_csv)
 
 
 if __name__ == '__main__':
-    testdf = pd.read_csv(r'C:\Users\Adithya\Downloads\btreport_2107_accounting_test.csv', index_col = False)
+    testdf = pd.read_csv(r'C:\Users\Adithya\Downloads\btreport_868952 (1).csv', index_col = False)
     newdf = create_zoho_invoice_csv(new_browntape_df=testdf)
-    newdf.to_csv(r'C:\Users\Adithya\Downloads\btreport_21_07_zoho.csv', index= False)
+    newdf.to_csv(r'C:\Users\Adithya\Downloads\btreport_26_07_zoho.csv', index= False)
 
 
         

@@ -9,7 +9,7 @@ import config
 
 class googlesheets_apis():
 
-    def __init__(self, spreadsheet_id= config.spreadsheet_id, sheet_name='Sheet1', credentials_path= config.gsheet_credentails_path):
+    def __init__(self, spreadsheet_id= config.spreadsheet_id, sheet_name=config.sheet_name, credentials_path= config.gsheet_credentails_path):
         # Load the credentials from the JSON key file
         self.credentials = service_account.Credentials.from_service_account_file(
             str(credentials_path),
