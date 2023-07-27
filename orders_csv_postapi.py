@@ -7,7 +7,6 @@ from order_report_process import get_order_details, create_zoho_invoice_csv, che
 from email_sender import send_dispatch_email, send_usermanual_email, send_dispatch_usermanual_email, send_csv
 from wati_apis import WATI_APIS
 import traceback
-from print_logs import print_logs
 import logging
 
 from product_manual_map import get_product_name_manual
@@ -207,7 +206,6 @@ class CSVProcessing(Resource):
 
         except:
             print('api failed: ', traceback.format_exc())
-            print_logs(traceback.format_exc())
             return traceback.format_exc()
 
 
