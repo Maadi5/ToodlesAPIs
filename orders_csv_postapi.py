@@ -7,19 +7,28 @@ from order_report_process import get_order_details, create_zoho_invoice_csv, che
 from email_sender import send_dispatch_email, send_usermanual_email, send_dispatch_usermanual_email, send_csv
 from wati_apis import WATI_APIS
 import traceback
+from print_logs import print_logs
+import logging
+
 from product_manual_map import get_product_name_manual
 import time
 from datetime import datetime
 from google_sheets_apis import googlesheets_apis
 from validation_utils import match_cols, input_df_preprocessing
+import config
 
+print('after all imports')
 wati = WATI_APIS()
-gsheets = googlesheets_apis()
+gsheets_db = googlesheets_apis(spreadsheet_id=config.db_spreadsheet_id)
+gsheets_accounts = googlesheets_apis(spreadsheet_id=config.accounts_spreadsheet_id)
 
-columns_list, column_dict = gsheets.get_column_names()
+print('after initiating google sheets')
+columns_list, column_dict = gsheets_db.get_column_names(sheet_name=config.db_sheet_name)
 
 app = Flask(__name__)
 api = Api(app, version='1.0', title='CSV API', description='API for processing CSV files')
+
+print('After creating api class')
 
 csv_upload_model = api.model('CSVUpload', {
     'file': fields.Raw(required=True, description='CSV file')
@@ -29,6 +38,8 @@ upload_parser = api.parser()
 upload_parser.add_argument('file', location='files',
                            type=FileStorage, required=True)
 
+print('API Parser')
+
 incomplete_csv_path = os.path.join(os.getcwd(), 'incomplete_csv.csv')
 zoho_invoice_csv_path = os.path.join(os.getcwd(), 'zohocsv.csv')
 cancelled_csv_path = os.path.join(os.getcwd(), 'cancelled_csv.csv')
@@ -36,23 +47,28 @@ cancelled_csv_path = os.path.join(os.getcwd(), 'cancelled_csv.csv')
 
 def updated_cancelled_records_in_db(cancelled_ids):
     col_id = column_dict['unique_id']
-    row_numbers = gsheets.get_row_numbers(column_name= col_id, target_values = cancelled_ids)
+    row_numbers = gsheets_db.get_row_numbers(column_name= col_id, target_values = cancelled_ids, sheet_name=config.db_sheet_name)
     col_id_status = column_dict['status']
     values_to_update = []
     for val in row_numbers:
         values_to_update.append({'col': col_id_status, 'row': val, 'value': 'cancelled'})
-    gsheets.update_cell(values_to_update=values_to_update)
+    gsheets_db.update_cell(values_to_update=values_to_update, sheet_name=config.db_sheet_name)
 
 @api.route('/process_csv')
 class CSVProcessing(Resource):
     @api.expect(upload_parser)
     def post(self):
+        # app.logger.warning('testing warning log')
+        # app.logger.error('testing error log')
+        # app.logger.info('testing info log')
+        # print('testing print log')
         try:
             args = upload_parser.parse_args()
             csv_file = args['file']
             df = pd.read_csv(csv_file)
+            print('read file')
             df = input_df_preprocessing(df)
-            tracker_df = gsheets.load_sheet_as_csv()
+            tracker_df = gsheets_db.load_sheet_as_csv(sheet_name=config.db_sheet_name)
             live_data, incomplete_csv, cancelled_orders_csv, browntape_new_csv = get_order_details(browntape_df=df, tracker_df=tracker_df)
 
             if browntape_new_csv is not None:
@@ -60,7 +76,16 @@ class CSVProcessing(Resource):
                 try:
                     invoice_csv = create_zoho_invoice_csv(browntape_new_csv)
                     invoice_csv.to_csv(zoho_invoice_csv_path, index=False)
-                    status = send_csv(csvfile=zoho_invoice_csv_path, subject='order_report')
+                    order_dates = list(live_data['order_date'])
+                    first_date = order_dates[0]
+                    last_date = order_dates[-1]
+                    if first_date != last_date:
+                        date_range = first_date + '-' + last_date
+                    else:
+                        date_range = first_date
+                    #gsheets_accounts.add_sheet(sheet_name=date_range)
+                    gsheets_accounts.append_csv_to_google_sheets(csv_path=zoho_invoice_csv_path, sheet_name=date_range)
+                    # status = send_csv(csvfile=zoho_invoice_csv_path, subject='order_report')
                 except:
                     print('email csv failed for zoho invoice: ', traceback.format_exc())
 
@@ -173,7 +198,7 @@ class CSVProcessing(Resource):
             try:
                 live_data = match_cols(live_data, col_names=columns_list)
                 live_data.to_csv(os.path.join(os.getcwd(), 'livedata.csv'), index=False)
-                gsheets.append_csv_to_google_sheets(os.path.join(os.getcwd(), 'livedata.csv'))
+                gsheets_db.append_csv_to_google_sheets(csv_path=os.path.join(os.getcwd(), 'livedata.csv'), sheet_name=config.db_sheet_name)
             except:
                 print('Failure at pushing to LIVE: ')
                 print(traceback.format_exc())
@@ -182,7 +207,8 @@ class CSVProcessing(Resource):
 
         except:
             print('api failed: ', traceback.format_exc())
-            return 'Failure'   
+            print_logs(traceback.format_exc())
+            return traceback.format_exc()
 
 
 if __name__ == '__main__':

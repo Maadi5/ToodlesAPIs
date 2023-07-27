@@ -40,6 +40,7 @@ def get_order_details(browntape_df, tracker_df):
             phone_num = '91' + phone_num if len(phone_num)!=12 else phone_num
             print('processed phone num: ', phone_num)
             dfdict['timestamp'] = ''
+            dfdict['order_date'] = str(row['Order Date(IST)'])
             dfdict['unique_id'] = str(row['Order Id'])
             dfdict['name'] = str(row['Customer Name'])
             dfdict['email_id'] = str(row['Customer Email'])
@@ -225,7 +226,7 @@ def create_zoho_invoice_csv(new_browntape_df):
         for cols in bt_zoho_static_vals:
             dfdict[cols] = bt_zoho_static_vals[cols]
 
-        if 'FRC' in row['Invoice Number']:
+        if 'FRC' in str(row['Invoice Number']):
             for key in firstcry_details_map:
                 dfdict[key] = str(firstcry_details_map[key])
         zoho_csv.append(dfdict)

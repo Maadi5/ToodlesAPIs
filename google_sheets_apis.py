@@ -9,21 +9,20 @@ import config
 
 class googlesheets_apis():
 
-    def __init__(self, spreadsheet_id= config.spreadsheet_id, sheet_name=config.sheet_name, credentials_path= config.gsheet_credentails_path):
+    def __init__(self, spreadsheet_id, credentials_path= config.gsheet_credentails_path):
         # Load the credentials from the JSON key file
         self.credentials = service_account.Credentials.from_service_account_file(
             str(credentials_path),
             scopes=['https://www.googleapis.com/auth/spreadsheets'],
         )
         self.spreadsheet_id = spreadsheet_id
-        self.sheet_name = sheet_name
         # Build the Sheets API service
         self.service = build('sheets', 'v4', credentials=self.credentials)
 
-    def get_column_names(self):
+    def get_column_names(self, sheet_name):
 
         # Define the range to retrieve (first row in the sheet)
-        range_name = f"{self.sheet_name}!1:1"
+        range_name = f"{sheet_name}!1:1"
 
         # Retrieve the values from the first row (header row)
         result = self.service.spreadsheets().values().get(
@@ -38,17 +37,51 @@ class googlesheets_apis():
 
         return column_names, column_dict
 
+    def is_sheet_blank(self, sheet_name):
+        try:
+            # Get the sheet data
+            range_name = f'{sheet_name}!A1'  # You can adjust the range if you want to check more cells
+            result = self.service.spreadsheets().values().get(spreadsheetId=self.spreadsheet_id, range=range_name).execute()
+            values = result.get('values', [])
 
-    def append_csv_to_google_sheets(self, csv_path):
+            # If there are no values in the response, the sheet is considered blank
+            if not values:
+                return True
+            return False
+        except Exception as e:
+            print(f"Error checking if the sheet is blank: {e}")
+            return False
+
+    def append_csv_to_google_sheets(self, csv_path, sheet_name):
+
+        #Check if sheet already exists
+        sheetname_list = self.get_sheet_names()
+        print('sheetname list: ', sheetname_list)
+        #If sheet does not already exists, add new sheet
+        if sheet_name not in sheetname_list:
+            self.add_sheet(sheet_name)
         # Read the CSV file
         with open(csv_path, 'r') as csv_file:
             csv_data = csv.reader(csv_file)
             data_to_append = list(csv_data)
 
-        if len(data_to_append)>1:
+        if self.is_sheet_blank(sheet_name=sheet_name):
+            include_col_names = True
+        else:
+            include_col_names = False
+
+        append = False
+        if include_col_names == False and len(data_to_append)>1:
             data_to_append = data_to_append[1:]
-        # Append the data to the Google Sheets
-            range_name = f"{self.sheet_name}!A:A"  # Change the range as needed
+            append = True
+        elif include_col_names == True and len(data_to_append)>=1:
+            append = True
+        else:
+            append = False
+
+        if append:
+            # Append the data to the Google Sheets
+            range_name = f"{sheet_name}!A:A"  # Change the range as needed
             value_input_option = 'RAW'  # You can also use 'USER_ENTERED' for more advanced formatting
             body = {'values': data_to_append}
 
@@ -62,10 +95,23 @@ class googlesheets_apis():
         else:
             print('No Data To Append')
 
-    def load_sheet_as_csv(self):
+    def get_sheet_names(self):
+        try:
+            # Get the spreadsheet data
+            spreadsheet = self.service.spreadsheets().get(spreadsheetId=self.spreadsheet_id).execute()
+            sheets = spreadsheet.get('sheets', [])
+
+            # Extract sheet names from the response
+            sheet_names = [sheet['properties']['title'] for sheet in sheets]
+            return sheet_names
+        except Exception as e:
+            print(f"Error getting sheet names: {e}")
+            return []
+
+    def load_sheet_as_csv(self, sheet_name):
 
         # Define the range to retrieve (e.g., all data in the sheet)
-        range_name = f"{self.sheet_name}"
+        range_name = f"{sheet_name}"
         # Retrieve the values from the specified range
         result = self.service.spreadsheets().values().get(
             spreadsheetId=self.spreadsheet_id,
@@ -84,9 +130,26 @@ class googlesheets_apis():
 
         return pd.DataFrame(csv_list)
 
-    def add_columns_to_sheet(self, column_names):
 
-        sheet_id = self.get_sheet_id()
+    def add_sheet(self, sheet_name):
+        try:
+            request = {
+                'addSheet': {
+                    'properties': {
+                        'title': sheet_name
+                    }
+                }
+            }
+            # Execute the request to add the new sheet
+            response = self.service.spreadsheets().batchUpdate(spreadsheetId=self.spreadsheet_id,
+                                                          body={'requests': [request]}).execute()
+            print(f"New sheet '{sheet_name}' added successfully!")
+        except Exception as e:
+            print(f"Error adding the new sheet: {e}")
+
+    def add_columns_to_sheet(self, column_names, sheet_name):
+
+        sheet_id = self.get_sheet_id(sheet_name)
         # Get the current column count in the sheet
         sheet_properties = self.service.spreadsheets().get(
             spreadsheetId=self.spreadsheet_id,
@@ -127,7 +190,7 @@ class googlesheets_apis():
         ).execute()
 
         # Update the values in the added columns with the specified value ('Not Applicable')
-        range_name = f"{self.sheet_name}!{chr(ord('A') + insert_index)}1:{chr(ord('A') + insert_index + len(column_names) - 1)}"
+        range_name = f"{sheet_name}!{chr(ord('A') + insert_index)}1:{chr(ord('A') + insert_index + len(column_names) - 1)}"
 
         values_to_update = [['Not Applicable'] * len(column_names)]
         request_body = {
@@ -146,7 +209,7 @@ class googlesheets_apis():
             body=request_body
         ).execute()
 
-    def get_sheet_id(self):
+    def get_sheet_id(self, sheet_name):
         # Retrieve the spreadsheet properties
         spreadsheet = self.service.spreadsheets().get(
             spreadsheetId=self.spreadsheet_id
@@ -155,14 +218,14 @@ class googlesheets_apis():
         # Find the sheet with the specified name
         for sheet in spreadsheet['sheets']:
             properties = sheet['properties']
-            if properties['title'] == self.sheet_name:
+            if properties['title'] == sheet_name:
                 return properties['sheetId']
 
         return None
 
-    def update_cell(self, values_to_update):
+    def update_cell(self, values_to_update, sheet_name):
         # Replace A1, B2, etc., with the cell addresses you want to update
-        cell_updates = [{'range': f'{self.sheet_name}!' + str(dct['col']) + str(dct['row']), 'values': [[dct['value']]]} for dct in values_to_update]
+        cell_updates = [{'range': f'{sheet_name}!' + str(dct['col']) + str(dct['row']), 'values': [[dct['value']]]} for dct in values_to_update]
 
         # Perform the batch update to update multiple cells at once
         request = self.service.spreadsheets().values().batchUpdate(
@@ -171,10 +234,10 @@ class googlesheets_apis():
         )
         response = request.execute()
 
-    def get_row_numbers(self, column_name, target_values):
+    def get_row_numbers(self, column_name, target_values, sheet_name):
 
         # Get the range of the column data (e.g., 'Sheet1!A:A')
-        column_range = f"{self.sheet_name}!{column_name}:{column_name}"
+        column_range = f"{sheet_name}!{column_name}:{column_name}"
 
         # Retrieve the values from the specified column
         result = self.service.spreadsheets().values().get(

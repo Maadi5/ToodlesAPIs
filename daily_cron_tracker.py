@@ -8,14 +8,15 @@ from email_sender import send_usermanual_email
 from wati_apis import WATI_APIS
 from google_sheets_apis import googlesheets_apis
 from validation_utils import match_cols
+import config
 
 wati = WATI_APIS()
-gsheets = googlesheets_apis()
+gsheets = googlesheets_apis(spreadsheet_id=config.db_spreadsheet_id)
 
-columns_list, column_dict = gsheets.get_column_names()
+columns_list, column_dict = gsheets.get_column_names(sheet_name=config.db_sheet_name)
 
 def job():
-    trackerdf = gsheets.load_sheet_as_csv()
+    trackerdf = gsheets.load_sheet_as_csv(sheet_name=config.db_sheet_name)
     bluedart_csv = pd.read_csv(os.path.join(os.getcwd(), 'bluedart_complete.csv'), index_col=False)
     bluedart_approx_csv = pd.read_csv(os.path.join(os.getcwd(), 'approx_delivery_times.csv'), index_col=False)
     trackerdf.fillna('', inplace=True)
@@ -117,7 +118,7 @@ def job():
         rowcount += 1
 
     print('values_to_update: ', values_to_update)
-    gsheets.update_cell(values_to_update= values_to_update)
+    gsheets.update_cell(values_to_update= values_to_update, sheet_name=config.db_sheet_name)
     print("This is a cron job!")
 
 # Schedule the job to run every day at 3pm (test)
