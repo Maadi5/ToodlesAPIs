@@ -23,14 +23,24 @@ def match_cols(csvfile, col_names):
 
 # Convert all values to strings and remove the '.' for numbers
 def custom_to_string(val):
-    if isinstance(val, (int, float)):
+    if isinstance(val, int):
         return str(int(val))  # Convert number to string without the '.'
-    else:
+    elif isinstance(val, float):
         return str(val)
+
+
+def forced_float_removal(val):
+    if val[-2:] == '.0':
+        val = val[:-2]
+    return val
 
 def input_df_preprocessing(df):
     df.fillna('', inplace= True)
-    df = df.applymap(custom_to_string)
+    # df = df.applymap(custom_to_string)
+    df = df.applymap(str)
+    df = df.applymap(forced_float_removal)
     # df['Order Id'] = df['Order Id'].astype(str)
     # df['Phone'] = df['Phone'].astype(str)
     return df
+
+

@@ -4,6 +4,7 @@ import pandas as pd
 from datetime import datetime
 import traceback
 from dateutil.parser import parse
+from validation_utils import input_df_preprocessing
 import re
 
 def convert_date_format(input_date):
@@ -119,9 +120,10 @@ def create_zoho_invoice_csv(new_browntape_df):
                    'Quantity': 'Quantity',
                    'SKU Codes': 'SKU',
                    'HSN Code': 'HSN/SAC',
-                   'Order Total Amount': 'Item Price',
-                   'Item Total Discount Value':'Discount Amount',
-                   'Net Shipping':'Shipping Charge'}
+                   'Item Total': 'Item Price',
+                   'Item Total Discount Value':'Entity Discount Amount'}
+
+    bt_zoho_amount_add_map = { 'Shipping Charge': {'Gross Shipping Amount', 'Gross COD Fee'}}
 
     bt_customer_fields_map ={
         'Customer Name': {'Customer Name'},
@@ -157,8 +159,8 @@ def create_zoho_invoice_csv(new_browntape_df):
     bt_zoho_static_vals = {'Invoice Status': 'Overdue',
                            'Currency Code': 'INR',
                            'GST Treatment': 'consumer',
-                           #'Discount Type': 'item_level',
-                           #'Is Discount Before Tax': 'FALSE',
+                           'Discount Type': 'entity_level',
+                           'Is Discount Before Tax': 'FALSE',
                            'GST Identification Number (GSTIN)': '',
                            'Item Type': 'goods',
                            'Usage unit': 'count',
@@ -172,72 +174,83 @@ def create_zoho_invoice_csv(new_browntape_df):
     zoho_csv = []
     bt_cols = list(new_browntape_df.columns)
     for idx, row in new_browntape_df.iterrows():
-        dfdict = {}
-        for c in bt_cols:
-            if c in bt_zoho_field_map and c != 'State' and 'Date' not in c and c!='Invoice Number' and c!= 'HSN Code':
-                dfdict[bt_zoho_field_map[c]] = row[c]
-            elif c == 'State':
-                try:
-                    print(row[c])
-                    #print(state_code_map[row[c].lower()])
-                    dfdict['Place of Supply'] = state_code_map[row[c].strip().lower()]
-                    #dfdict[bt_zoho_field_map[c]] = row[c]
-                except:
-                    print(traceback.format_exc())
-                    pass
-            elif 'Date' in c and str(row[c]) != 'nan':
-                try:
-                    date_val = str(row[c]).split(' ')[0]
-                    #print('original date: ', date_val)
+        if row['Fulfillment Status'] in {'shipped', 'delivered', 'packed','packing', 'manifested'}:
+            dfdict = {}
+            for c in bt_cols:
+                if c in bt_zoho_field_map and c != 'State' and 'Date' not in c and c!='Invoice Number' and c!= 'HSN Code':
+                    dfdict[bt_zoho_field_map[c]] = row[c]
+                elif c == 'State':
                     try:
-                        newdate = str(convert_date_format(date_val))
-                        dfdict[bt_zoho_field_map[c]] = newdate
+                        print(row[c])
+                        #print(state_code_map[row[c].lower()])
+                        dfdict['Place of Supply'] = state_code_map[row[c].strip().lower()]
+                        #dfdict[bt_zoho_field_map[c]] = row[c]
                     except:
-                        #print(traceback.format_exc())
+                        print(traceback.format_exc())
                         pass
-                    #print('new date: ', newdate)
-                except:
-                    pass
-            elif c == 'TAX type':
-                if row[c] == 'IGST':
-                    taxval = '18'
-                    dfdict['Item Tax'] = str(row[c]) + taxval
-                    dfdict['Item Tax %'] = taxval
-                    dfdict['Item Tax Type'] = 'Simple'
-                elif row[c] == 'SGST/CGST':
-                    taxval = '18'
-                    dfdict['Item Tax'] = 'GST' + taxval
-                    dfdict['Item Tax %'] = taxval
-                    dfdict['Item Tax Type'] = 'Tax Group'
-            elif c == 'Invoice Number':
-                invoice_num = str(row[c]).replace('23-24_', 'FY24-')
-                dfdict[c] = invoice_num
+                elif 'Date' in c and str(row[c]) != 'nan':
+                    try:
+                        date_val = str(row[c]).split(' ')[0]
+                        #print('original date: ', date_val)
+                        try:
+                            newdate = str(convert_date_format(date_val))
+                            dfdict[bt_zoho_field_map[c]] = newdate
+                        except:
+                            #print(traceback.format_exc())
+                            pass
+                        #print('new date: ', newdate)
+                    except:
+                        pass
+                elif c == 'TAX type':
+                    if row[c] == 'IGST':
+                        taxval = '18'
+                        dfdict['Item Tax'] = str(row[c]) + taxval
+                        dfdict['Item Tax %'] = taxval
+                        dfdict['Item Tax Type'] = 'Simple'
+                    elif row[c] == 'SGST/CGST':
+                        taxval = '18'
+                        dfdict['Item Tax'] = 'GST' + taxval
+                        dfdict['Item Tax %'] = taxval
+                        dfdict['Item Tax Type'] = 'Tax Group'
+                elif c == 'Invoice Number':
+                    invoice_num = str(row[c]).replace('23-24_', 'FY24-')
+                    dfdict[c] = invoice_num
 
-            elif c in bt_customer_fields_map:
-                for val in bt_customer_fields_map[c]:
-                    dfdict[val] = row[c]
-            elif c == 'HSN Code':
-                try:
-                    if type(row[c]) == str:
-                        dfdict[bt_zoho_field_map[c]] = ''.join(str(row[c])[:-2])
-                except:
-                    print(traceback.format_exc())
+                elif c in bt_customer_fields_map:
+                    for val in bt_customer_fields_map[c]:
+                        dfdict[val] = row[c]
+                elif c == 'HSN Code':
+                    try:
+                        if type(row[c]) == str:
+                            dfdict[bt_zoho_field_map[c]] = ''.join(str(row[c])[:-2])
+                    except:
+                        print(traceback.format_exc())
 
-        for cols in bt_zoho_static_vals:
-            dfdict[cols] = bt_zoho_static_vals[cols]
+            #Quantity logic
+            try:
+                dfdict['Item Price'] = str(float(dfdict['Item Price'].replace(',',''))/float(dfdict['Quantity']))
+            except:
+                print(traceback.format_exc())
 
-        if 'FRC' in str(row['Invoice Number']):
-            for key in firstcry_details_map:
-                dfdict[key] = str(firstcry_details_map[key])
-        zoho_csv.append(dfdict)
+            for cols in bt_zoho_static_vals:
+                dfdict[cols] = bt_zoho_static_vals[cols]
+
+            for cols in bt_zoho_amount_add_map:
+                dfdict[cols] = sum([float(row[bt_col]) for bt_col in bt_zoho_amount_add_map[cols]])
+
+            if 'FRC' in str(row['Invoice Number']):
+                for key in firstcry_details_map:
+                    dfdict[key] = str(firstcry_details_map[key])
+            zoho_csv.append(dfdict)
 
     return pd.DataFrame(zoho_csv)
 
 
 if __name__ == '__main__':
-    testdf = pd.read_csv(r'C:\Users\Adithya\Downloads\btreport_868952 (1).csv', index_col = False)
+    testdf = pd.read_csv(r'C:\Users\Adithya\Downloads\accounts - browntapefile_26-29.csv', index_col = False)
+    testdf = input_df_preprocessing(testdf)
     newdf = create_zoho_invoice_csv(new_browntape_df=testdf)
-    newdf.to_csv(r'C:\Users\Adithya\Downloads\btreport_26_07_zoho.csv', index= False)
+    newdf.to_csv(r'C:\Users\Adithya\Downloads\btreport_29_07_zoho.csv', index= False)
 
 
         
