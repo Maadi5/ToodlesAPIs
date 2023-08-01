@@ -43,6 +43,11 @@ def get_order_details(browntape_df, tracker_df):
             dfdict['timestamp'] = ''
             dfdict['order_date'] = str(row['Order Date(IST)'])
             dfdict['unique_id'] = str(row['Order Id'])
+            dfdict['channel_order_number'] = str(row['Channel Ref'])
+            dfdict['channel_order_type'] = str(row['Channel Order Type'])
+            dfdict['channel_invoice_number'] = str(row['Channel Invoice No.'])
+            dfdict['invoice_number'] = str(row['Invoice Number'])
+            dfdict['customer_id'] = str(row['Customer ID'])
             dfdict['name'] = str(row['Customer Name'])
             dfdict['email_id'] = str(row['Customer Email'])
             dfdict['phone_num'] = str(phone_num)
@@ -247,10 +252,10 @@ def create_zoho_invoice_csv(new_browntape_df):
 
 
 if __name__ == '__main__':
-    testdf = pd.read_csv(r'C:\Users\Adithya\Downloads\accounts - browntapefile_26-29.csv', index_col = False)
+    testdf = pd.read_csv(r'C:\Users\Adithya\Downloads\btreport_871490 - btreport_871490.csv', index_col = False)
     testdf = input_df_preprocessing(testdf)
     newdf = create_zoho_invoice_csv(new_browntape_df=testdf)
-    newdf.to_csv(r'C:\Users\Adithya\Downloads\btreport_29_07_zoho.csv', index= False)
+    newdf.to_csv(r'C:\Users\Adithya\Downloads\btreport_31_07_zoho.csv', index= False)
 
 
         
