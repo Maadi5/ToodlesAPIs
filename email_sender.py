@@ -149,7 +149,7 @@ def send_dispatch_usermanual_email(name, product_name, product_manual_link, to_a
 
 
 def send_csv(csvfile, subject='order_report'):
-    sender_email = 'operations@toodles.in'
+    sender_email = 'finance@miniture.in'
     sender_password = config.gmail_key
 
     email_message = MIMEMultipart()
