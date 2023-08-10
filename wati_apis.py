@@ -150,6 +150,16 @@ if __name__ == '__main__':
     import pandas as pd
 
     test = WATI_APIS()
+
+    preorder_customers = pd.read_csv('path_to_csv')
+    for idx, row in preorder_customers.iterrows():
+        customer_name = row['customer_name']
+        customer_phone_number = row['customer_phone_number']
+        estimated_delivery_date = 'static date string value'
+        custom_params = [{'name': 'name', 'value': str(customer_name)},
+                         {'name': 'date', 'value': str(estimated_delivery_date)}]
+        status = test.send_template_message(contact_name=customer_name, contact_number=customer_phone_number,
+                                            template_name='order_reassurance_date', custom_params=custom_params)
     # test.send_text_message_response(text_to_send='Sure! The 6 in 1 super desk is a multifunctional desk that can be transformed into 6 different functions. It can be used as a magnetic drawing easel, building block table, study desk with chair, water/sand sensory play, and a building block wall. It comes with a chair and 101 pcs of building blocks. It is suitable for ages 2-7 and is made of HDPE plastic. You can use any duplo blocks with it, and whiteboard/washable markers like crayola markers with the whiteboard easel. It folds back completely in 3 steps and can be stowed away when not in use.', contact_number='919176270768', contact_name='M A Adithya')
     # contactlist = test.preloaded_contacts
     # phone_number_list = [val['phone_number'] for val in contactlist]
