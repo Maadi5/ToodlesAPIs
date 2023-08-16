@@ -161,25 +161,25 @@ class GPT_Inference():
             with open(filepath, "a") as file:
                 file.write(f"user:{message}\n")
             
-            with open(filepath, "r") as file:
-                lines = file.readlines()
-                last_dialogues = lines[-6:]  # Retrieve last 3 dialogues for both user and bot, or all available dialogues if less than 3
-                #print('last_dialogues in get_response function',last_dialogues)
+        with open(filepath, "r") as file:
+            lines = file.readlines()
+            last_dialogues = lines[-6:]  # Retrieve last 3 dialogues for both user and bot, or all available dialogues if less than 3
+            #print('last_dialogues in get_response function',last_dialogues)
 
-                # Extract user and bot dialogues
-                user_dialogues = [dialogue.strip() for dialogue in last_dialogues if dialogue.startswith("user:")]
-                bot_dialogues = [dialogue.strip() for dialogue in last_dialogues if dialogue.startswith("bot:")]
-                #print('full dialogues', last_dialogues)
-                #print('user dialogues', user_dialogues)
-                #print('bot dialogues', bot_dialogues)
-                
-                response_text, text_to_show = self.answer_this(user_dialogues, last_dialogues, message)  # Call answer_this() function
-                # print('User Question: ', message)
-                # print('GPT Answer: ', text_to_show)
-                with open(filepath, "a") as file:
-                    file.write(f"bot:{response_text}\n")
-                with open(os.path.join(os.path.join(os.getcwd(), 'chat_hist_folder', 'display_chat_text.txt')), "a") as file:
-                    file.write(f"User Question: {original_message}\nGPT Answer: {text_to_show}\n")
+            # Extract user and bot dialogues
+            user_dialogues = [dialogue.strip() for dialogue in last_dialogues if dialogue.startswith("user:")]
+            bot_dialogues = [dialogue.strip() for dialogue in last_dialogues if dialogue.startswith("bot:")]
+            #print('full dialogues', last_dialogues)
+            #print('user dialogues', user_dialogues)
+            #print('bot dialogues', bot_dialogues)
+
+            response_text, text_to_show = self.answer_this(user_dialogues, last_dialogues, message)  # Call answer_this() function
+            # print('User Question: ', message)
+            # print('GPT Answer: ', text_to_show)
+            with open(filepath, "a") as file:
+                file.write(f"bot:{response_text}\n")
+            with open(os.path.join(os.path.join(os.getcwd(), 'chat_hist_folder', 'display_chat_text.txt')), "a") as file:
+                file.write(f"User Question: {original_message}\nGPT Answer: {text_to_show}\n")
         return text_to_show
 
 
@@ -188,5 +188,5 @@ if __name__ == '__main__':
     print('Finished loading init')
     # response = gpt_inference.answer_this('Tell me about the superdesk')
     # print(response)
-    response = gpt_inference.get_response(phone_num= '919176270768', original_message="Can I get the user manual for my product?")
+    response = gpt_inference.get_response(phone_num= '919445574311', original_message="Hi!")
     #print('RESPONSE: ', response)
