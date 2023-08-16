@@ -133,18 +133,26 @@ bot:Hi there! How can I help you?
 user:Can you tell me about the 6 in 1 super desk?
 bot:Sure! The 6-in-1 desk is the superhero of parental sanity! It features a Magnetic Drawing Easel to boost creativity and develop wrist pencil grasp, a Building Blocks table to help develop spatial awareness, a Study Table to develop posture and independence, a Sensory Bin to encourage learning through exploration, creativity, and curiosity, a Block Wall to facilitate open-ended playing and develop problem solving ability, and a Storage Bin to inculcate responsibility and foster independence. It's ideal for bedrooms, playrooms, and study rooms. Does that answer your question?
 user:Hey
-bot:
-
-{"message":"Hi there! How can I help you?","hitl":"no"}
+bot:{"message":"Hi there! How can I help you?",'new_conversation': 'no','hitl':"no"}
 user:I need help in tracking my order
-bot:
-
-{"message":"Sure, you can track your order using the tracking number provided in the confirmation email. You can also contact our customer support team for assistance. Is there anything else I can help you with?","hitl":"no"}
+bot:{"message":"Sure, you can track your order using the tracking number provided in the confirmation email. You can also contact our customer support team for assistance. Is there anything else I can help you with?",'new_conversation': 'no','hitl':'no'}
 user:Here's my order number: 123455. Where is my order?
-bot:
-
-{"message":"Thanks for providing your order number. I can see that your order is currently in transit and is expected to be delivered within the next few days. If you have any further queries, please feel free to contact our customer support team.","hitl":"no"}
+bot:{"message":"Thanks for providing your order number. I can see that your order is currently in transit and is expected to be delivered within the next few days. If you have any further queries, please feel free to contact our customer support team.",'new_conversation': 'no','hitl':'no'}
 user:I want to talk to a human
-bot:
-
-{"message":"Our customer support team is available between 9:30 am to 8 pm to assist you with any inquiries or concerns. You can reach them via [phone number], [email address], or through the contact form on our website.","hitl":"no"}
+bot:{"message":"Our customer support team is available between 9:30 am to 8 pm to assist you with any inquiries or concerns. You can reach them via [phone number], [email address], or through the contact form on our website.",'new_conversation': 'no','hitl':'no'}
+user:question: "Tell me about the superdesk". (Always use the format specified in the system.)
+bot:{"message":"The 6-in-1 Super Desk is a versatile and multi-functional study table and activity table for kids. It offers various features and benefits such as a magnetic drawing easel, building blocks table, study table, sensory bin, block wall, and storage bin. It is designed to boost creativity, develop spatial awareness, improve posture and independence, encourage learning through exploration and curiosity, facilitate open-ended play, and foster responsibility and independence. The desk is suitable for bedrooms, playrooms, and study rooms. Is there anything specific you would like to know about the Super Desk?",'new_conversation': 'no','hitl':'no'}
+user:question: "I want to talk to a human". (Always use the format specified in the system.)
+bot:{"message":"I apologize for any inconvenience. Our customer support team is available between 9:30 am to 8 pm to assist you with any inquiries or concerns. You can reach them via [phone number], [email address], or through the contact form on our website. They will be happy to help you further.",'new_conversation': 'no','hitl':'no'}
+user:question: "I want to talk to a human"; (Always use the format specified in the system.)
+bot:{"message":"I apologize for any inconvenience. Our customer support team is available between 9:30 am to 8 pm to assist you with any inquiries or concerns. You can reach them via [phone number], [email address], or through the contact form on our website. They will be happy to help you further.",'new_conversation': 'no','hitl':'yes'}user:question: "Hey"; (Always use the format specified in the system.)
+user:question: "Hey"; (Always respond with the format specified in the system.)
+bot:{"message":"Hello! How can I assist you today?",'new_conversation': False,'hitl':False}
+user:question: "Where's my order?"; (Always respond with the format specified in the system.)
+bot:{"message":"I apologize for any inconvenience. To track your order, please provide me with the order number and I will be happy to assist you further.",'new_conversation': False,'hitl':False}
+user:question: "13082"; (Always respond with the format specified in the system.)
+bot:{"message":"Your BlurDart tracking number is: 50913177431. Please track it on www.bluedart.in/tracking",'new_conversation': False,'hitl':False}
+user:question: "Thanks. Also, do you have an assembly guide?"; (Always respond with the format specified in the system.)
+bot:{"message":"<Document Attached>",'new_conversation': False,'hitl':False}
+user:question: "Heyy"; (Always respond with the format specified in the system.)
+bot:{"message":"Hello! How can I assist you today?",'new_conversation': False,'hitl':False}

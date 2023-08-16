@@ -108,6 +108,35 @@ class googlesheets_apis():
             print(f"Error getting sheet names: {e}")
             return []
 
+    def get_sheet_data(self, sheet_name):
+        try:
+            # Get the values from the sheet by range
+            result = self.service.spreadsheets().values().get(spreadsheetId=self.spreadsheet_id, range=sheet_name).execute()
+            values = result.get('values', [])
+            return values
+        except Exception as e:
+            print(f"Error fetching data from the sheet: {e}")
+            return None
+
+    def query_data(self, sheet_name, filter_func):
+        data = self.get_sheet_data(sheet_name)
+        if data:
+            if filter_func is not None:
+                header_row = data[0]
+                filtered_data = [row for row in data[1:] if filter_func(dict(zip(header_row, row)))]
+                values = [header_row] + filtered_data
+            else:
+                values = data
+            csv_list = []
+            for _, val in enumerate(values[1:]):
+                dfdict = {}
+                for idx, v in enumerate(val):
+                    dfdict[values[0][idx]] = v
+                csv_list.append(dfdict)
+            return pd.DataFrame(csv_list)
+        else:
+            return None
+
     def load_sheet_as_csv(self, sheet_name):
 
         # Define the range to retrieve (e.g., all data in the sheet)
@@ -267,7 +296,7 @@ class googlesheets_apis():
 
 
 if __name__ == '__main__':
-    googlesheet = googlesheets_apis()
+    googlesheet = googlesheets_apis(spreadsheet_id=config.db_spreadsheet_id)
 
     # cols, coldict = googlesheet.get_column_names()
     # # # googlesheet.append_csv_to_google_sheets(os.path.join(os.getcwd(), 'order_tracker2.csv'))
@@ -280,6 +309,9 @@ if __name__ == '__main__':
     # print('cols: ', cols, 'col_dict: ', coldict)
     # googlesheet.update_cell([{'col':'Q', 'row':'1', 'value':'Success'}])
 
-
-    out = googlesheet.get_row_numbers(column_name='A', target_values=['13892283644'])
+    filter_func = lambda row: row['phone_num'] == '919900159770'
+    out = googlesheet.query_data(sheet_name=config.db_sheet_name, filter_func= filter_func)
+    # out = googlesheet.get_row_numbers(column_name='A', target_values=['13892283644'])
     print(out)
+    print(out.shape)
+    print(out.values.tolist())
