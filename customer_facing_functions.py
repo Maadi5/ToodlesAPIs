@@ -35,7 +35,7 @@ class gpt_functions():
         # if not self.number_exists:
         tracking_id_function ={
                   "name": "get_tracking_number_from_order_number",
-                  "description": "Get the tracking number for an order for tracking it's location",
+                  "description": "Get the tracking number for an order for tracking it's location.",
                   "parameters": {
                       "type": "object",
                       "properties": {
@@ -43,19 +43,12 @@ class gpt_functions():
                               "type": "string",
                               "description": "The order number of the order"
                           },
-                          # "unit": {
-                          #     "type": "string",
-                          #     "enum": [
-                          #         "celsius",
-                          #         "fahrenheit"
-                          #     ]
-                          # }
                       },
                       "required": ["order_number"]
                   }
                   }
         send_user_manual_function = {"name": "get_usermanual_from_order_number",
-            "description": "Send message with a PDF of the user-manual/assembly guide based on the order number provided",
+            "description": "Get the usermanual/assembly guide PDF for an order, based on the order number.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -151,17 +144,22 @@ class gpt_functions():
         order_details = self.order_details_from_field(value=order_number, field='channel_order_number')
         failed = False
         statuses = []
-        for val in list(order_details['sku']):
-            product_name, product_manual = get_product_name_manual(sku=val)
-            self.download_file(download_url=product_manual, filename= 'usermanual')
-            try:
-                wati.send_session_pdf_file(contact_number=self.phone_number, filename_to_user=product_name+'_usermanual.pdf',
-                                           local_file_name='usermanual.pdf')
-            except:
-                print(traceback.format_exc())
-                statuses.append(False)
+        try:
+            for val in list(order_details['sku']):
+                product_name, product_manual = get_product_name_manual(sku=val)
+                self.download_file(download_url=product_manual, filename= 'usermanual')
+                try:
+                    wati.send_session_pdf_file(contact_number=self.phone_number, filename_to_user=product_name+'_usermanual.pdf',
+                                               local_file_name='usermanual.pdf')
+                except:
+                    print(traceback.format_exc())
+                    statuses.append(False)
+        except:
+            failed = True
         if False in statuses:
             return "Coundn't send document (HITL)"
+        elif failed:
+            return "Couldn't find order number (HITL)"
         else:
             return '<Document Attached>'
 

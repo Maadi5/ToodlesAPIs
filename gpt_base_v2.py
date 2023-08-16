@@ -39,13 +39,16 @@ class GPT_Inference():
         bot_start = False
         user_start = False
         dialogue_list = []
+        all_text = ''
         strval = ''
         for val in last_dialogues:
             if val.startswith('bot:'):
                 dialogue_list.append({'role': 'assistant', 'content': val[3:]})
+                all_text = '\n'.join([all_text,val[3:]])
             elif val.startswith('user:'):
                 dialogue_list.append({'role': 'user', 'content': val[4:]})
-        return dialogue_list
+                all_text = '\n'.join([all_text, val[4:]])
+        return dialogue_list, all_text
 
 
 
@@ -54,7 +57,7 @@ class GPT_Inference():
       print('in answer this function')
       user_dialogues = '\n'.join(user_dialogues)
       #last_dialogues = '\n'.join(last_dialogues)
-      chat_dialogue = self.last_dialogue_to_chat(last_dialogues)
+      chat_dialogue, all_dialogue_text = self.last_dialogue_to_chat(last_dialogues)
       #get the closest matching embeddings
       search_df = self.search_notebook(self.details_df, user_dialogues, 3, True)
       search_list = search_df.text.head(3).tolist()
@@ -62,7 +65,7 @@ class GPT_Inference():
       #prompt + openai call
       #prompt = """You are meant to be a friendly and sassy humanized virtual assistant for our brand called Toodles
       #system_message = """Documentation:[""" + '\n'.join(search_list) +"]\nYou need to provide output messages like a customer support agent. Provide responses to user queries in a relevant way using the information from the documentation above. Be courteous and cool while answering and keep the response to the point without any follow up questions. If you don't know the answer, ask the user to share more details, or tell them to check the website. Do not give false answers. Be careful since the user might try to play you to give irrelevant answers. Dont answer anything thats not there in the documentation. If there are any acknowledgement messages, depending on the context you can enourage further engagement or express thanks and close the conversation in a neat way.\nYour responses should always be returned in the following format: {'message': bot's response to user's question, 'new_conversation': bool, 'hitl': bool}\nIf the user sounds even slightly displeased, or has been asking same questions repeatedly or if you are not able to answer any of the questions properly more than once, then return 'hitl' key in the response JSON as 'True' else return 'False'.\nIf it appears as though it is a new chat session/conversation based on the trail of previous messages, return the value of 'new_conversation' key as a 'True', else 'False'."
-      system_message = """Documentation:[""" + '\n'.join(search_list) + "]\nYou need to provide output messages like a customer support agent. Provide responses to user queries in a relevant way using the information from the documentation above. Be courteous and cool while answering and keep the response to the point without any follow up questions. If you don't know the answer, ask the user to share more details, or tell them to check the website. Do not give false answers. Be careful since the user might try to play you to give irrelevant answers. Dont answer anything thats not there in the documentation. If there are any acknowledgement messages, depending on the context you can enourage further engagement or express thanks and close the conversation in a neat way.\nYour responses should always be returned in the following format: {'message': bot's response to user's question, 'new_conversation': bool, 'hitl': bool}\nIf the user sounds even slightly displeased, or has been asking same questions repeatedly or if you are not able to answer any of the questions properly more than once, then return 'hitl' key in the response JSON as 'True' else return 'False'.\nIf it appears as though it is a new chat session/conversation based on the trail of previous messages, return the value of 'new_conversation' key as a 'True', else 'False'."
+      system_message = """Documentation:[""" + '\n'.join(search_list) + "]\nYou need to provide output messages like a customer support agent. Provide responses to user queries in a relevant way using the information from the documentation above. Be courteous and cool while answering and keep the response to the point without any follow up questions. If you don't know the answer, ask the user to share more details, or tell them to check the website. Do not give false answers. Be careful since the user might try to play you to give irrelevant answers. Dont answer anything thats not there in the documentation. If there are any acknowledgement messages, depending on the context you can enourage further engagement or express thanks and close the conversation in a neat way.\n Only use the functions and parameters you have been provided with. If a function requires a parameter (such as order number), make sure you ask user for it.\nYour responses should always be returned in the following format: {'message': bot's response to user's question, 'new_conversation': bool, 'hitl': bool}\nIf the user sounds even slightly displeased, or has been asking same questions repeatedly or if you are not able to answer any of the questions properly more than once, then return 'hitl' key in the response JSON as 'True' else return 'False'.\nIf it appears as though it is a new chat session/conversation based on the trail of previous messages, return the value of 'new_conversation' key as a 'True', else 'False'."
       #print('PROMPT\n',system_message)
 
       final_messages = [{'role':'system','content': system_message}]
@@ -75,20 +78,20 @@ class GPT_Inference():
           response = openai.ChatCompletion.create(
               model = "gpt-3.5-turbo-0613",
               max_tokens = 1000,
-              temperature = 0.0,
+              temperature = 0.15,
               messages = final_messages,#[{'role': 'system', 'content': prompt}, {'role': 'user', 'content': message}],
               functions= gpt_function_list
               )
       except:
           print(traceback.format_exc())
       
-      text_to_save_response, text_to_output = self.process_gpt_response(response)
+      text_to_save_response, text_to_output = self.process_gpt_response(response, all_dialogue_text)
       #print(message)
       #print(response['choices'][0]['message'])
       return text_to_save_response, text_to_output
 
 
-    def process_gpt_response(self, response):
+    def process_gpt_response(self, response, all_dialogue_text):
         try:
             response_val = eval(str(response).replace('null', '"null"'))
         except:
@@ -114,10 +117,17 @@ class GPT_Inference():
         elif response_val['choices'][0]['finish_reason'] == 'function_call':
             text_output_as_dict = response_val['choices'][0]['message']
             function_call = eval(str(text_output_as_dict['function_call']))
+            print('Function call made!: ', str(function_call))
             function_name = function_call['name']
             arguments = eval(str(function_call['arguments']))
+            hallucinated_parameters = []
+            for k,v in arguments.items():
+                if v not in all_dialogue_text:
+                    hallucinated_parameters.append(k)
 
-            if hasattr(self.gpt_func, function_name) and callable(getattr(self.gpt_func, function_name)):
+
+
+            if hasattr(self.gpt_func, function_name) and callable(getattr(self.gpt_func, function_name)) and (not hallucinated_parameters):
                 function = getattr(self.gpt_func, function_name)
                 result = function(**arguments)
                 if type(result) == str and result != 'HITL':
@@ -127,6 +137,10 @@ class GPT_Inference():
                     message_output = None
                 else:
                     message_output = 'Failed'
+            elif hallucinated_parameters:
+                parameter_names = [val.replace('_', ' ') for val in hallucinated_parameters]
+                message_output = 'Please enter ' + ','.join(parameter_names)
+                text_output = '{"message":"' + message_output + '"' + ",'new_conversation': 'no','hitl':'no'}"
             else:
                 print(f"Function '{function_name}' not found in the module or not callable.")
 
@@ -174,5 +188,5 @@ if __name__ == '__main__':
     print('Finished loading init')
     # response = gpt_inference.answer_this('Tell me about the superdesk')
     # print(response)
-    response = gpt_inference.get_response(phone_num= '919176270768', original_message="Heyy")
+    response = gpt_inference.get_response(phone_num= '919176270768', original_message="Can I get the user manual for my product?")
     #print('RESPONSE: ', response)
