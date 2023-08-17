@@ -75,7 +75,7 @@ class gpt_functions():
             }
             }
 
-        return [tracking_id_function,send_user_manual_function] #, get_delivery_time_estimate]
+        return [tracking_id_function,send_user_manual_function, get_delivery_time_estimate]
 
 
 
