@@ -110,11 +110,12 @@ class GPT_Inference():
                 text_output = text_output.replace('False', "'False'")
                 text_output = text_output.replace('True', "'True'")
                 # text_output_as_dict = json.loads(str(text_output))
+                text_output_as_dict = eval(str(text_output))
             except:
                 pass
             message_output = text_output_as_dict['message']
-            hitl_status = bool(text_output_as_dict['hitl'])
-            new_conversation_status = bool(text_output_as_dict['new_conversation'])
+            hitl_status = eval(text_output_as_dict['hitl'])
+            new_conversation_status = eval(text_output_as_dict['new_conversation'])
 
         elif response_val['choices'][0]['finish_reason'] == 'function_call':
             text_output_as_dict = response_val['choices'][0]['message']
@@ -195,5 +196,5 @@ if __name__ == '__main__':
     print('Finished loading init')
     # response = gpt_inference.answer_this('Tell me about the superdesk')
     # print(response)
-    response = gpt_inference.get_response(phone_num= '919445574311', original_message="600020")
+    response = gpt_inference.get_response(phone_num= '919176270768', original_message="Hey")
     #print('RESPONSE: ', response)
