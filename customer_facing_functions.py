@@ -104,7 +104,7 @@ class gpt_functions():
     def get_delivery_est_frompincode(self, pin_code):
         try:
             bluedart_approx_csv = pd.read_csv(os.path.join(os.getcwd(), 'approx_delivery_times_2.csv'), index_col=False)
-            if len(list(bluedart_approx_csv[bluedart_approx_csv['Pincode'] == int(float(pin_code))]))>0:
+            if bluedart_approx_csv[bluedart_approx_csv['Pincode'] == int(float(pin_code))].shape[0]>0:
                 tat_value = list(bluedart_approx_csv[bluedart_approx_csv['Pincode'] == int(float(pin_code))]['TAT'])[0]
             else:
                 return 'HITL'
