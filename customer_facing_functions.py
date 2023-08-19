@@ -104,8 +104,8 @@ class gpt_functions():
     def get_delivery_est_frompincode(self, pin_code):
         try:
             bluedart_approx_csv = pd.read_csv(os.path.join(os.getcwd(), 'approx_delivery_times_2.csv'), index_col=False)
-            if len(list(bluedart_approx_csv[bluedart_approx_csv['Pincode'] == pin_code]))>0:
-                tat_value = list(bluedart_approx_csv[bluedart_approx_csv['Pincode'] == pin_code]['TAT'])[0]
+            if len(list(bluedart_approx_csv[bluedart_approx_csv['Pincode'] == int(float(pin_code))]))>0:
+                tat_value = list(bluedart_approx_csv[bluedart_approx_csv['Pincode'] == int(float(pin_code))]['TAT'])[0]
             else:
                 return 'HITL'
             return str(round(tat_value/24)) + ' days from the date of ordering.'
@@ -162,6 +162,11 @@ class gpt_functions():
             return "Couldn't find order number (HITL)"
         else:
             return '<Document Attached>'
+
+if __name__ == '__main__':
+    gptclass = gpt_functions(phone_number='919176270768')
+
+    gptclass.get_delivery_est_frompincode('600020')
 
 
 

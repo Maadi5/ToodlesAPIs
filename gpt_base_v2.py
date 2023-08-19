@@ -1,7 +1,7 @@
 import sys
 import os
 import traceback
-
+import json
 import openai
 from openai.embeddings_utils import cosine_similarity, get_embedding
 import pandas as pd
@@ -107,7 +107,9 @@ class GPT_Inference():
             try:
                 text_output = response_val['choices'][0]['message']['content'].split('\n')[0]
                 text_output = text_output[1:] if text_output[0] == ':' else text_output
-                text_output_as_dict = eval(str(text_output))
+                text_output = text_output.replace('False', "'False'")
+                text_output = text_output.replace('True', "'True'")
+                # text_output_as_dict = json.loads(str(text_output))
             except:
                 pass
             message_output = text_output_as_dict['message']
@@ -131,11 +133,16 @@ class GPT_Inference():
                 function = getattr(self.gpt_func, function_name)
                 result = function(**arguments)
                 if type(result) == str and result != 'HITL':
-                    text_output = '{"message":"'+ result +'"' + ",'new_conversation': 'no','hitl':'no'}"
+                    text_output = '{"message":"'+ result +'"' + ",'new_conversation': False,'hitl':False}"
                     message_output = result
                 elif type(result) == bool and result == True:
                     message_output = None
+                elif result == 'HITL':
+                    hitl_status = True
+                    text_output = '{"message":"' + "Please give me some time, as I retrieve your information." + '"' + ",'new_conversation': False,'hitl':False}"
+                    message_output = 'HITL'
                 else:
+                    hitl_status = True
                     message_output = 'Failed'
             elif hallucinated_parameters:
                 parameter_names = [val.replace('_', ' ') for val in hallucinated_parameters]
@@ -188,5 +195,5 @@ if __name__ == '__main__':
     print('Finished loading init')
     # response = gpt_inference.answer_this('Tell me about the superdesk')
     # print(response)
-    response = gpt_inference.get_response(phone_num= '919445574311', original_message="Hi!")
+    response = gpt_inference.get_response(phone_num= '919445574311', original_message="600020")
     #print('RESPONSE: ', response)
