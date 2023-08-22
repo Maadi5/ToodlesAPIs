@@ -131,10 +131,11 @@ class CSVProcessing(Resource):
                     phone_num = str(row['phone_num'])
                     name = str(row['name'])
                     awb = str(int(float(row['awb'])))
+                    invoice_number = str(int(float(row['invoice_number'])))
                     product_name, product_manual = get_product_name_manual(sku=sku)
                     #product_name, product_manual = get_product_name_manual(sku=sku)
                     ## send template message
-                    if str(row['whatsapp_status']) == '':
+                    if str(row['whatsapp_status']) == '' and invoice_number[:3] in {'WOO', 'SFY'}:
                         try:
                             custom_params=[{'name': 'awb_number', 'value': awb}]
                             status = wati.send_template_message(contact_name=name, contact_number= phone_num, template_name='order_dispatched_with_awb2',
@@ -194,7 +195,7 @@ class CSVProcessing(Resource):
                             wa_status_usermanual = 'Failure_exception'
                             print('whatsapp failed: ', traceback.format_exc())
 
-                    if str(row['email_status']) == '':
+                    if str(row['email_status']) == '' and invoice_number[:3] in {'WOO', 'SFY'}:
                         ## send email
                         try:
                             status = send_dispatch_email(name= name, to_address= email,awb_number=awb)
