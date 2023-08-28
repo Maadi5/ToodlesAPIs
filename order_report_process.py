@@ -126,7 +126,8 @@ def create_zoho_invoice_csv(new_browntape_df):
                    'SKU Codes': 'SKU',
                    'HSN Code': 'HSN/SAC',
                    'Item Total': 'Item Price',
-                   'Item Total Discount Value':'Entity Discount Amount'}
+                   'Item Total Discount Value':'Entity Discount Amount',
+                         }
 
     bt_zoho_amount_add_map = { 'Shipping Charge': {'Gross Shipping Amount', 'Gross COD Fee'}}
 
@@ -177,6 +178,7 @@ def create_zoho_invoice_csv(new_browntape_df):
                            }
 
     zoho_csv = []
+    item_level_discount_add = []
     bt_cols = list(new_browntape_df.columns)
     for idx, row in new_browntape_df.iterrows():
         if row['Fulfillment Status'] in {'shipped', 'delivered', 'packed','packing', 'manifested'}:
@@ -246,16 +248,31 @@ def create_zoho_invoice_csv(new_browntape_df):
             if 'FRC' in str(row['Invoice Number']):
                 for key in firstcry_details_map:
                     dfdict[key] = str(firstcry_details_map[key])
+
+            if zoho_csv and zoho_csv[-1]['Reference#'] != dfdict['Reference#']:
+                valid_float_discounts = []
+                for val in item_level_discount_add:
+                    try:
+                        valid_float_discounts.append(float(str(val.replace(',',''))))
+                    except:
+                        pass
+                if len(valid_float_discounts)>1:
+                    total_discount_val = sum(valid_float_discounts)
+                    for val in range(len(item_level_discount_add)):
+                        index = -1*(val+1)
+                        zoho_csv[index]['Entity Discount Amount'] = total_discount_val
+                item_level_discount_add = []
+            item_level_discount_add.append(dfdict['Entity Discount Amount'])
             zoho_csv.append(dfdict)
 
     return pd.DataFrame(zoho_csv)
 
 
 if __name__ == '__main__':
-    testdf = pd.read_csv(r'C:\Users\Adithya\Downloads\btreport_879628.csv', index_col = False)
+    testdf = pd.read_csv(r'C:\Users\Adithya\Downloads\btreport_886206.csv', index_col = False)
     testdf = input_df_preprocessing(testdf)
     newdf = create_zoho_invoice_csv(new_browntape_df=testdf)
-    newdf.to_csv(r'C:\Users\Adithya\Downloads\zoho_preorder_invoices.csv', index= False)
+    newdf.to_csv(r'C:\Users\Adithya\Downloads\zoho_invoices_latest.csv', index= False)
 
 
         
