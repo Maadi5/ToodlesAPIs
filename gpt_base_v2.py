@@ -96,6 +96,7 @@ class GPT_Inference():
             response_val = eval(str(response).replace('null', '"null"'))
         except:
             pass
+
         #print('response dictionary: ', response_val)
         #### Check if message or function call
         hitl_status = False

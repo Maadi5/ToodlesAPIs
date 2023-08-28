@@ -33,7 +33,7 @@ class gpt_functions():
     def get_gptfunction_list(self):
 
         # if not self.number_exists:
-        tracking_id_function ={
+        tracking_id_function = {
                   "name": "get_tracking_number_from_order_number",
                   "description": "Get the tracking number for an order for tracking it's location.",
                   "parameters": {
@@ -48,7 +48,7 @@ class gpt_functions():
                   }
                   }
         send_user_manual_function = {"name": "get_usermanual_from_order_number",
-            "description": "Get the usermanual/assembly guide PDF for an order, based on the order number.",
+            "description": "Get the assembly guide PDF for an order, based on the order number.",
             "parameters": {
                 "type": "object",
                 "properties": {
