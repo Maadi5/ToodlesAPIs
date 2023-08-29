@@ -197,13 +197,18 @@ def create_zoho_invoice_csv(new_browntape_df):
                         pass
                 elif 'Date' in c and str(row[c]) != 'nan':
                     try:
+                        #print('c: ', c)
                         date_val = str(row[c]).split(' ')[0]
+                        #print(date_val)
                         #print('original date: ', date_val)
                         try:
                             newdate = str(convert_date_format(date_val))
+                            #print('newdate: ', newdate)
                             dfdict[bt_zoho_field_map[c]] = newdate
+                            #print('success: ', bt_zoho_field_map[c])
                         except:
                             #print(traceback.format_exc())
+                            #print('failure in date')
                             pass
                         #print('new date: ', newdate)
                     except:
@@ -272,7 +277,7 @@ if __name__ == '__main__':
     testdf = pd.read_csv(r'C:\Users\Adithya\Downloads\btreport_886206.csv', index_col = False)
     testdf = input_df_preprocessing(testdf)
     newdf = create_zoho_invoice_csv(new_browntape_df=testdf)
-    newdf.to_csv(r'C:\Users\Adithya\Downloads\zoho_invoices_latest.csv', index= False)
+    newdf.to_csv(r'C:\Users\Adithya\Downloads\zoho_invoices_latest2.csv', index= False)
 
 
         
