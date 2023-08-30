@@ -150,6 +150,7 @@ class CSVProcessing(Resource):
                     product_name, product_manual = get_product_name_manual(sku=sku)
                     #product_name, product_manual = get_product_name_manual(sku=sku)
                     ## send template message
+                    wa_status = 'NA'
                     if str(row['whatsapp_status']) == '' and invoice_number[:3] in {'WOO', 'SFY'}:
                         try:
                             custom_params=[{'name': 'awb_number', 'value': awb}]
@@ -213,7 +214,7 @@ class CSVProcessing(Resource):
                             #print('whatsapp failed: ', traceback.format_exc())
                             logging.error("whatsapp failed usermanual")
                             logging.error(traceback.format_exc())
-
+                    email_status = 'NA'
                     if str(row['email_status']) == '' and invoice_number[:3] in {'WOO', 'SFY'}:
                         ## send email
                         try:
