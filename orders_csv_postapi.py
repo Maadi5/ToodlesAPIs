@@ -261,6 +261,8 @@ class CSVProcessing(Resource):
                                      'wa_manual_status': wa_status_usermanual})
                 except:
                     print(traceback.format_exc())
+                    logging.error("LOOP FAILED FOR ENTRY")
+                    logging.error(traceback.format_exc())
                     statuses.append({'id': id, 'email_status': 'Failure', 'wa_status': 'Failure'})
                     #trackerdf_original = pd.read_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index_col = False)
                     #trackerdf = pd.concat([trackerdf_original,trackerdf])
