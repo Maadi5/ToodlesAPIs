@@ -7,7 +7,6 @@ from order_report_process import get_order_details, create_zoho_invoice_csv, che
 from email_sender import send_dispatch_email, send_usermanual_email, send_dispatch_usermanual_email, send_csv
 from wati_apis import WATI_APIS
 import traceback
-import logging
 
 from product_manual_map import get_product_name_manual
 import time
@@ -16,6 +15,15 @@ from google_sheets_apis import googlesheets_apis
 from validation_utils import match_cols, input_df_preprocessing
 import config
 
+import logging
+
+# Configure the logger
+logging.basicConfig(
+    filename='postapi_logs.log',  # Specify the log file name
+    level=logging.DEBUG,        # Set the logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 print('after all imports')
 wati = WATI_APIS()
 gsheets_db = googlesheets_apis(spreadsheet_id=config.db_spreadsheet_id)
@@ -65,7 +73,8 @@ class CSVProcessing(Resource):
             args = upload_parser.parse_args()
             csv_file = args['file']
             df = pd.read_csv(csv_file)
-            print('read file')
+            #print('read file')
+            logging.info("read file")
             df = input_df_preprocessing(df)
             tracker_df = gsheets_db.load_sheet_as_csv(sheet_name=config.db_sheet_name)
             live_data, incomplete_csv, cancelled_orders_csv, browntape_new_csv = get_order_details(browntape_df=df, tracker_df=tracker_df)
@@ -86,7 +95,9 @@ class CSVProcessing(Resource):
                     gsheets_accounts.append_csv_to_google_sheets(csv_path=zoho_invoice_csv_path, sheet_name=date_range)
                     # status = send_csv(csvfile=zoho_invoice_csv_path, subject='order_report')
                 except:
-                    print('email csv failed for zoho invoice: ', traceback.format_exc())
+                    #print('email csv failed for zoho invoice: ', traceback.format_exc())
+                    logging.error("email csv failed for zoho invoice")
+                    logging.error(traceback.format_exc())
 
             if cancelled_orders_csv is not None:
                 cancelled_unique_ids, cancelled_orders_df = check_cod_cancellations(tracker_df= tracker_df, cancelled_orders_df=cancelled_orders_csv)
@@ -103,6 +114,8 @@ class CSVProcessing(Resource):
                     # trackerdf.at[idx, 'email_status'] = 'Failure_exception'
                     # email_status = 'Failure_exception'
                     print('email csv failed: ', traceback.format_exc())
+                    logging.error("email csv failed for cancelled orders")
+                    logging.error(traceback.format_exc())
 
 
 
@@ -119,6 +132,8 @@ class CSVProcessing(Resource):
                     # trackerdf.at[idx, 'email_status'] = 'Failure_exception'
                     # email_status = 'Failure_exception'
                     print('email csv failed: ', traceback.format_exc())
+                    logging.error("email csv failed for incomplete orders")
+                    logging.error(traceback.format_exc())
             statuses = []
 
             live_data.fillna('', inplace= True)
@@ -161,7 +176,9 @@ class CSVProcessing(Resource):
                             for idx in idxs:
                                 live_data.at[idx, 'whatsapp_status'] = 'Failure_exception'
                             wa_status = 'Failure_exception'
-                            print('whatsapp failed: ', traceback.format_exc())
+                            #print('whatsapp failed awb: ', traceback.format_exc())
+                            logging.error("whatsapp failed exception")
+                            logging.error(traceback.format_exc())
 
                     if str(row['usermanual_whatsapp_status']) == '':
                         #send user manual whatsapp
@@ -171,7 +188,7 @@ class CSVProcessing(Resource):
                             status = wati.send_template_message(contact_name=name, contact_number=phone_num,
                                                                 template_name='usermanual_short3',
                                                                 custom_params=custom_params)
-                            print('Status of whatsapp: ', status)
+                            #print('Status of whatsapp: ', status)
                             if not status:
                                 ## Store timeframe n number of times based on number of rows per order
                                 idxs = live_data.index[live_data['unique_id'] == id].tolist()
@@ -193,7 +210,9 @@ class CSVProcessing(Resource):
                             for idx in idxs:
                                 live_data.at[idx, 'usermanual_whatsapp_status'] = 'Failure_exception'
                             wa_status_usermanual = 'Failure_exception'
-                            print('whatsapp failed: ', traceback.format_exc())
+                            #print('whatsapp failed: ', traceback.format_exc())
+                            logging.error("whatsapp failed usermanual")
+                            logging.error(traceback.format_exc())
 
                     if str(row['email_status']) == '' and invoice_number[:3] in {'WOO', 'SFY'}:
                         ## send email
@@ -209,7 +228,9 @@ class CSVProcessing(Resource):
                             for idx in idxs:
                                 live_data.at[idx, 'email_status'] = 'Failure_exception'
                             email_status = 'Failure_exception'
-                            print('email failed: ', traceback.format_exc())
+                            #print('email failed: ', traceback.format_exc())
+                            logging.error("email failed awb")
+                            logging.error(traceback.format_exc())
 
                     if str(row['usermanual_email_status']) == '':
                         ## send email for usermanual
@@ -226,7 +247,8 @@ class CSVProcessing(Resource):
                             for idx in idxs:
                                 live_data.at[idx, 'usermanual_email_status'] = 'Failure_exception'
                             email_status_usermanual = 'Failure_exception'
-                            print('email failed: ', traceback.format_exc())
+                            logging.error("email failed usermanual")
+                            logging.error(traceback.format_exc())
 
                     processing_time_stamp = time.strftime('%d-%m-%Y %H:%M', time.localtime(time.time()))
 
@@ -234,8 +256,8 @@ class CSVProcessing(Resource):
                     for idx in idxs:
                         live_data.at[idx, 'timestamp'] = processing_time_stamp
 
-                    statuses.append({'id': id, 'email_status': email_status, 'wa_status': wa_status
-                                        , 'email_manual_status': email_status_usermanual,
+                    statuses.append({'id': id, 'email_status': email_status, 'wa_status': wa_status,
+                                     'email_manual_status': email_status_usermanual,
                                      'wa_manual_status': wa_status_usermanual})
                 except:
                     print(traceback.format_exc())
@@ -251,8 +273,10 @@ class CSVProcessing(Resource):
                 live_data.to_csv(os.path.join(os.getcwd(), 'livedata.csv'), index=False)
                 gsheets_db.append_csv_to_google_sheets(csv_path=os.path.join(os.getcwd(), 'livedata.csv'), sheet_name=config.db_sheet_name)
             except:
-                print('Failure at pushing to LIVE: ')
-                print(traceback.format_exc())
+                #print('Failure at pushing to LIVE: ')
+                #print(traceback.format_exc())
+                logging.error("failure at pushing to LIVE")
+                logging.error(traceback.format_exc())
                 statuses = {'Failed to push to main data!'}
             return statuses
 
