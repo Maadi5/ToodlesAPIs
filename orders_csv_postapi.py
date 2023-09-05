@@ -12,10 +12,13 @@ from product_manual_map import get_product_name_manual
 import time
 from datetime import datetime
 from google_sheets_apis import googlesheets_apis
-from validation_utils import match_cols, input_df_preprocessing
+from validation_utils import match_cols, input_df_preprocessing, check_fields
 import config
 
 import logging
+
+ops_automation_alarm_contacts = {'Javith': '919698606713', 'Milan': '919445574311',
+                                 'Adithya': '919176270768'}
 
 # Configure the logger
 logging.basicConfig(
@@ -137,140 +140,172 @@ class CSVProcessing(Resource):
             statuses = []
 
             live_data.fillna('', inplace= True)
+            cols = list(live_data.columns)
+            failure_statements = []
 
             for idx, row in live_data.iterrows():
-                try:
+                ##Validate all variables
+                valid = True
+                failure_reasons = []
+                for c in cols:
+                    verdict = check_fields(val=row[c], field=c)
+                    if verdict is not True:
+                        failure_reasons.append(c+'- '+verdict)
+                        valid = False
+
+                if valid is not True:
                     id = str(row['unique_id'])
-                    sku = str(row['sku'])
-                    email = str(row['email_id'])
-                    phone_num = str(row['phone_num'])
-                    name = str(row['name'])
-                    awb = str(int(float(row['awb'])))
-                    invoice_number = str(row['invoice_number'])
-                    product_name, product_manual = get_product_name_manual(sku=sku)
-                    #product_name, product_manual = get_product_name_manual(sku=sku)
-                    ## send template message
-                    wa_status = 'NA'
-                    if str(row['whatsapp_status']) == '' and invoice_number[:3] in {'WOO', 'SFY'}:
-                        try:
-                            custom_params=[{'name': 'awb_number', 'value': awb}]
-                            status = wati.send_template_message(contact_name=name, contact_number= phone_num, template_name='order_dispatched_with_awb2',
-                                                    custom_params=custom_params)
-                            if not status:
-                                ## Store timeframe n number of times based on number of rows per order
+                    failure_statement = id + ': ' + ', '.join(failure_reasons)
+                    failure_statements.append(failure_statement)
+                else:
+
+                    try:
+                        id = str(row['unique_id'])
+                        sku = str(row['sku'])
+                        email = str(row['email_id'])
+                        phone_num = str(row['phone_num'])
+                        name = str(row['name'])
+                        awb = str(int(float(row['awb'])))
+                        invoice_number = str(row['invoice_number'])
+                        product_name, product_manual = get_product_name_manual(sku=sku)
+                        #product_name, product_manual = get_product_name_manual(sku=sku)
+                        ## send template message
+                        wa_status = 'NA'
+                        if str(row['whatsapp_status']) == '' and invoice_number[:3] in {'WOO', 'SFY'}:
+                            try:
+                                custom_params=[{'name': 'awb_number', 'value': awb}]
+                                status = wati.send_template_message(contact_name=name, contact_number= phone_num, template_name='order_dispatched_with_awb2',
+                                                        custom_params=custom_params)
+                                if not status:
+                                    ## Store timeframe n number of times based on number of rows per order
+                                    idxs = live_data.index[live_data['unique_id'] == id].tolist()
+                                    print('idx: ', idx)
+                                    for idx in idxs:
+                                        live_data.at[idx, 'whatsapp_status'] = 'Failure'
+                                    wa_status = 'Failure'
+                                else:
+                                    ## Store timeframe n number of times based on number of rows per order
+                                    idxs = live_data.index[live_data['unique_id'] == id].tolist()
+                                    # idx = live_data.index[live_data['unique_id'] == id].tolist()[0]
+                                    # print('idx: ', idx)
+                                    for idx in idxs:
+                                        live_data.at[idx, 'whatsapp_status'] = 'Success'
+                                        live_data.at[idx, 'awb_message_timestamp'] = time.time()
+                                    wa_status = 'Success'
+                            except:
                                 idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                                print('idx: ', idx)
                                 for idx in idxs:
-                                    live_data.at[idx, 'whatsapp_status'] = 'Failure'
-                                wa_status = 'Failure'
-                            else:
-                                ## Store timeframe n number of times based on number of rows per order
+                                    live_data.at[idx, 'whatsapp_status'] = 'Failure_exception'
+                                wa_status = 'Failure_exception'
+                                #print('whatsapp failed awb: ', traceback.format_exc())
+                                logging.error("whatsapp failed exception")
+                                logging.error(traceback.format_exc())
+
+                        if str(row['usermanual_whatsapp_status']) == '':
+                            #send user manual whatsapp
+                            try:
+                                custom_params = [{'name': 'product_name', 'value': str(product_name)},
+                                                 {'name': 'media_url', 'value': str(product_manual)}]
+                                status = wati.send_template_message(contact_name=name, contact_number=phone_num,
+                                                                    template_name='usermanual_short3',
+                                                                    custom_params=custom_params)
+                                #print('Status of whatsapp: ', status)
+                                if not status:
+                                    ## Store timeframe n number of times based on number of rows per order
+                                    idxs = live_data.index[live_data['unique_id'] == id].tolist()
+                                    print('idx: ', idx)
+                                    for idx in idxs:
+                                        live_data.at[idx, 'usermanual_whatsapp_status'] = 'Failure'
+                                    wa_status_usermanual = 'Failure'
+                                else:
+                                    ## Store timeframe n number of times based on number of rows per order
+                                    idxs = live_data.index[live_data['unique_id'] == id].tolist()
+                                    # idx = live_data.index[live_data['unique_id'] == id].tolist()[0]
+                                    # print('idx: ', idx)
+                                    for idx in idxs:
+                                        live_data.at[idx, 'usermanual_whatsapp_status'] = 'Success'
+                                        #live_data.at[idx, 'awb_message_timestamp'] = time.time()
+                                    wa_status_usermanual = 'Success'
+                            except:
                                 idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                                # idx = live_data.index[live_data['unique_id'] == id].tolist()[0]
-                                # print('idx: ', idx)
                                 for idx in idxs:
-                                    live_data.at[idx, 'whatsapp_status'] = 'Success'
+                                    live_data.at[idx, 'usermanual_whatsapp_status'] = 'Failure_exception'
+                                wa_status_usermanual = 'Failure_exception'
+                                #print('whatsapp failed: ', traceback.format_exc())
+                                logging.error("whatsapp failed usermanual")
+                                logging.error(traceback.format_exc())
+                        email_status = 'NA'
+                        if str(row['email_status']) == '' and invoice_number[:3] in {'WOO', 'SFY'}:
+                            ## send email
+                            try:
+                                status = send_dispatch_email(name= name, to_address= email,awb_number=awb)
+                                idxs = live_data.index[live_data['unique_id'] == id].tolist()
+                                for idx in idxs:
+                                    live_data.at[idx, 'email_status'] = status
                                     live_data.at[idx, 'awb_message_timestamp'] = time.time()
-                                wa_status = 'Success'
-                        except:
-                            idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                            for idx in idxs:
-                                live_data.at[idx, 'whatsapp_status'] = 'Failure_exception'
-                            wa_status = 'Failure_exception'
-                            #print('whatsapp failed awb: ', traceback.format_exc())
-                            logging.error("whatsapp failed exception")
-                            logging.error(traceback.format_exc())
+                                email_status = status
+                            except:
+                                idxs = live_data.index[live_data['unique_id'] == id].tolist()
+                                for idx in idxs:
+                                    live_data.at[idx, 'email_status'] = 'Failure_exception'
+                                email_status = 'Failure_exception'
+                                #print('email failed: ', traceback.format_exc())
+                                logging.error("email failed awb")
+                                logging.error(traceback.format_exc())
 
-                    if str(row['usermanual_whatsapp_status']) == '':
-                        #send user manual whatsapp
-                        try:
-                            custom_params = [{'name': 'product_name', 'value': str(product_name)},
-                                             {'name': 'media_url', 'value': str(product_manual)}]
-                            status = wati.send_template_message(contact_name=name, contact_number=phone_num,
-                                                                template_name='usermanual_short3',
-                                                                custom_params=custom_params)
-                            #print('Status of whatsapp: ', status)
-                            if not status:
-                                ## Store timeframe n number of times based on number of rows per order
+                        if str(row['usermanual_email_status']) == '':
+                            ## send email for usermanual
+                            try:
+                                status = send_usermanual_email(name=name, to_address=email, product_name=product_name,
+                                                               product_manual_link=product_manual)
                                 idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                                print('idx: ', idx)
                                 for idx in idxs:
-                                    live_data.at[idx, 'usermanual_whatsapp_status'] = 'Failure'
-                                wa_status_usermanual = 'Failure'
-                            else:
-                                ## Store timeframe n number of times based on number of rows per order
-                                idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                                # idx = live_data.index[live_data['unique_id'] == id].tolist()[0]
-                                # print('idx: ', idx)
-                                for idx in idxs:
-                                    live_data.at[idx, 'usermanual_whatsapp_status'] = 'Success'
+                                    live_data.at[idx, 'usermanual_email_status'] = status
                                     #live_data.at[idx, 'awb_message_timestamp'] = time.time()
-                                wa_status_usermanual = 'Success'
-                        except:
-                            idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                            for idx in idxs:
-                                live_data.at[idx, 'usermanual_whatsapp_status'] = 'Failure_exception'
-                            wa_status_usermanual = 'Failure_exception'
-                            #print('whatsapp failed: ', traceback.format_exc())
-                            logging.error("whatsapp failed usermanual")
-                            logging.error(traceback.format_exc())
-                    email_status = 'NA'
-                    if str(row['email_status']) == '' and invoice_number[:3] in {'WOO', 'SFY'}:
-                        ## send email
-                        try:
-                            status = send_dispatch_email(name= name, to_address= email,awb_number=awb)
-                            idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                            for idx in idxs:
-                                live_data.at[idx, 'email_status'] = status
-                                live_data.at[idx, 'awb_message_timestamp'] = time.time()
-                            email_status = status
-                        except:
-                            idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                            for idx in idxs:
-                                live_data.at[idx, 'email_status'] = 'Failure_exception'
-                            email_status = 'Failure_exception'
-                            #print('email failed: ', traceback.format_exc())
-                            logging.error("email failed awb")
-                            logging.error(traceback.format_exc())
+                                email_status_usermanual = status
+                            except:
+                                idxs = live_data.index[live_data['unique_id'] == id].tolist()
+                                for idx in idxs:
+                                    live_data.at[idx, 'usermanual_email_status'] = 'Failure_exception'
+                                email_status_usermanual = 'Failure_exception'
+                                logging.error("email failed usermanual")
+                                logging.error(traceback.format_exc())
 
-                    if str(row['usermanual_email_status']) == '':
-                        ## send email for usermanual
-                        try:
-                            status = send_usermanual_email(name=name, to_address=email, product_name=product_name,
-                                                           product_manual_link=product_manual)
-                            idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                            for idx in idxs:
-                                live_data.at[idx, 'usermanual_email_status'] = status
-                                #live_data.at[idx, 'awb_message_timestamp'] = time.time()
-                            email_status_usermanual = status
-                        except:
-                            idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                            for idx in idxs:
-                                live_data.at[idx, 'usermanual_email_status'] = 'Failure_exception'
-                            email_status_usermanual = 'Failure_exception'
-                            logging.error("email failed usermanual")
-                            logging.error(traceback.format_exc())
+                        processing_time_stamp = time.strftime('%d-%m-%Y %H:%M', time.localtime(time.time()))
 
-                    processing_time_stamp = time.strftime('%d-%m-%Y %H:%M', time.localtime(time.time()))
+                        idxs = live_data.index[live_data['unique_id'] == id].tolist()
+                        for idx in idxs:
+                            live_data.at[idx, 'timestamp'] = processing_time_stamp
 
-                    idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                    for idx in idxs:
-                        live_data.at[idx, 'timestamp'] = processing_time_stamp
-
-                    statuses.append({'id': id, 'email_status': email_status, 'wa_status': wa_status,
-                                     'email_manual_status': email_status_usermanual,
-                                     'wa_manual_status': wa_status_usermanual})
-                except:
-                    print(traceback.format_exc())
-                    logging.error("LOOP FAILED FOR ENTRY")
-                    logging.error(traceback.format_exc())
-                    statuses.append({'id': id, 'email_status': 'Failure', 'wa_status': 'Failure'})
-                    #trackerdf_original = pd.read_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index_col = False)
-                    #trackerdf = pd.concat([trackerdf_original,trackerdf])
-                    # trackerdf.to_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index = False)
+                        statuses.append({'id': id, 'email_status': email_status, 'wa_status': wa_status,
+                                         'email_manual_status': email_status_usermanual,
+                                         'wa_manual_status': wa_status_usermanual})
+                    except:
+                        print(traceback.format_exc())
+                        logging.error("LOOP FAILED FOR ENTRY")
+                        logging.error(traceback.format_exc())
+                        statuses.append({'id': id, 'email_status': 'Failure', 'wa_status': 'Failure'})
+                        #trackerdf_original = pd.read_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index_col = False)
+                        #trackerdf = pd.concat([trackerdf_original,trackerdf])
+                        # trackerdf.to_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index = False)
             
             #trackerdf_original = pd.read_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index_col = False)
             #trackerdf = pd.concat([trackerdf_original,trackerdf])
+
+            try:
+                if failure_statements:
+                        failure_message_alarm = '; '.join(failure_statements)
+                        for name, phone_num in ops_automation_alarm_contacts.items():
+                            custom_params = [{'name': 'orderlist', 'value': failure_message_alarm}]
+                            status = wati.send_template_message(contact_name=name, contact_number=phone_num,
+                                                                template_name='failed_orders_processing',
+                                                                custom_params=custom_params)
+            except:
+                logging.error('Failed to send failure message')
+                logging.error(traceback.format_exc())
+
+
+
             try:
                 live_data = match_cols(live_data, col_names=columns_list)
                 live_data.to_csv(os.path.join(os.getcwd(), 'livedata.csv'), index=False)

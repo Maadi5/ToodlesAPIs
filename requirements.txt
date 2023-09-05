@@ -23,6 +23,6 @@ s3transfer==0.6.1
 schedule
 six==1.16.0
 scipy
-scikit-learm
+scikit-learn
 urllib3==1.26.16
 Werkzeug==2.3.4
