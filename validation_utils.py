@@ -68,10 +68,10 @@ def check_fields(val, field):
     elif field == 'phone_num':
         clean_number = clean_phone_number(val)
         if clean_number is None:
-            verdict = 'phonenum pattern fail'
+            verdict = 'phone-num pattern fail'
         else:
             if float(clean_number[0])<6:
-                verdict= 'phonenum unusual'
+                verdict= 'phone-num unusual'
             else:
                 verdict = True
     elif field in {'awb', 'pincode', 'state', 'city', 'status'}:
