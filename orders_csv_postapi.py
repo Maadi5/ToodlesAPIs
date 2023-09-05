@@ -165,7 +165,6 @@ class CSVProcessing(Resource):
                         email = str(row['email_id'])
                         phone_num = str(row['phone_num'])
                         name = str(row['name'])
-                        awb = str(int(float(row['awb'])))
                         invoice_number = str(row['invoice_number'])
                         product_name, product_manual = get_product_name_manual(sku=sku)
                         #product_name, product_manual = get_product_name_manual(sku=sku)
@@ -173,6 +172,7 @@ class CSVProcessing(Resource):
                         wa_status = 'NA'
                         if str(row['whatsapp_status']) == '' and invoice_number[:3] in {'WOO', 'SFY'}:
                             try:
+                                awb = str(int(float(row['awb'])))
                                 custom_params=[{'name': 'awb_number', 'value': awb}]
                                 status = wati.send_template_message(contact_name=name, contact_number= phone_num, template_name='order_dispatched_with_awb2',
                                                         custom_params=custom_params)
@@ -201,6 +201,7 @@ class CSVProcessing(Resource):
                                 logging.error("whatsapp failed exception")
                                 logging.error(traceback.format_exc())
 
+                        wa_status_usermanual = 'NA'
                         if str(row['usermanual_whatsapp_status']) == '':
                             #send user manual whatsapp
                             try:
@@ -238,6 +239,7 @@ class CSVProcessing(Resource):
                         if str(row['email_status']) == '' and invoice_number[:3] in {'WOO', 'SFY'}:
                             ## send email
                             try:
+                                awb = str(int(float(row['awb'])))
                                 status = send_dispatch_email(name= name, to_address= email,awb_number=awb)
                                 idxs = live_data.index[live_data['unique_id'] == id].tolist()
                                 for idx in idxs:
@@ -252,7 +254,7 @@ class CSVProcessing(Resource):
                                 #print('email failed: ', traceback.format_exc())
                                 logging.error("email failed awb")
                                 logging.error(traceback.format_exc())
-
+                        email_status_usermanual = 'NA'
                         if str(row['usermanual_email_status']) == '':
                             ## send email for usermanual
                             try:
