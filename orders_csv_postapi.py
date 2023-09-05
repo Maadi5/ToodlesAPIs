@@ -145,13 +145,16 @@ class CSVProcessing(Resource):
 
             for idx, row in live_data.iterrows():
                 ##Validate all variables
-                valid = True
-                failure_reasons = []
-                for c in cols:
-                    verdict = check_fields(val=row[c], field=c)
-                    if verdict is not True:
-                        failure_reasons.append(verdict)
-                        valid = False
+                try:
+                    valid = True
+                    failure_reasons = []
+                    for c in cols:
+                        verdict = check_fields(val=row[c], field=c)
+                        if verdict is not True:
+                            failure_reasons.append(verdict)
+                            valid = False
+                except:
+                    logging.error('verdict block failed for ID: '+ row['id'])
 
                 if valid is not True:
                     id = str(row['unique_id'])
@@ -198,7 +201,7 @@ class CSVProcessing(Resource):
                                     live_data.at[idx, 'whatsapp_status'] = 'Failure_exception'
                                 wa_status = 'Failure_exception'
                                 #print('whatsapp failed awb: ', traceback.format_exc())
-                                logging.error("whatsapp failed exception")
+                                logging.error("whatsapp failed exception for: " + id)
                                 logging.error(traceback.format_exc())
 
                         wa_status_usermanual = 'NA'
@@ -233,7 +236,7 @@ class CSVProcessing(Resource):
                                     live_data.at[idx, 'usermanual_whatsapp_status'] = 'Failure_exception'
                                 wa_status_usermanual = 'Failure_exception'
                                 #print('whatsapp failed: ', traceback.format_exc())
-                                logging.error("whatsapp failed usermanual")
+                                logging.error("whatsapp failed usermanual for: " + id)
                                 logging.error(traceback.format_exc())
                         email_status = 'NA'
                         if str(row['email_status']) == '' and invoice_number[:3] in {'WOO', 'SFY'}:
@@ -252,7 +255,7 @@ class CSVProcessing(Resource):
                                     live_data.at[idx, 'email_status'] = 'Failure_exception'
                                 email_status = 'Failure_exception'
                                 #print('email failed: ', traceback.format_exc())
-                                logging.error("email failed awb")
+                                logging.error("email failed awb for: " + id)
                                 logging.error(traceback.format_exc())
                         email_status_usermanual = 'NA'
                         if str(row['usermanual_email_status']) == '':
@@ -270,7 +273,7 @@ class CSVProcessing(Resource):
                                 for idx in idxs:
                                     live_data.at[idx, 'usermanual_email_status'] = 'Failure_exception'
                                 email_status_usermanual = 'Failure_exception'
-                                logging.error("email failed usermanual")
+                                logging.error("email failed usermanual for: " + id)
                                 logging.error(traceback.format_exc())
 
                         processing_time_stamp = time.strftime('%d-%m-%Y %H:%M', time.localtime(time.time()))

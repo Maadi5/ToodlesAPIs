@@ -80,6 +80,8 @@ def check_fields(val, field):
         else:
             field_name = ' '.join(field.split('_'))
             verdict = field_name + ' missing'
+    else:
+        verdict= True
     return verdict
 
 
