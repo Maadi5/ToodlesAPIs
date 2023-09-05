@@ -150,7 +150,7 @@ class CSVProcessing(Resource):
                 for c in cols:
                     verdict = check_fields(val=row[c], field=c)
                     if verdict is not True:
-                        failure_reasons.append(c+'- '+verdict)
+                        failure_reasons.append(verdict)
                         valid = False
 
                 if valid is not True:

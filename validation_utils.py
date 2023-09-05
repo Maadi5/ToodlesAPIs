@@ -74,7 +74,7 @@ def check_fields(val, field):
                 verdict= 'phonenum unusual'
             else:
                 verdict = True
-    else:
+    elif field in {'awb', 'pincode', 'state', 'city', 'status'}:
         if val:
             verdict = True
         else:
