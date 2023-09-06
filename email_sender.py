@@ -76,17 +76,14 @@ def send_usermanual_email(name, product_name, product_manual_link, to_address):
         email_message['Subject'] = 'Toodles: ' + product_name + '- Assembly Guide'
 
         message = 'Hi ' + name + '!\n' + \
-                  "We're excited to help you assemble your kid's new furniture with ease.\n" + \
-                  'Please find the user manual for your product with step-be-step assembly instructions here: <a href="' + product_manual_link + '">click here</a>\n' + \
-                  "If you have any questions, please don't hesitate to reach out to us. We're here to help! 📞\n" + \
-                  'We hope you and your little one enjoy your new '+ product_name + '. \n' + '\n' + \
+                  "This is Miniture (formerly Toodles).\n\n" + \
+                  'Here is the installation manual for assembling your ' + product_name + ': ' + '<a href="' + product_manual_link + '">click here</a>\n\n' + \
+                  "Feel free to ask us here if you have any queries. 📞\n\n" + \
                   'Yours truly,\n' + 'Team Toodles'
 
         message_html = '<body style=”font-family: Georgia !important;”><pre>Hi ' + name + '!\n' + \
-                "We're excited to help you assemble your kid's new furniture with ease.\n" + \
-                'Please find the user manual for your product with step-be-step assembly instructions here: <a href="' + product_manual_link + '">click here</a>\n' + \
-                "If you have any questions, please reply to this email. We're here to help! 📞\n" + \
-                'We hope you and your little one enjoy your new '+ product_name + '. \n' + '\n' + \
+                'Here is the installation manual for assembling your ' + product_name + ' :' + ' <a href="' + product_manual_link + '">click here</a>\n\n' + \
+                "Feel free to ask us here if you have any queries. 📞\n\n" + \
                 'Yours truly,\n' + 'Team Toodles</pre></body>'
 
         email_message.attach(MIMEText(message_html, 'html'))

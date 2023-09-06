@@ -222,7 +222,7 @@ class CSVProcessing(Resource):
                                 custom_params = [{'name': 'product_name', 'value': str(product_name)},
                                                  {'name': 'media_url', 'value': str(product_manual)}]
                                 status = wati.send_template_message(contact_name=name, contact_number=phone_num,
-                                                                    template_name='usermanual_short3',
+                                                                    template_name='miniture_usermanual_short',
                                                                     custom_params=custom_params)
                                 #print('Status of whatsapp: ', status)
                                 if not status:
