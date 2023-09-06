@@ -177,7 +177,7 @@ class CSVProcessing(Resource):
                         #product_name, product_manual = get_product_name_manual(sku=sku)
                         ## send template message
                         wa_status = 'NA'
-                        if str(row['whatsapp_status']) == '' and invoice_number[:3] in {'WOO', 'SFY'}:
+                        if str(row['whatsapp_status']) == '' and invoice_number[:3] in {'WOO'}:
                             try:
                                 awb = str(int(float(row['awb'])))
                                 custom_params=[{'name': 'awb_number', 'value': awb}]
@@ -207,6 +207,13 @@ class CSVProcessing(Resource):
                                 #print('whatsapp failed awb: ', traceback.format_exc())
                                 logging.error("whatsapp failed exception for: " + id)
                                 logging.error(traceback.format_exc())
+                        else:
+                            idxs = live_data.index[live_data['unique_id'] == id].tolist()
+                            # idx = live_data.index[live_data['unique_id'] == id].tolist()[0]
+                            # print('idx: ', idx)
+                            for ix in idxs:
+                                live_data.at[ix, 'whatsapp_status'] = 'NA'
+                                live_data.at[ix, 'awb_message_timestamp'] = time.time()
 
                         wa_status_usermanual = 'NA'
                         if str(row['usermanual_whatsapp_status']) == '':
@@ -243,7 +250,7 @@ class CSVProcessing(Resource):
                                 logging.error("whatsapp failed usermanual for: " + id)
                                 logging.error(traceback.format_exc())
                         email_status = 'NA'
-                        if str(row['email_status']) == '' and invoice_number[:3] in {'WOO', 'SFY'}:
+                        if str(row['email_status']) == '' and invoice_number[:3] in {'WOO'}:
                             ## send email
                             try:
                                 awb = str(int(float(row['awb'])))
@@ -261,6 +268,11 @@ class CSVProcessing(Resource):
                                 #print('email failed: ', traceback.format_exc())
                                 logging.error("email failed awb for: " + id)
                                 logging.error(traceback.format_exc())
+                        else:
+                            idxs = live_data.index[live_data['unique_id'] == id].tolist()
+                            for ix in idxs:
+                                live_data.at[ix, 'email_status'] = 'NA'
+                                # live_data.at[ix, 'awb_message_timestamp'] = time.time()
                         email_status_usermanual = 'NA'
                         if str(row['usermanual_email_status']) == '':
                             ## send email for usermanual
