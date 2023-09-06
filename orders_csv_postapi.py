@@ -157,6 +157,7 @@ class CSVProcessing(Resource):
                             valid = False
                 except:
                     logging.error('verdict block failed for ID: '+ row['unique_id'])
+                    logging.error(traceback.format_exc())
                     failure_reasons = []
                     valid = False
 
