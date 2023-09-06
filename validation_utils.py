@@ -64,6 +64,10 @@ def check_fields(val, field):
         validate = validate_email(val)
         if validate == True:
             verdict = True
+        elif val == '':
+            verdict = True
+        else:
+            verdict = 'email pattern match failed'
 
     elif field == 'phone_num':
         clean_number = clean_phone_number(val)
