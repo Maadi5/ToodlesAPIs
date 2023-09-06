@@ -143,6 +143,8 @@ class CSVProcessing(Resource):
             cols = list(live_data.columns)
             failure_statements = []
 
+            print(live_data)
+
             for idx, row in live_data.iterrows():
                 ##Validate all variables
                 try:
@@ -154,7 +156,9 @@ class CSVProcessing(Resource):
                             failure_reasons.append(verdict)
                             valid = False
                 except:
-                    logging.error('verdict block failed for ID: '+ row['id'])
+                    logging.error('verdict block failed for ID: '+ row['unique_id'])
+                    failure_reasons = []
+                    valid = False
 
                 if valid is not True:
                     id = str(row['unique_id'])
@@ -183,22 +187,22 @@ class CSVProcessing(Resource):
                                     ## Store timeframe n number of times based on number of rows per order
                                     idxs = live_data.index[live_data['unique_id'] == id].tolist()
                                     print('idx: ', idx)
-                                    for idx in idxs:
-                                        live_data.at[idx, 'whatsapp_status'] = 'Failure'
+                                    for ix in idxs:
+                                        live_data.at[ix, 'whatsapp_status'] = 'Failure'
                                     wa_status = 'Failure'
                                 else:
                                     ## Store timeframe n number of times based on number of rows per order
                                     idxs = live_data.index[live_data['unique_id'] == id].tolist()
                                     # idx = live_data.index[live_data['unique_id'] == id].tolist()[0]
                                     # print('idx: ', idx)
-                                    for idx in idxs:
-                                        live_data.at[idx, 'whatsapp_status'] = 'Success'
-                                        live_data.at[idx, 'awb_message_timestamp'] = time.time()
+                                    for ix in idxs:
+                                        live_data.at[ix, 'whatsapp_status'] = 'Success'
+                                        live_data.at[ix, 'awb_message_timestamp'] = time.time()
                                     wa_status = 'Success'
                             except:
                                 idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                                for idx in idxs:
-                                    live_data.at[idx, 'whatsapp_status'] = 'Failure_exception'
+                                for ix in idxs:
+                                    live_data.at[ix, 'whatsapp_status'] = 'Failure_exception'
                                 wa_status = 'Failure_exception'
                                 #print('whatsapp failed awb: ', traceback.format_exc())
                                 logging.error("whatsapp failed exception for: " + id)
@@ -216,24 +220,24 @@ class CSVProcessing(Resource):
                                 #print('Status of whatsapp: ', status)
                                 if not status:
                                     ## Store timeframe n number of times based on number of rows per order
-                                    idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                                    print('idx: ', idx)
-                                    for idx in idxs:
-                                        live_data.at[idx, 'usermanual_whatsapp_status'] = 'Failure'
+                                    # idxs = live_data.index[live_data['unique_id'] == id].tolist()
+                                    # print('idx: ', idx)
+                                    # for idx in idxs:
+                                    live_data.at[idx, 'usermanual_whatsapp_status'] = 'Failure'
                                     wa_status_usermanual = 'Failure'
                                 else:
                                     ## Store timeframe n number of times based on number of rows per order
-                                    idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                                    # idx = live_data.index[live_data['unique_id'] == id].tolist()[0]
-                                    # print('idx: ', idx)
-                                    for idx in idxs:
-                                        live_data.at[idx, 'usermanual_whatsapp_status'] = 'Success'
+                                    # idxs = live_data.index[live_data['unique_id'] == id].tolist()
+                                    # # idx = live_data.index[live_data['unique_id'] == id].tolist()[0]
+                                    # # print('idx: ', idx)
+                                    # for ix in idxs:
+                                    live_data.at[idx, 'usermanual_whatsapp_status'] = 'Success'
                                         #live_data.at[idx, 'awb_message_timestamp'] = time.time()
                                     wa_status_usermanual = 'Success'
                             except:
-                                idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                                for idx in idxs:
-                                    live_data.at[idx, 'usermanual_whatsapp_status'] = 'Failure_exception'
+                                # idxs = live_data.index[live_data['unique_id'] == id].tolist()
+                                # for ix in idxs:
+                                live_data.at[idx, 'usermanual_whatsapp_status'] = 'Failure_exception'
                                 wa_status_usermanual = 'Failure_exception'
                                 #print('whatsapp failed: ', traceback.format_exc())
                                 logging.error("whatsapp failed usermanual for: " + id)
@@ -245,14 +249,14 @@ class CSVProcessing(Resource):
                                 awb = str(int(float(row['awb'])))
                                 status = send_dispatch_email(name= name, to_address= email,awb_number=awb)
                                 idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                                for idx in idxs:
-                                    live_data.at[idx, 'email_status'] = status
-                                    live_data.at[idx, 'awb_message_timestamp'] = time.time()
+                                for ix in idxs:
+                                    live_data.at[ix, 'email_status'] = status
+                                    live_data.at[ix, 'awb_message_timestamp'] = time.time()
                                 email_status = status
                             except:
                                 idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                                for idx in idxs:
-                                    live_data.at[idx, 'email_status'] = 'Failure_exception'
+                                for ix in idxs:
+                                    live_data.at[ix, 'email_status'] = 'Failure_exception'
                                 email_status = 'Failure_exception'
                                 #print('email failed: ', traceback.format_exc())
                                 logging.error("email failed awb for: " + id)
@@ -263,15 +267,15 @@ class CSVProcessing(Resource):
                             try:
                                 status = send_usermanual_email(name=name, to_address=email, product_name=product_name,
                                                                product_manual_link=product_manual)
-                                idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                                for idx in idxs:
-                                    live_data.at[idx, 'usermanual_email_status'] = status
+                                # idxs = live_data.index[live_data['unique_id'] == id].tolist()
+                                # for ix in idxs:
+                                live_data.at[idx, 'usermanual_email_status'] = status
                                     #live_data.at[idx, 'awb_message_timestamp'] = time.time()
                                 email_status_usermanual = status
                             except:
-                                idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                                for idx in idxs:
-                                    live_data.at[idx, 'usermanual_email_status'] = 'Failure_exception'
+                                # idxs = live_data.index[live_data['unique_id'] == id].tolist()
+                                # for ix in idxs:
+                                live_data.at[idx, 'usermanual_email_status'] = 'Failure_exception'
                                 email_status_usermanual = 'Failure_exception'
                                 logging.error("email failed usermanual for: " + id)
                                 logging.error(traceback.format_exc())
@@ -279,8 +283,8 @@ class CSVProcessing(Resource):
                         processing_time_stamp = time.strftime('%d-%m-%Y %H:%M', time.localtime(time.time()))
 
                         idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                        for idx in idxs:
-                            live_data.at[idx, 'timestamp'] = processing_time_stamp
+                        for ix in idxs:
+                            live_data.at[ix, 'timestamp'] = processing_time_stamp
 
                         statuses.append({'id': id, 'email_status': email_status, 'wa_status': wa_status,
                                          'email_manual_status': email_status_usermanual,
