@@ -20,6 +20,9 @@ import logging
 ops_automation_alarm_contacts = {'Javith': '919698606713', 'Milan': '919445574311',
                                  'Adithya': '919176270768'}
 
+usermanual_skus_without_video = {'YK-PZ-007 - BLUE', 'YK-PZ-007 - PINK', 'YK-PZ-007 - WHITE','YK-KW-080',
+                                 'YK-KW-012'}
+
 # Configure the logger
 logging.basicConfig(
     filename='postapi_logs.log',  # Specify the log file name
@@ -201,29 +204,45 @@ class CSVProcessing(Resource):
                                         live_data.at[ix, 'awb_message_timestamp'] = time.time()
                                     wa_status = 'Success'
                             except:
-                                idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                                for ix in idxs:
-                                    live_data.at[ix, 'whatsapp_status'] = 'Failure_exception'
-                                wa_status = 'Failure_exception'
-                                #print('whatsapp failed awb: ', traceback.format_exc())
-                                logging.error("whatsapp failed exception for: " + id)
-                                logging.error(traceback.format_exc())
+                                try:
+                                    idxs = live_data.index[live_data['unique_id'] == id].tolist()
+                                    for ix in idxs:
+                                        live_data.at[ix, 'whatsapp_status'] = 'Failure_exception'
+                                    wa_status = 'Failure_exception'
+                                    #print('whatsapp failed awb: ', traceback.format_exc())
+                                    logging.error("whatsapp failed exception for: " + id)
+                                    logging.error(traceback.format_exc())
+                                except:
+                                    logging.error("exception block for whatsapp awb failed")
+                                    logging.error(traceback.format_exc())
+                                    failure_statement = id + ': ' + ', '.join('Adding to database might have failed at exception for awb whatsapp')
+                                    failure_statements.append(failure_statement)
                         else:
-                            idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                            # idx = live_data.index[live_data['unique_id'] == id].tolist()[0]
-                            # print('idx: ', idx)
-                            for ix in idxs:
-                                live_data.at[ix, 'whatsapp_status'] = 'NA'
-                                live_data.at[ix, 'awb_message_timestamp'] = time.time()
+                            try:
+                                idxs = live_data.index[live_data['unique_id'] == id].tolist()
+                                # idx = live_data.index[live_data['unique_id'] == id].tolist()[0]
+                                # print('idx: ', idx)
+                                for ix in idxs:
+                                    live_data.at[ix, 'whatsapp_status'] = 'NA'
+                                    live_data.at[ix, 'awb_message_timestamp'] = time.time()
+                            except:
+                                logging.error('Failed at else block (if its not woocommerce order)')
+                                logging.error(traceback.format_exc())
+                                failure_statement = id + ': ' + ', '.join('Adding to database might have failed for non-woo awb whatsapp')
+                                failure_statements.append(failure_statement)
 
                         wa_status_usermanual = 'NA'
                         if str(row['usermanual_whatsapp_status']) == '':
                             #send user manual whatsapp
                             try:
+                                if sku in usermanual_skus_without_video:
+                                    wati_template = 'miniture_usermanual_5'
+                                else:
+                                    wati_template = 'miniture_usermanual_5'
                                 custom_params = [{'name': 'product_name', 'value': str(product_name)},
                                                  {'name': 'media_url', 'value': str(product_manual)}]
                                 status = wati.send_template_message(contact_name=name, contact_number=phone_num,
-                                                                    template_name='miniture_usermanual_short',
+                                                                    template_name= wati_template,
                                                                     custom_params=custom_params)
                                 #print('Status of whatsapp: ', status)
                                 if not status:
@@ -243,13 +262,19 @@ class CSVProcessing(Resource):
                                         #live_data.at[idx, 'awb_message_timestamp'] = time.time()
                                     wa_status_usermanual = 'Success'
                             except:
-                                # idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                                # for ix in idxs:
-                                live_data.at[idx, 'usermanual_whatsapp_status'] = 'Failure_exception'
-                                wa_status_usermanual = 'Failure_exception'
-                                #print('whatsapp failed: ', traceback.format_exc())
-                                logging.error("whatsapp failed usermanual for: " + id)
-                                logging.error(traceback.format_exc())
+                                try:
+                                    # idxs = live_data.index[live_data['unique_id'] == id].tolist()
+                                    # for ix in idxs:
+                                    live_data.at[idx, 'usermanual_whatsapp_status'] = 'Failure_exception'
+                                    wa_status_usermanual = 'Failure_exception'
+                                    #print('whatsapp failed: ', traceback.format_exc())
+                                    logging.error("whatsapp failed usermanual for: " + id)
+                                    logging.error(traceback.format_exc())
+                                except:
+                                    logging.error("exception block for whatsapp usermanual failed")
+                                    logging.error(traceback.format_exc())
+                                    failure_statement = id + ': ' + ', '.join('Adding to database might have failed at exception for usermanual whatsapp')
+                                    failure_statements.append(failure_statement)
                         email_status = 'NA'
                         if str(row['email_status']) == '' and invoice_number[:3] in {'WOO'}:
                             ## send email
@@ -262,18 +287,31 @@ class CSVProcessing(Resource):
                                     live_data.at[ix, 'awb_message_timestamp'] = time.time()
                                 email_status = status
                             except:
+                                try:
+                                    idxs = live_data.index[live_data['unique_id'] == id].tolist()
+                                    for ix in idxs:
+                                        live_data.at[ix, 'email_status'] = 'Failure_exception'
+                                    email_status = 'Failure_exception'
+                                    #print('email failed: ', traceback.format_exc())
+                                    logging.error("email failed awb for: " + id)
+                                    logging.error(traceback.format_exc())
+                                except:
+                                    logging.error("exception block for email awb failed")
+                                    logging.error(traceback.format_exc())
+                                    failure_statement = id + ': ' + ', '.join('Adding to database might have failed at exception for awb email')
+                                    failure_statements.append(failure_statement)
+                        else:
+                            try:
                                 idxs = live_data.index[live_data['unique_id'] == id].tolist()
                                 for ix in idxs:
-                                    live_data.at[ix, 'email_status'] = 'Failure_exception'
-                                email_status = 'Failure_exception'
-                                #print('email failed: ', traceback.format_exc())
-                                logging.error("email failed awb for: " + id)
+                                    live_data.at[ix, 'email_status'] = 'NA'
+                                    # live_data.at[ix, 'awb_message_timestamp'] = time.time()
+                            except:
+                                logging.error("exception block for email awb failed- for non woocommerce")
                                 logging.error(traceback.format_exc())
-                        else:
-                            idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                            for ix in idxs:
-                                live_data.at[ix, 'email_status'] = 'NA'
-                                # live_data.at[ix, 'awb_message_timestamp'] = time.time()
+                                failure_statement = id + ': ' + ', '.join('Adding to database might have failed for awb email')
+                                failure_statements.append(failure_statement)
+
                         email_status_usermanual = 'NA'
                         if str(row['usermanual_email_status']) == '':
                             ## send email for usermanual
@@ -288,16 +326,26 @@ class CSVProcessing(Resource):
                             except:
                                 # idxs = live_data.index[live_data['unique_id'] == id].tolist()
                                 # for ix in idxs:
-                                live_data.at[idx, 'usermanual_email_status'] = 'Failure_exception'
-                                email_status_usermanual = 'Failure_exception'
-                                logging.error("email failed usermanual for: " + id)
-                                logging.error(traceback.format_exc())
+                                try:
+                                    live_data.at[idx, 'usermanual_email_status'] = 'Failure_exception'
+                                    email_status_usermanual = 'Failure_exception'
+                                    logging.error("email failed usermanual for: " + id)
+                                    logging.error(traceback.format_exc())
+                                except:
+                                    logging.error("exception block for email usermanual failed")
+                                    logging.error(traceback.format_exc())
+                                    failure_statement = id + ': ' + ', '.join('Adding to database might have failed at exception for usermanual email')
+                                    failure_statements.append(failure_statement)
 
-                        processing_time_stamp = time.strftime('%d-%m-%Y %H:%M', time.localtime(time.time()))
+                        try:
+                            processing_time_stamp = time.strftime('%d-%m-%Y %H:%M', time.localtime(time.time()))
 
-                        idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                        for ix in idxs:
-                            live_data.at[ix, 'timestamp'] = processing_time_stamp
+                            idxs = live_data.index[live_data['unique_id'] == id].tolist()
+                            for ix in idxs:
+                                live_data.at[ix, 'timestamp'] = processing_time_stamp
+                        except:
+                            logging.error('processing and adding timestamp failed')
+                            logging.error(traceback.format_exc())
 
                         statuses.append({'id': id, 'email_status': email_status, 'wa_status': wa_status,
                                          'email_manual_status': email_status_usermanual,
@@ -307,12 +355,28 @@ class CSVProcessing(Resource):
                         logging.error("LOOP FAILED FOR ENTRY")
                         logging.error(traceback.format_exc())
                         statuses.append({'id': id, 'email_status': 'Failure', 'wa_status': 'Failure'})
+                        failure_statement = id + ': ' + ', '.join('Processing of entire order failed')
+                        failure_statements.append(failure_statement)
                         #trackerdf_original = pd.read_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index_col = False)
                         #trackerdf = pd.concat([trackerdf_original,trackerdf])
                         # trackerdf.to_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index = False)
             
             #trackerdf_original = pd.read_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index_col = False)
             #trackerdf = pd.concat([trackerdf_original,trackerdf])
+
+            try:
+                live_data = match_cols(live_data, col_names=columns_list)
+                live_data.to_csv(os.path.join(os.getcwd(), 'livedata.csv'), index=False)
+                gsheets_db.append_csv_to_google_sheets(csv_path=os.path.join(os.getcwd(), 'livedata.csv'), sheet_name=config.db_sheet_name)
+            except:
+                #print('Failure at pushing to LIVE: ')
+                #print(traceback.format_exc())
+                logging.error("failure at pushing to LIVE")
+                logging.error(traceback.format_exc())
+                statuses = {'Failed to push to main data!'}
+                failure_statement = '*Failed to push all data to db!*'
+                failure_statements.append(failure_statement)
+
 
             try:
                 if failure_statements:
@@ -327,17 +391,6 @@ class CSVProcessing(Resource):
                 logging.error(traceback.format_exc())
 
 
-
-            try:
-                live_data = match_cols(live_data, col_names=columns_list)
-                live_data.to_csv(os.path.join(os.getcwd(), 'livedata.csv'), index=False)
-                gsheets_db.append_csv_to_google_sheets(csv_path=os.path.join(os.getcwd(), 'livedata.csv'), sheet_name=config.db_sheet_name)
-            except:
-                #print('Failure at pushing to LIVE: ')
-                #print(traceback.format_exc())
-                logging.error("failure at pushing to LIVE")
-                logging.error(traceback.format_exc())
-                statuses = {'Failed to push to main data!'}
             return statuses
 
         except:
