@@ -1,5 +1,6 @@
 import smtplib
 from email.mime.text import MIMEText
+from email.utils import formataddr
 from email.mime.multipart import MIMEMultipart
 import config
 from datetime import datetime as d
@@ -67,11 +68,12 @@ def send_dispatch_email(name, awb_number, to_address):
 
 def send_usermanual_email(name, product_name, product_manual_link, to_address):
     try:
+        sender_name = 'Miniture (Formerly Toodles)'
         sender_email = 'operations@miniture.in'
         sender_password = config.gmail_key
 
         email_message = MIMEMultipart()
-        email_message['From'] = sender_email
+        email_message['From'] = formataddr((sender_name, sender_email))#sender_email
         email_message['To'] = to_address
         email_message['Subject'] = 'Toodles: ' + product_name + '- Assembly Guide'
 
