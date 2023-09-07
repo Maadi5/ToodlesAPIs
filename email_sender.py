@@ -84,7 +84,7 @@ def send_usermanual_email(name, product_name, product_manual_link, to_address):
         message_html = '<body style=”font-family: Georgia !important;”><pre>Hi ' + name + '!\n' + \
                 'Here is the installation manual for assembling your ' + product_name + ' :' + ' <a href="' + product_manual_link + '">click here</a>\n\n' + \
                 "Feel free to ask us here if you have any queries. 📞\n\n" + \
-                'Yours truly,\n' + 'Team Miniture(Formerly Toodles)</pre></body>'
+                'Yours truly,\n' + 'Team Miniture (Formerly Toodles)</pre></body>'
 
         email_message.attach(MIMEText(message_html, 'html'))
 
