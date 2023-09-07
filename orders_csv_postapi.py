@@ -145,7 +145,7 @@ class CSVProcessing(Resource):
             live_data.fillna('', inplace= True)
             cols = list(live_data.columns)
             failure_statements = []
-
+            failed_ids = set()
             print(live_data)
 
             for idx, row in live_data.iterrows():
@@ -166,10 +166,18 @@ class CSVProcessing(Resource):
 
                 if valid is not True:
                     id = str(row['unique_id'])
-                    failure_statement = id + ': ' + ', '.join(failure_reasons)
-                    failure_statements.append(failure_statement)
+                    invoice_number = str(row['invoice_number'])
+                    name = str(row['name'])
+                    if invoice_number[:3] in {'AMZ'} or name == 'ENCRYPTED DATA':
+                        live_data.at[idx, 'whatsapp_status'] = 'NA'
+                        live_data.at[idx, 'usermanual_whatsapp_status'] = 'NA'
+                        live_data.at[idx, 'email_status'] = 'NA'
+                        live_data.at[idx, 'usermanual_email_status'] = 'NA'
+                    else:
+                        failure_statement = id + ': ' + ', '.join(failure_reasons)
+                        failure_statements.append(failure_statement)
+                        failed_ids.add(idx)
                 else:
-
                     try:
                         id = str(row['unique_id'])
                         sku = str(row['sku'])
@@ -217,6 +225,7 @@ class CSVProcessing(Resource):
                                     logging.error(traceback.format_exc())
                                     failure_statement = id + ': ' + ', '.join('Adding to database might have failed at exception for awb whatsapp')
                                     failure_statements.append(failure_statement)
+                                    failed_ids.add(idx)
                         else:
                             try:
                                 idxs = live_data.index[live_data['unique_id'] == id].tolist()
@@ -230,6 +239,7 @@ class CSVProcessing(Resource):
                                 logging.error(traceback.format_exc())
                                 failure_statement = id + ': ' + ', '.join('Adding to database might have failed for non-woo awb whatsapp')
                                 failure_statements.append(failure_statement)
+                                failed_ids.add(idx)
 
                         wa_status_usermanual = 'NA'
                         if str(row['usermanual_whatsapp_status']) == '':
@@ -275,6 +285,7 @@ class CSVProcessing(Resource):
                                     logging.error(traceback.format_exc())
                                     failure_statement = id + ': ' + ', '.join('Adding to database might have failed at exception for usermanual whatsapp')
                                     failure_statements.append(failure_statement)
+                                    failed_ids.add(idx)
                         email_status = 'NA'
                         if str(row['email_status']) == '' and invoice_number[:3] in {'WOO'}:
                             ## send email
@@ -300,6 +311,7 @@ class CSVProcessing(Resource):
                                     logging.error(traceback.format_exc())
                                     failure_statement = id + ': ' + ', '.join('Adding to database might have failed at exception for awb email')
                                     failure_statements.append(failure_statement)
+                                    failed_ids.add(idx)
                         else:
                             try:
                                 idxs = live_data.index[live_data['unique_id'] == id].tolist()
@@ -311,6 +323,7 @@ class CSVProcessing(Resource):
                                 logging.error(traceback.format_exc())
                                 failure_statement = id + ': ' + ', '.join('Adding to database might have failed for awb email')
                                 failure_statements.append(failure_statement)
+                                failed_ids.add(idx)
 
                         email_status_usermanual = 'NA'
                         if str(row['usermanual_email_status']) == '':
@@ -336,6 +349,7 @@ class CSVProcessing(Resource):
                                     logging.error(traceback.format_exc())
                                     failure_statement = id + ': ' + ', '.join('Adding to database might have failed at exception for usermanual email')
                                     failure_statements.append(failure_statement)
+                                    failed_ids.add(idx)
 
                         try:
                             processing_time_stamp = time.strftime('%d-%m-%Y %H:%M', time.localtime(time.time()))
@@ -357,6 +371,7 @@ class CSVProcessing(Resource):
                         statuses.append({'id': id, 'email_status': 'Failure', 'wa_status': 'Failure'})
                         failure_statement = id + ': ' + ', '.join('Processing of entire order failed')
                         failure_statements.append(failure_statement)
+                        failed_ids.add(idx)
                         #trackerdf_original = pd.read_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index_col = False)
                         #trackerdf = pd.concat([trackerdf_original,trackerdf])
                         # trackerdf.to_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index = False)
@@ -365,6 +380,7 @@ class CSVProcessing(Resource):
             #trackerdf = pd.concat([trackerdf_original,trackerdf])
 
             try:
+                live_data = live_data.drop(failed_ids)
                 live_data = match_cols(live_data, col_names=columns_list)
                 live_data.to_csv(os.path.join(os.getcwd(), 'livedata.csv'), index=False)
                 gsheets_db.append_csv_to_google_sheets(csv_path=os.path.join(os.getcwd(), 'livedata.csv'), sheet_name=config.db_sheet_name)
@@ -376,6 +392,7 @@ class CSVProcessing(Resource):
                 statuses = {'Failed to push to main data!'}
                 failure_statement = '*Failed to push all data to db!*'
                 failure_statements.append(failure_statement)
+                failed_ids.add(id)
 
 
             try:
