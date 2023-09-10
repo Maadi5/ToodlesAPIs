@@ -4,7 +4,7 @@ import json
 import os
 
 #updated code to point to the miniture manuals- updated product_shorthand, manual link
-product_manual_csv = pd.read_csv(os.path.join(os.getcwd(), 'product_manual_links_updated_miniture.csv'))
+product_manual_csv = pd.read_csv(os.path.join(os.getcwd(), 'product_manual_links_updated2.csv'))
 
 def get_product_name_manual(sku):
     sku_row = product_manual_csv[product_manual_csv['SKU Code'] == sku]
