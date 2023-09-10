@@ -50,7 +50,9 @@ def receive_wati_webhook():
     print('\ntext received from user ',text)
     person_name = webhook_response['senderName']
 
-    if not check_status(phone_num, wa_message_id):
+    gpt_test_numbers = ['919176270768', '919445574311', '918754563901']
+
+    if not check_status(phone_num, wa_message_id) and str(phone_num) in gpt_test_numbers:
         try:
             response = gpt_inference.get_response(phone_num, text)
             print('\nresponse:', str(response), 'contact number:', "'" + phone_num + "'", 'person name:', "'" + person_name + "'")
@@ -60,6 +62,8 @@ def receive_wati_webhook():
         except Exception as e:
             print(str(e))
             print('\nERROR send failed')
+    elif str(phone_num) not in gpt_test_numbers:
+        print("It's NOT the test number")
     else:
         print('\ncheck_status failed, duplicate message')
     return jsonify(webhook_response), 200
