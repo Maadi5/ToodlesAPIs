@@ -189,20 +189,27 @@ class CSVProcessing(Resource):
                         #product_name, product_manual = get_product_name_manual(sku=sku)
                         ## send template message
                         wa_status = 'NA'
+                        #print('invoice Number: ', invoice_number)
+                        #print('invoice_number[:3] : ', invoice_number[:3])
+                        val = invoice_number[:3] in {'WOO'}
+                        #print('bool: ', val)
                         if str(row['whatsapp_status']) == '' and invoice_number[:3] in {'WOO'}:
+                            #print('Going into the if statement validating that its a woocommerce order!')
                             try:
                                 awb = str(int(float(row['awb'])))
                                 custom_params=[{'name': 'awb_number', 'value': awb}]
                                 status = wati.send_template_message(contact_name=name, contact_number= phone_num, template_name='order_dispatched_with_awb2',
                                                         custom_params=custom_params)
+                                #print('WATI message status: ', status)
                                 if not status:
                                     ## Store timeframe n number of times based on number of rows per order
                                     idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                                    print('idx: ', idx)
+                                    #print('idx: ', idx)
                                     for ix in idxs:
                                         live_data.at[ix, 'whatsapp_status'] = 'Failure'
                                     wa_status = 'Failure'
                                 else:
+                                    #print('status is true')
                                     ## Store timeframe n number of times based on number of rows per order
                                     idxs = live_data.index[live_data['unique_id'] == id].tolist()
                                     # idx = live_data.index[live_data['unique_id'] == id].tolist()[0]
@@ -210,6 +217,8 @@ class CSVProcessing(Resource):
                                     for ix in idxs:
                                         live_data.at[ix, 'whatsapp_status'] = 'Success'
                                         live_data.at[ix, 'awb_message_timestamp'] = time.time()
+                                    #print('livedata updation for whatsapp')
+                                    #print(live_data['whatsapp_status'])
                                     wa_status = 'Success'
                             except:
                                 try:
@@ -226,7 +235,8 @@ class CSVProcessing(Resource):
                                     failure_statement = id + ': ' + ', '.join('Adding to database might have failed at exception for awb whatsapp')
                                     failure_statements.append(failure_statement)
                                     failed_ids.add(idx)
-                        else:
+                        elif str(row['whatsapp_status']) == '':
+                            print('it better not be coming here')
                             try:
                                 idxs = live_data.index[live_data['unique_id'] == id].tolist()
                                 # idx = live_data.index[live_data['unique_id'] == id].tolist()[0]
@@ -240,6 +250,8 @@ class CSVProcessing(Resource):
                                 failure_statement = id + ': ' + ', '.join('Adding to database might have failed for non-woo awb whatsapp')
                                 failure_statements.append(failure_statement)
                                 failed_ids.add(idx)
+
+                        #print('live_data after whatsapp status', live_data['whatsapp_status'])
 
                         wa_status_usermanual = 'NA'
                         if str(row['usermanual_whatsapp_status']) == '':
@@ -286,6 +298,8 @@ class CSVProcessing(Resource):
                                     failure_statement = id + ': ' + ', '.join('Adding to database might have failed at exception for usermanual whatsapp')
                                     failure_statements.append(failure_statement)
                                     failed_ids.add(idx)
+
+                        #print('livedata after whatsapp usermanual: ', live_data['whatsapp_status'])
                         email_status = 'NA'
                         if str(row['email_status']) == '' and invoice_number[:3] in {'WOO'}:
                             ## send email
@@ -312,7 +326,7 @@ class CSVProcessing(Resource):
                                     failure_statement = id + ': ' + ', '.join('Adding to database might have failed at exception for awb email')
                                     failure_statements.append(failure_statement)
                                     failed_ids.add(idx)
-                        else:
+                        elif str(row['email_status']) == '':
                             try:
                                 idxs = live_data.index[live_data['unique_id'] == id].tolist()
                                 for ix in idxs:
@@ -324,7 +338,7 @@ class CSVProcessing(Resource):
                                 failure_statement = id + ': ' + ', '.join('Adding to database might have failed for awb email')
                                 failure_statements.append(failure_statement)
                                 failed_ids.add(idx)
-
+                        #print('livedata after email: ', live_data['whatsapp_status'])
                         email_status_usermanual = 'NA'
                         if str(row['usermanual_email_status']) == '':
                             ## send email for usermanual
@@ -350,6 +364,7 @@ class CSVProcessing(Resource):
                                     failure_statement = id + ': ' + ', '.join('Adding to database might have failed at exception for usermanual email')
                                     failure_statements.append(failure_statement)
                                     failed_ids.add(idx)
+                        #print('livedata after usermanual eamil: ', live_data['whatsapp_status'])
 
                         try:
                             processing_time_stamp = time.strftime('%d-%m-%Y %H:%M', time.localtime(time.time()))
@@ -368,8 +383,13 @@ class CSVProcessing(Resource):
                         print(traceback.format_exc())
                         logging.error("LOOP FAILED FOR ENTRY")
                         logging.error(traceback.format_exc())
-                        statuses.append({'id': id, 'email_status': 'Failure', 'wa_status': 'Failure'})
-                        failure_statement = id + ': ' + ', '.join('Processing of entire order failed')
+                        try:
+                            id = str(row['unique_id'])
+                            statuses.append({'id': id, 'email_status': 'Failure', 'wa_status': 'Failure'})
+                            failure_statement = id + ': ' + ', '.join('Processing of entire order failed')
+                        except:
+                            statuses.append({'email_status': 'Failure', 'wa_status': 'Failure'})
+                            failure_statement = ','.join('Processing of entire order failed')
                         failure_statements.append(failure_statement)
                         failed_ids.add(idx)
                         #trackerdf_original = pd.read_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index_col = False)
@@ -382,6 +402,8 @@ class CSVProcessing(Resource):
             try:
                 live_data = live_data.drop(failed_ids)
                 live_data = match_cols(live_data, col_names=columns_list)
+                print('live_data before pushing: ')
+                print(live_data['whatsapp_status'])
                 live_data.to_csv(os.path.join(os.getcwd(), 'livedata.csv'), index=False)
                 gsheets_db.append_csv_to_google_sheets(csv_path=os.path.join(os.getcwd(), 'livedata.csv'), sheet_name=config.db_sheet_name)
             except:

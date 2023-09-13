@@ -116,6 +116,16 @@ def check_cod_cancellations(tracker_df, cancelled_orders_df):
     return cancelled_ids_tracker, original_df_cancelled
 
 def create_zoho_invoice_csv(new_browntape_df):
+    new_browntape_df = input_df_preprocessing(new_browntape_df)
+    try:
+        for idx, row in new_browntape_df.iterrows():
+            #print(row['Invoice Number'])
+            if 'SFY' in row['Invoice Number']:
+                new_browntape_df.at[idx, 'Channel Ref'] = str(row['Order Reference 2']).replace('#', '')
+                #print(new_browntape_df['Channel Ref'])
+    except:
+        print('reference number replace code failed')
+
     bt_zoho_field_map = {'Invoice Number': 'Invoice Number',
                     'Channel Ref':'Reference#',
                    'Customer Name':'Customer Name',
@@ -127,6 +137,7 @@ def create_zoho_invoice_csv(new_browntape_df):
                    'HSN Code': 'HSN/SAC',
                    'Item Total': 'Item Price',
                    'Item Total Discount Value':'Entity Discount Amount',
+                    'Order Total Discount Value':'Entity Discount Amount'
                          }
 
     bt_zoho_amount_add_map = { 'Shipping Charge': {'Gross Shipping Amount', 'Gross COD Fee'}}
@@ -274,10 +285,10 @@ def create_zoho_invoice_csv(new_browntape_df):
 
 
 if __name__ == '__main__':
-    testdf = pd.read_csv(r'C:\Users\Adithya\Downloads\btreport_886206.csv', index_col = False)
-    testdf = input_df_preprocessing(testdf)
+    testdf = pd.read_csv(r'/Users/adithyam.a/Downloads/btreport_891468 (1).csv', index_col = False)
+    #testdf = input_df_preprocessing(testdf)
     newdf = create_zoho_invoice_csv(new_browntape_df=testdf)
-    newdf.to_csv(r'C:\Users\Adithya\Downloads\zoho_invoices_latest2.csv', index= False)
+    newdf.to_csv(r'/Users/adithyam.a/Downloads/zoho_invoices_latest_new.csv', index= False)
 
 
         

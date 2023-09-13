@@ -33,7 +33,7 @@ def send_email(message, subject, to_address):
     smtp_connection.quit()
 
 def send_dispatch_email(name, awb_number, to_address):
-    sender_email = 'operations@toodles.in'
+    sender_email = 'operations@miniture.in'
     sender_password = config.gmail_key
 
     email_message = MIMEMultipart()
