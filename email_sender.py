@@ -33,11 +33,11 @@ def send_email(message, subject, to_address):
     smtp_connection.quit()
 
 def send_dispatch_email(name, awb_number, to_address):
+    sender_name = 'Miniture (Formerly Toodles)'
     sender_email = 'operations@miniture.in'
     sender_password = config.gmail_key
-
     email_message = MIMEMultipart()
-    email_message['From'] = sender_email
+    email_message['From'] = formataddr((sender_name, sender_email))  # sender_email
     email_message['To'] = to_address
     email_message['Subject'] = 'Toodles: Track your product'
 
