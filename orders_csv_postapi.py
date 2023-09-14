@@ -402,8 +402,8 @@ class CSVProcessing(Resource):
             try:
                 live_data = live_data.drop(failed_ids)
                 live_data = match_cols(live_data, col_names=columns_list)
-                print('live_data before pushing: ')
-                print(live_data['whatsapp_status'])
+                #print('live_data before pushing: ')
+                #print(live_data['whatsapp_status'])
                 live_data.to_csv(os.path.join(os.getcwd(), 'livedata.csv'), index=False)
                 gsheets_db.append_csv_to_google_sheets(csv_path=os.path.join(os.getcwd(), 'livedata.csv'), sheet_name=config.db_sheet_name)
             except:
