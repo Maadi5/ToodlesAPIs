@@ -67,15 +67,15 @@ def check_fields(val, field):
         elif val == '':
             verdict = True
         else:
-            verdict = 'email pattern match failed'
+            verdict = 'email pattern match failed: ' + val
 
     elif field == 'phone_num':
         clean_number = clean_phone_number(val)
         if clean_number is None:
-            verdict = 'phone-num pattern fail'
+            verdict = 'phone-num pattern fail: ' + val
         else:
             if float(clean_number[0])<6:
-                verdict= 'phone-num unusual'
+                verdict= 'phone-num unusual: ' + val
             else:
                 verdict = True
     elif field in {'awb', 'pincode', 'state', 'city', 'status'}:
