@@ -43,6 +43,8 @@ def validate_email(email):
 
 def clean_phone_number(phone_number):
     # Remove all non-digit characters
+    if len(phone_number)>10 and phone_number[0] == '0':
+        phone_number = ''.join(phone_number[1:])
     cleaned_number = re.sub(r'\D', '', phone_number)
 
     # Check if the cleaned number has a valid length
