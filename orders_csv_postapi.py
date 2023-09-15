@@ -389,7 +389,7 @@ class CSVProcessing(Resource):
                             failure_statement = id + ': ' + ', '.join('Processing of entire order failed')
                         except:
                             statuses.append({'email_status': 'Failure', 'wa_status': 'Failure'})
-                            failure_statement = ','.join('Processing of entire order failed')
+                            failure_statement = 'Processing of entire order failed'
                         failure_statements.append(failure_statement)
                         failed_ids.add(idx)
                         #trackerdf_original = pd.read_csv(os.path.join(os.getcwd(), 'order_tracker.csv'), index_col = False)
