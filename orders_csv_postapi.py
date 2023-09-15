@@ -386,7 +386,7 @@ class CSVProcessing(Resource):
                         try:
                             id = str(row['unique_id'])
                             statuses.append({'id': id, 'email_status': 'Failure', 'wa_status': 'Failure'})
-                            failure_statement = id + ': ' + ', '.join('Processing of entire order failed')
+                            failure_statement = id + ': ' + 'Processing of entire order failed'
                         except:
                             statuses.append({'email_status': 'Failure', 'wa_status': 'Failure'})
                             failure_statement = 'Processing of entire order failed'
