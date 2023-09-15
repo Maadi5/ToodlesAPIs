@@ -179,7 +179,7 @@ def create_zoho_invoice_csv(new_browntape_df):
                            'Currency Code': 'INR',
                            'GST Treatment': 'consumer',
                            'Discount Type': 'entity_level',
-                           'Is Discount Before Tax': 'FALSE',
+                           'Is Discount Before Tax': 'TRUE',
                            'GST Identification Number (GSTIN)': '',
                            'Item Type': 'goods',
                            'Usage unit': 'count',
@@ -250,6 +250,19 @@ def create_zoho_invoice_csv(new_browntape_df):
                             dfdict[bt_zoho_field_map[c]] = ''.join(str(row[c])[:-2])
                     except:
                         print(traceback.format_exc())
+
+            #Discount updated logic
+            try:
+                if dfdict['Entity Discount Amount'] != '':
+                    print('discount loop')
+                    discount_value = float(dfdict['Entity Discount Amount'].replace(',',''))
+                    item_price = float(dfdict['Item Price'].replace(',',''))
+                    discount_fraction = (discount_value/item_price)
+                    item_price_without_gst = item_price/1.18
+                    discount_without_gst = discount_fraction*item_price_without_gst
+                    dfdict['Entity Discount Amount'] = str(discount_without_gst)
+            except:
+                print(traceback.format_exc())
 
             #Quantity logic
             try:
