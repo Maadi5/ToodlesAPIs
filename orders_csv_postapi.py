@@ -76,6 +76,9 @@ class CSVProcessing(Resource):
         # app.logger.info('testing info log')
         # print('testing print log')
         try:
+            failure_statements = []
+            failed_ids = set()
+
             args = upload_parser.parse_args()
             csv_file = args['file']
             df = pd.read_csv(csv_file)
@@ -88,7 +91,7 @@ class CSVProcessing(Resource):
             if browntape_new_csv is not None:
                 ## send csv email for zoho invoice sheet
                 try:
-                    invoice_csv = create_zoho_invoice_csv(browntape_new_csv)
+                    invoice_csv, flag = create_zoho_invoice_csv(browntape_new_csv)
                     invoice_csv.to_csv(zoho_invoice_csv_path, index=False)
                     order_dates = list(live_data['order_date'])
                     first_date = order_dates[0]
@@ -98,6 +101,8 @@ class CSVProcessing(Resource):
                     else:
                         date_range = first_date
                     #gsheets_accounts.add_sheet(sheet_name=date_range)
+                    if flag is not True:
+                        failure_statements.append('Accounting CSV failed due to both item and order discount')
                     gsheets_accounts.append_csv_to_google_sheets(csv_path=zoho_invoice_csv_path, sheet_name=date_range)
                     # status = send_csv(csvfile=zoho_invoice_csv_path, subject='order_report')
                 except:
@@ -144,8 +149,6 @@ class CSVProcessing(Resource):
 
             live_data.fillna('', inplace= True)
             cols = list(live_data.columns)
-            failure_statements = []
-            failed_ids = set()
             print(live_data)
 
             for idx, row in live_data.iterrows():

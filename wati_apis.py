@@ -169,6 +169,12 @@ if __name__ == '__main__':
 
     test = WATI_APIS()
 
+    custom_params = [{'name': 'product_name', 'value': str('FlexDesk')},
+                     {'name': 'media_url', 'value': str('https://drive.google.com/uc?id=16cguxXpxWZXMIU93pNMrxPH4lxeUGart')}]
+    status = test.send_template_message(contact_name='Anisha Mitra', contact_number='919818933529',
+                                        template_name='miniture_usermanual_5',
+                                        custom_params=custom_params)
+
     # preorder_customers = pd.read_csv(r'C:\woocommerce_contacts_w_names2.csv')
     # for idx, row in preorder_customers.iterrows():
     #     customer_name = row['Name']
