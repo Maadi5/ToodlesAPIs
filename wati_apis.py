@@ -169,38 +169,12 @@ if __name__ == '__main__':
 
     test = WATI_APIS()
 
-    custom_params = [{'name': 'product_name', 'value': str('FlexDesk')},
-                     {'name': 'media_url', 'value': str('https://drive.google.com/uc?id=16cguxXpxWZXMIU93pNMrxPH4lxeUGart')}]
-    status = test.send_template_message(contact_name='Anisha Mitra', contact_number='919818933529',
-                                        template_name='miniture_usermanual_5',
-                                        custom_params=custom_params)
-
-    # preorder_customers = pd.read_csv(r'C:\woocommerce_contacts_w_names2.csv')
-    # for idx, row in preorder_customers.iterrows():
-    #     customer_name = row['Name']
-    #     customer_phone_number = row['Phone']
-    #     # estimated_delivery_date = 'static date string value'
-    #     custom_params = []
-    #     status = test.send_template_message(contact_name=customer_name, contact_number=customer_phone_number,
-    #                                         template_name='rakhi_coupon')#, custom_params=custom_params)
-
-    #stopped at: 919899023068
-    # test.send_session_file(contact_number='919176270768')
-    # test.send_text_message_response(text_to_send='Sure! The 6 in 1 super desk is a multifunctional desk that can be transformed into 6 different functions. It can be used as a magnetic drawing easel, building block table, study desk with chair, water/sand sensory play, and a building block wall. It comes with a chair and 101 pcs of building blocks. It is suitable for ages 2-7 and is made of HDPE plastic. You can use any duplo blocks with it, and whiteboard/washable markers like crayola markers with the whiteboard easel. It folds back completely in 3 steps and can be stowed away when not in use.', contact_number='919176270768', contact_name='M A Adithya')
-    # contactlist = test.preloaded_contacts
-    # phone_number_list = [val['phone_number'] for val in contactlist]
-    #
-    # print('phone number list: ', phone_number_list)
-    # print(len(phone_number_list))
-    # woocommerce_contacts = pd.read_csv(r'C:\\woocommerce_contacts_w_names.csv')
-
-    # for idx, row in woocommerce_contacts.iterrows():
-    #     contact_name = row['Name']
-    #     contact_number = str(row['Phone'])
-    #     if contact_number not in phone_number_list:
-    #         is_added = test.add_contact_number(contact_number=contact_number, contact_name=contact_name)
-
-    # custom_params = [{'name': 'product_name', 'value': str('Bus Organizer')},
-    #                  {'name': 'media_url', 'value': str('https://drive.google.com/uc?id=1OcuEcQ2dCND2tOrgrAF2KbcolGxuaNn6&')}]
-    # status = test.send_template_message(contact_name='Ruchika Singh', contact_number='919912255592',
-    #                                     template_name='product_instructions_short_manual', custom_params=custom_params)
+    preorder_customers = pd.read_csv(r'/Users/adithyam.a/Documents/woocommerce_contacts_w_names2.csv')
+    for idx, row in preorder_customers.iterrows():
+        customer_name = row['Name']
+        customer_phone_number = row['Phone']
+        # estimated_delivery_date = 'static date string value'
+        custom_params = []
+        status = test.send_template_message(contact_name=customer_name, contact_number=customer_phone_number,
+                                            template_name='miniture_reveal')#, custom_params=custom_params)
+        print('sent to: ', customer_phone_number)

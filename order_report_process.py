@@ -305,10 +305,10 @@ def create_zoho_invoice_csv(new_browntape_df):
 
 
 if __name__ == '__main__':
-    testdf = pd.read_csv(r'/Users/adithyam.a/Downloads/btreport_897117.csv', index_col = False)
+    testdf = pd.read_csv(r'/Users/adithyam.a/Downloads/btreport_898857.csv', index_col = False)
     #testdf = input_df_preprocessing(testdf)
     newdf,_ = create_zoho_invoice_csv(new_browntape_df=testdf)
-    newdf.to_csv(r'/Users/adithyam.a/Downloads/zoho_invoices_latest_new2.csv', index= False)
+    newdf.to_csv(r'/Users/adithyam.a/Downloads/zoho_invoices_latest_new5.csv', index= False)
 
 
         
