@@ -122,6 +122,7 @@ def check_cod_cancellations(tracker_df, cancelled_orders_df):
     cancelled_indexes = [idx_to_id[val] for val in cancelled_ids_original_df]
     print('original indexes: ', cancelled_ids_original_df)
     print('the cancelled df: ', cancelled_orders_df)
+    print('idx to id: ', idx_to_id)
     original_df_cancelled = cancelled_orders_df.iloc[cancelled_indexes]
 
     return cancelled_ids_tracker, original_df_cancelled
