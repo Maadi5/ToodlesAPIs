@@ -437,6 +437,8 @@ class CSVProcessing(Resource):
 
         except:
             print('api failed: ', traceback.format_exc())
+            logging.error('API FAILED')
+            logging.error(traceback.format_exc())
             return traceback.format_exc()
 
 
