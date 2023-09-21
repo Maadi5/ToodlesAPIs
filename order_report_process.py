@@ -102,6 +102,12 @@ def check_cod_cancellations(tracker_df, cancelled_orders_df):
     cancelled_ids_tracker = []
     cancelled_ids_original_df = []
     print('id matches: ', id_matches)
+    count = 0
+    idx_to_id = {}
+    for idx, row in cancelled_orders_df.iterrows():
+        idx_to_id[idx] = count
+        count += 1
+
     for idx in id_matches:
         ind = tracker_df.index[tracker_df['unique_id'] == idx].tolist()[0]
         for val in list(cancelled_orders_df['Order Id']):
@@ -112,8 +118,11 @@ def check_cod_cancellations(tracker_df, cancelled_orders_df):
         if status_value not in {'delivered', 'cancelled'}:
             cancelled_ids_tracker.append(idx)
             cancelled_ids_original_df.append(index_original)
+
+    cancelled_indexes = [idx_to_id[val] for val in cancelled_ids_original_df]
     print('original indexes: ', cancelled_ids_original_df)
-    original_df_cancelled = cancelled_orders_df.iloc[cancelled_ids_original_df]
+    print('the cancelled df: ', cancelled_orders_df)
+    original_df_cancelled = cancelled_orders_df.iloc[cancelled_indexes]
 
     return cancelled_ids_tracker, original_df_cancelled
 
@@ -305,10 +314,14 @@ def create_zoho_invoice_csv(new_browntape_df):
 
 
 if __name__ == '__main__':
-    testdf = pd.read_csv(r'/Users/adithyam.a/Downloads/btreport_898857.csv', index_col = False)
-    #testdf = input_df_preprocessing(testdf)
-    newdf,_ = create_zoho_invoice_csv(new_browntape_df=testdf)
-    newdf.to_csv(r'/Users/adithyam.a/Downloads/zoho_invoices_latest_new5.csv', index= False)
+    browntape_df = pd.read_csv(r'/Users/adithyam.a/Downloads/btreport_898829 (1).csv', index_col = False)
+    browntape_df = input_df_preprocessing(browntape_df)
+    tracker_df = pd.read_csv(r'/Users/adithyam.a/Downloads/MinitureUserData - Main Dataset.csv')
+    to_be_pushed_df, incomplete_orders_csv, cancelled_cod_orders_csv, new_browntape_subset_df = get_order_details(browntape_df= browntape_df, tracker_df=tracker_df)
+    check_cod_cancellations(tracker_df=tracker_df, cancelled_orders_df=cancelled_cod_orders_csv)
+    # testdf = input_df_preprocessing(testdf)
+    # newdf,_ = create_zoho_invoice_csv(new_browntape_df=testdf)
+    # newdf.to_csv(r'/Users/adithyam.a/Downloads/zoho_invoices_latest_new5.csv', index= False)
 
 
         
