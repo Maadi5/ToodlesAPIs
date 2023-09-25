@@ -4,8 +4,17 @@ import pandas as pd
 from datetime import datetime
 import traceback
 from dateutil.parser import parse
-from validation_utils import input_df_preprocessing
+from utils import input_df_preprocessing
 import re
+
+import logging
+# Configure the logger
+logging.basicConfig(
+    filename='postapi_logs.log',  # Specify the log file name
+    level=logging.DEBUG,        # Set the logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 def convert_date_format(input_date):
     try:
@@ -40,6 +49,18 @@ def get_order_details(browntape_df, tracker_df):
             phone_num = ''.join(''.join(str(row['Phone']).split(' ')).split('+'))
             if len(phone_num)>10 and phone_num[0] == '0':
                 phone_num = ''.join(phone_num[1:])
+
+            try:
+                if str(row['Order Type']) == 'Prepaid':
+                    if float(row['Gross Shipping Amount']) == 700:
+                        dfdict['shipping_mode'] = 'express'
+                    else:
+                        dfdict['shipping_mode'] = 'standard'
+                else:
+                    dfdict['shipping_mode'] = 'standard'
+            except:
+                pass
+
             phone_num = '91' + phone_num if len(phone_num)!=12 else phone_num
             print('processed phone num: ', phone_num)
             dfdict['timestamp'] = ''
@@ -59,12 +80,19 @@ def get_order_details(browntape_df, tracker_df):
             dfdict['state'] = str(row['State'])
             dfdict['city'] = str(row['City'])
             dfdict['status'] = str(row['Fulfillment Status'])
+
+            # dfdict['shipping_mode'] =
             dfdict['email_status'] = ''
             dfdict['whatsapp_status'] = ''
             dfdict['usermanual_email_status'] = ''
             dfdict['usermanual_whatsapp_status'] = ''
             dfdict['awb_message_timestamp'] = ''
             dfdict['usermanual_message_timestamp'] = ''
+            dfdict['tracking_code_update'] = ''
+            dfdict['tracking_status_update'] = ''
+            dfdict['tracking_est_update'] = ''
+            dfdict['last_tracked_time'] = ''
+            dfdict['alarm_status'] = ''
             trackerdf.append(dfdict)
             new_orders_browntape_subset.append(row)
 
@@ -212,7 +240,7 @@ def create_zoho_invoice_csv(new_browntape_df):
         if row['Fulfillment Status'] in {'shipped', 'delivered', 'packed','packing', 'manifested'}:
             dfdict = {}
             for c in bt_cols:
-                if c in bt_zoho_field_map and c != 'State' and 'Date' not in c and c!='Invoice Number' and c!= 'HSN Code':
+                if c in bt_zoho_field_map and c!= 'State' and 'Date' not in c and c!= 'Invoice Number' and c!= 'HSN Code':
                     dfdict[bt_zoho_field_map[c]] = row[c]
                 elif c == 'State':
                     try:
@@ -295,20 +323,20 @@ def create_zoho_invoice_csv(new_browntape_df):
                 for key in firstcry_details_map:
                     dfdict[key] = str(firstcry_details_map[key])
 
-            if zoho_csv and zoho_csv[-1]['Reference#'] != dfdict['Reference#']:
-                valid_float_discounts = []
-                for val in item_level_discount_add:
-                    try:
-                        valid_float_discounts.append(float(str(val.replace(',',''))))
-                    except:
-                        pass
-                if len(valid_float_discounts)>1:
-                    total_discount_val = sum(valid_float_discounts)
-                    for val in range(len(item_level_discount_add)):
-                        index = -1*(val+1)
-                        zoho_csv[index]['Entity Discount Amount'] = total_discount_val
-                item_level_discount_add = []
-            item_level_discount_add.append(dfdict['Entity Discount Amount'])
+            # if zoho_csv and zoho_csv[-1]['Reference#'] != dfdict['Reference#']:
+            #     valid_float_discounts = []
+            #     for val in item_level_discount_add:
+            #         try:
+            #             valid_float_discounts.append(float(str(val.replace(',',''))))
+            #         except:
+            #             pass
+            #     if len(valid_float_discounts)>1:
+            #         total_discount_val = sum(valid_float_discounts)
+            #         for val in range(len(item_level_discount_add)):
+            #             index = -1*(val+1)
+            #             zoho_csv[index]['Entity Discount Amount'] = total_discount_val
+            #     item_level_discount_add = []
+            # item_level_discount_add.append(dfdict['Entity Discount Amount'])
             zoho_csv.append(dfdict)
 
     return pd.DataFrame(zoho_csv), flag

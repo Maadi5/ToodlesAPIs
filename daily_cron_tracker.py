@@ -7,13 +7,13 @@ import traceback
 from email_sender import send_usermanual_email
 from wati_apis import WATI_APIS
 from google_sheets_apis import googlesheets_apis
-from validation_utils import match_cols
+from utils import match_cols
 import config
 
 wati = WATI_APIS()
 gsheets = googlesheets_apis(spreadsheet_id=config.db_spreadsheet_id)
 
-columns_list, column_dict = gsheets.get_column_names(sheet_name=config.db_sheet_name)
+columns_list, column_dict,_ = gsheets.get_column_names(sheet_name=config.db_sheet_name)
 
 def job():
     trackerdf = gsheets.load_sheet_as_csv(sheet_name=config.db_sheet_name)
@@ -122,10 +122,10 @@ def job():
     print("This is a cron job!")
 
 # Schedule the job to run every day at 3pm (test)
-# schedule.every().day.at("09:30").do(job)
-# #
-# print('running cron...')
-# while True:
-#     schedule.run_pending()
-#     time.sleep(1)
+schedule.every().day.at("09:30").do(job)
+#
+print('running cron...')
+while True:
+    schedule.run_pending()
+    time.sleep(1)
 job()

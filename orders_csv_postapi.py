@@ -12,7 +12,7 @@ from product_manual_map import get_product_name_manual
 import time
 from datetime import datetime
 from google_sheets_apis import googlesheets_apis
-from validation_utils import match_cols, input_df_preprocessing, check_fields
+from utils import match_cols, input_df_preprocessing, check_fields
 import config
 
 import logging
@@ -36,7 +36,7 @@ gsheets_db = googlesheets_apis(spreadsheet_id=config.db_spreadsheet_id)
 gsheets_accounts = googlesheets_apis(spreadsheet_id=config.accounts_spreadsheet_id)
 
 print('after initiating google sheets')
-columns_list, column_dict = gsheets_db.get_column_names(sheet_name=config.db_sheet_name)
+columns_list, column_dict,_ = gsheets_db.get_column_names(sheet_name=config.db_sheet_name)
 
 app = Flask(__name__)
 api = Api(app, version='1.0', title='CSV API', description='API for processing CSV files')

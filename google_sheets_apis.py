@@ -34,8 +34,9 @@ class googlesheets_apis():
         column_names = result.get('values', [])[0]
 
         column_dict = {col_name: chr(idx + 65) for idx, col_name in enumerate(column_names)}
+        col_index = {col_name: idx for idx, col_name in enumerate(column_names)}
 
-        return column_names, column_dict
+        return column_names, column_dict, col_index
 
     def is_sheet_blank(self, sheet_name):
         try:
@@ -153,8 +154,11 @@ class googlesheets_apis():
         csv_list = []
         for _, val in enumerate(values[1:]):
             dfdict = {}
-            for idx, v in enumerate(val):
-                dfdict[values[0][idx]] = v
+            for idx, col in enumerate(values[0]):
+                try:
+                    dfdict[col] = val[idx]
+                except:
+                    dfdict[col] = ''
             csv_list.append(dfdict)
 
         return pd.DataFrame(csv_list)
@@ -263,6 +267,61 @@ class googlesheets_apis():
         )
         response = request.execute()
 
+    def sort_sheet(self, sheet_name, sorting_rule):
+        sheet_id = self.get_sheet_id(sheet_name)
+        # Sort the sheets based on the values in the specified column
+        request_body = {
+            "requests": [
+                {
+                    "sortSheet": {
+                        "sheetId": sheet_id,
+                        "sortSpecs": [
+                            {
+                                "dimensionIndex": sorting_rule['col'],
+                                "sortOrder": sorting_rule['direction']  # Change to "DESCENDING" for descending order
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+
+        # Execute the batchUpdate request to sort the sheets
+        self.service.spreadsheets().batchUpdate(spreadsheetId=self.spreadsheet_id, body=request_body).execute()
+
+    def update_dropdowns(self, dropdowns_to_update, sheet_name):
+        sheet_id = self.get_sheet_id(sheet_name)
+        # Define the data validation rule for the dropdown
+        request = []
+        for dd in dropdowns_to_update:
+            validation_rule = dd['dropdown']
+            dropdown_loc_row = dd['row']
+            dropdown_loc_col = dd['col']
+
+            # Create a request to update the cell with data validation
+            r = {
+                "setDataValidation": {#"repeatCell": {
+                    "range": {
+                        "sheetId": sheet_id,  # Use the correct sheet ID
+                        "startRowIndex": dropdown_loc_row,  # Use the correct start row index
+                        "endRowIndex": dropdown_loc_row+1,  # Use the correct end row index
+                        "startColumnIndex": dropdown_loc_col,  # Use the correct start column index
+                        "endColumnIndex": dropdown_loc_col+1,  # Use the correct end column index
+                    },
+                    'rule': validation_rule
+                    # "cell": {
+                    #     "dataValidation": validation_rule
+                    # },
+                    # "fields": "dataValidation"
+                }
+            }
+            request.append(r)
+
+        # Execute the request to add the dropdown
+        response = self.service.spreadsheets().batchUpdate(
+            spreadsheetId=self.spreadsheet_id, body={'requests': request}).execute()
+        print('Response: ', response)
+
     def get_row_numbers(self, column_name, target_values, sheet_name):
 
         # Get the range of the column data (e.g., 'Sheet1!A:A')
@@ -286,6 +345,71 @@ class googlesheets_apis():
 
         return row_numbers
 
+    def filter_query_data(self, sheet_name):
+        # Define the filter criteria
+        filter_criteria = "tracking_code_update != 'DL'"
+        sheet_id = self.get_sheet_id(sheet_name)
+        # Build the request to retrieve filtered data
+        request = self.service.spreadsheets().values().batchGetByDataFilter(
+            spreadsheetId= self.spreadsheet_id,
+            body={
+                "dataFilters": [
+                    {
+                        "gridRange": {
+                            "sheetId": sheet_id,  # You can obtain the sheet_id using the Google Sheets API
+                        },
+                        "filterCriteria": {
+                            "condition": {
+                                "type": "TEXT_EQ",
+                                "values": ["DL"]
+                            }
+                        }
+                    }
+                ],
+                "valueRenderOption": "UNFORMATTED_VALUE",
+            }
+        )
+
+        # Execute the request to retrieve filtered data
+        response = request.execute()
+
+        # Extract and print the filtered data
+        if 'valueRanges' in response:
+            for value_range in response['valueRanges']:
+                values = value_range.get('values', [])
+                for row in values:
+                    print(row)
+
+    def delete_rows(self, sheet_name, rowids):
+        sheet_id = self.get_sheet_id(sheet_name)
+
+        for row_number in rowids:
+            #range_to_delete = f"{sheet_name}!A{row_number}:Z{row_number}"
+
+            request = self.service.spreadsheets().values().batchUpdate(
+                spreadsheetId=self.spreadsheet_id,
+                body={
+                    "valueInputOption": "RAW",
+                    "data": [
+                        {
+                            "range": f"{sheet_name}!A{row_number}",
+                            "majorDimension": "ROWS",
+                            "values": []
+                        }
+                    ]
+                }
+            )
+
+            # # Delete the specified row by shifting the cells up
+            # request.execute()
+
+            response = request.execute()
+            print(response)
+            # # Check the response to ensure the row was deleted
+            # if 'replies' in response and response['replies'][0].get('deleteDimension', {}).get('rowCount', 0) == 1:
+            #     print(f"Row {rowid} deleted successfully.")
+            # else:
+            #     print(f"Row {rowid} deletion failed.")
 
 # # Usage example:
 # csv_file_path = os.path.join(os.getcwd(), 'order_tracker2.csv')
@@ -296,7 +420,7 @@ class googlesheets_apis():
 
 
 if __name__ == '__main__':
-    googlesheet = googlesheets_apis(spreadsheet_id=config.db_spreadsheet_id)
+    googlesheet = googlesheets_apis(spreadsheet_id=config.crm_spreadsheet_id)
 
     # cols, coldict = googlesheet.get_column_names()
     # # # googlesheet.append_csv_to_google_sheets(os.path.join(os.getcwd(), 'order_tracker2.csv'))
@@ -308,10 +432,25 @@ if __name__ == '__main__':
     # # out.to_csv(os.path.join(os.getcwd(), 'testing.csv'))
     # print('cols: ', cols, 'col_dict: ', coldict)
     # googlesheet.update_cell([{'col':'Q', 'row':'1', 'value':'Success'}])
+    dropdown_payload = {
+        "condition": {
+            "type": "ONE_OF_LIST",
+            "values": [{'userEnteredValue': 'Resolved'}, {'userEnteredValue': 'Delay by 2 hours'}]
+        },
+        "showCustomUi": True
+    }
+    # googlesheet.update_dropdowns(dropdowns_to_update=[{'dropdown': dropdown_payload, 'row': 7, 'col': 7}], sheet_name=config.crm_open_sheet_name)
 
-    filter_func = lambda row: row['phone_num'] == '919900159770'
-    out = googlesheet.query_data(sheet_name=config.db_sheet_name, filter_func= filter_func)
-    # out = googlesheet.get_row_numbers(column_name='A', target_values=['13892283644'])
-    print(out)
-    print(out.shape)
-    print(out.values.tolist())
+    # googlesheet.sort_sheet(sheet_name=config.crm_open_sheet_name, sorting_rule={'col': 10, 'direction': 'ASCENDING'})
+
+    gdb = googlesheets_apis(spreadsheet_id=config.db_spreadsheet_id)
+    #query = f"SELECT unique_id, awb, name, phone_num, invoice_number, channel_order_number, order_date, shipping_mode WHERE tracking_code_update != 'DL'"
+    # gdb.filter_query_data(sheet_name='dev_test')
+
+    gdb.delete_rows(sheet_name='dev_test', rowids= [])
+    # filter_func = lambda row: row['phone_num'] == '919900159770'
+    # out = googlesheet.query_data(sheet_name=config.db_sheet_name, filter_func= filter_func)
+    # # out = googlesheet.get_row_numbers(column_name='A', target_values=['13892283644'])
+    # print(out)
+    # print(out.shape)
+    # print(out.values.tolist())

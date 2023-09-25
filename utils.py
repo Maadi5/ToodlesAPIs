@@ -1,7 +1,68 @@
+import traceback
+
 import pandas as pd
 import re
 import json
 import os
+import logging
+
+# Configure the logger
+logging.basicConfig(
+    filename='postapi_logs.log',  # Specify the log file name
+    level=logging.DEBUG,        # Set the logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
+def sum_amounts_across_order(browntape_df, field = 'Entity Discount Amount'):
+    updated_bt_df = []
+    item_level_discount_add = []
+    for idx, row in browntape_df.iterrows():
+        if updated_bt_df and updated_bt_df[-1]['Order Id'] != row['Order Id']:
+            valid_float_discounts = []
+            for val in item_level_discount_add:
+                try:
+                    valid_float_discounts.append(float(str(val.replace(',', ''))))
+                except:
+                    pass
+            if len(valid_float_discounts) > 1:
+                total_discount_val = sum(valid_float_discounts)
+                for val in range(len(item_level_discount_add)):
+                    index = -1 * (val + 1)
+                    updated_bt_df[index][field] = total_discount_val
+            item_level_discount_add = []
+        item_level_discount_add.append(row[field])
+        updated_bt_df.append(row)
+    return pd.DataFrame(updated_bt_df)
+
+def fix_amount_summation(browntape_df):
+
+    try:
+        browntape_df = sum_amounts_across_order(browntape_df= browntape_df, field = 'Order Total Discount Value')
+    except:
+        logging.error('In utils, error while summing discount')
+        logging.error(traceback.format_exc())
+
+    try:
+        browntape_df = sum_amounts_across_order(browntape_df= browntape_df, field = 'Shipping Tax')
+    except:
+        logging.error('In utils, error while summing shipping tax')
+        logging.error(traceback.format_exc())
+
+    try:
+        browntape_df = sum_amounts_across_order(browntape_df=browntape_df, field='Net Shipping')
+    except:
+        logging.error('In utils, error while summing net shipping amount')
+        logging.error(traceback.format_exc())
+
+    try:
+        browntape_df = sum_amounts_across_order(browntape_df=browntape_df, field='Gross Shipping Amount')
+    except:
+        logging.error('In utils, error while summing gross shipping amount')
+        logging.error(traceback.format_exc())
+
+    return browntape_df
+
 
 def match_cols(csvfile, col_names):
     fixed_dflist = []
@@ -98,8 +159,15 @@ def input_df_preprocessing(df):
     # df = df.applymap(custom_to_string)
     df = df.applymap(str)
     df = df.applymap(forced_float_removal)
+    df = fix_amount_summation(browntape_df=df)
     # df['Order Id'] = df['Order Id'].astype(str)
     # df['Phone'] = df['Phone'].astype(str)
+
     return df
 
-
+if __name__ == '__main__':
+    browntape_df = pd.read_csv(r'/Users/adithyam.a/Downloads/btreport_894565.csv', index_col = False)
+    browntape_df = input_df_preprocessing(browntape_df)
+    # browntape_df = fix_amount_summation(browntape_df)
+    browntape_df.to_csv(r'/Users/adithyam.a/Downloads/btreport_894565_fixedamounts.csv', index= False)
+    # sum_amounts_across_order(browntape_df)
