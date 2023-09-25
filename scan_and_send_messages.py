@@ -24,8 +24,6 @@ fields_to_check = {'usermanual_whatsapp_status', 'usermanual_email_status', 'ema
 
 def job():
     trackerdf = gsheets.load_sheet_as_csv(sheet_name=config.db_sheet_name)
-    bluedart_csv = pd.read_csv(os.path.join(os.getcwd(), 'bluedart_complete.csv'), index_col=False)
-    bluedart_approx_csv = pd.read_csv(os.path.join(os.getcwd(), 'approx_delivery_times.csv'), index_col=False)
     trackerdf.fillna('', inplace=True)
 
     rowcount = 2
