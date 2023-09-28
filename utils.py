@@ -1,6 +1,7 @@
 import traceback
 
 import pandas as pd
+from datetime import datetime
 import re
 import json
 import os
@@ -14,6 +15,38 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
+def epoch_to_dd_mm_yy_time(epoch_timestamp, with_time = True):
+    # Convert the epoch timestamp to a datetime object
+    date_time_obj = datetime.utcfromtimestamp(epoch_timestamp)
+
+    # Extract the day, month, year, hour, minute, and second components
+    day = date_time_obj.strftime('%d')
+    month = date_time_obj.strftime('%m')
+    year = date_time_obj.strftime('%y')
+    hour = date_time_obj.strftime('%H')
+    minute = date_time_obj.strftime('%M')
+    second = date_time_obj.strftime('%S')
+
+    # Create the formatted date and time string
+    if with_time:
+        formatted_date_time = f'{day}-{month}-{year}, {hour}:{minute}:{second}'
+    else:
+        formatted_date_time = f'{day}-{month}-{year}'
+
+    return formatted_date_time
+
+def set_shipping_mode(order_type, shipping_charge):
+    try:
+        if str(order_type) == 'Prepaid':
+            if float(shipping_charge) == 700:
+                shipping_mode = 'express'
+            else:
+                shipping_mode = 'standard'
+        else:
+            shipping_mode = 'standard'
+    except:
+        shipping_mode = ''
+    return shipping_mode
 def sum_amounts_across_order(browntape_df, field = 'Entity Discount Amount'):
     updated_bt_df = []
     item_level_discount_add = []
@@ -62,6 +95,7 @@ def fix_amount_summation(browntape_df):
         logging.error(traceback.format_exc())
 
     return browntape_df
+
 
 
 def match_cols(csvfile, col_names):
