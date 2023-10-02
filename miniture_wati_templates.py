@@ -43,11 +43,31 @@ def usermanual_delivery_whatsapp(sku, product_name, product_manual, name,phone_n
     return status
 
 def delivery_reminder_whatsapp(name, phone_num, products, delivery_date, wati):
+    status = False
     custom_params = [{'name': 'products', 'value': products,
                       'name': 'est_delivery_date', 'value': delivery_date}]
     wati_status = wati.send_template_message(contact_name=name, contact_number=phone_num,
                                         template_name='order_dispatched_with_awb2',
                                         custom_params=custom_params)
+    if wati_status:
+        status = 'Success'
+    else:
+        status = 'Failure'
+
+    return status
+
+def delivery_delay_whatsapp(name, phone_num, products, wati):
+    status = False
+    custom_params = [{'name': 'products', 'value': products}]
+    wati_status = wati.send_template_message(contact_name=name, contact_number=phone_num,
+                                        template_name='delivery_delay_message',
+                                        custom_params=custom_params)
+    if wati_status:
+        status = 'Success'
+    else:
+        status = 'Failure'
+
+    return status
 
 def awb_whatsapp(awb,name, phone_num, wati):
     # awb = str(int(float(row['awb'])))
@@ -70,7 +90,7 @@ def marketing_campaign_wati(template, wati):
     for idx, row in preorder_customers.iterrows():
         try:
             customer_name = row['Name']
-            customer_phone_number = row['Phone']
+            customer_phone_number = row['Phone'] #'919176270768' #
             wati_status = wati.send_template_message(contact_name=customer_name, contact_number=customer_phone_number,
                                                 template_name=template)
             if wati_status:
@@ -81,7 +101,7 @@ def marketing_campaign_wati(template, wati):
             status = 0
 
         status_of_each_message.append(status)
-        # if idx>5:
+        # if idx>1:
         #     break
     total_success_count = sum(status_of_each_message)
 

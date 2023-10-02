@@ -33,7 +33,14 @@ class googlesheets_apis():
         # Extract the column names from the result
         column_names = result.get('values', [])[0]
 
-        column_dict = {col_name: chr(idx + 65) for idx, col_name in enumerate(column_names)}
+        column_dict = {}
+        count0 = 0
+        for idx, col_name in enumerate(column_names):
+            if idx<=25:
+                column_dict[col_name] = chr(idx + 65)
+            elif idx>25 and idx<=(25+26):
+                column_dict[col_name] = chr(65) + chr(65 + count0)
+                count0 += 1
         col_index = {col_name: idx for idx, col_name in enumerate(column_names)}
 
         return column_names, column_dict, col_index

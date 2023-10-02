@@ -1,0 +1,125 @@
+import os
+import json
+from google_sheets_apis import googlesheets_apis
+import traceback
+from wati_apis import WATI_APIS
+import pandas as pd
+import config
+from utils import epoch_to_dd_mm_yy_time
+import time
+
+class crm_sheet():
+    def __init__(self):
+        self.wati = WATI_APIS()
+        self.gsheets = googlesheets_apis(spreadsheet_id=config.crm_spreadsheet_id)
+        self.columns_list, self.column_dict, self.col_index = self.gsheets.get_column_names(sheet_name=config.crm_open_sheet_name)
+        self.col_list = ['Ticket No', 'Order Number', 'Platform', 'Name', 'Number', 'Alert Type', 'User Message',
+                         'Status', 'Suggested Context', 'Conversation Summary', 'SLA(hours)', 'Date Opened', 'Date Closed']
+        self.update_csv_path = os.path.join(os.getcwd(), 'update_csv_temp.csv')
+        self.dropdown_payload = {
+        "condition": {
+            "type": "ONE_OF_LIST",
+            "values": [{'userEnteredValue': 'Resolved'}, {'userEnteredValue': 'Delay by 2 hours'}]
+        },
+        "showCustomUi": True
+        }
+        self.crm_alarm_contacts = {'Javith': '919698606713', 'Milan': '919445574311',
+                                 'Sanaa': '919731011565'}
+        self.wati = WATI_APIS()
+        self.alert_types = ['Delivery delay', 'Query reply SLA']
+        self.tempdf_to_closed_path = os.path.join(os.getcwd(), 'tempdf_to_closed.csv')
+
+
+    def check_recurrance(self, opendf, closeddf, order_number, alert):
+        newdf = pd.concat([opendf, closeddf])
+        already_exists = False
+        for idx, row in newdf.iterrows():
+            if row['Order Number'] == order_number and row['Alert Type'] == alert:
+                already_exists = True
+        return already_exists
+
+    def add_alert_to_sheet(self, payload):
+        opendf = self.gsheets.load_sheet_as_csv(sheet_name=config.crm_open_sheet_name)
+        closeddf = self.gsheets.load_sheet_as_csv(sheet_name=config.crm_closed_sheet_name)
+        order_number = payload['Order Number']
+        already_exists = self.check_recurrance(opendf=opendf, closeddf=closeddf, order_number=order_number, alert=alert)
+
+        if not already_exists:
+            set_of_tickets = set(opendf['Ticket No']).union(set(closeddf['Ticket No']))
+            number_of_entries = len(set_of_tickets)
+            float_tickets = [float(val) for val in set_of_tickets]
+            max_val = max(float_tickets)
+            new_ticket = int(max_val+1)
+            payload['Ticket No'] = str(new_ticket)
+            payload['SLA(hours)'] = 2
+            payload['Date Opened'] = epoch_to_dd_mm_yy_time(int(time.time()))
+            # payload['Suggested Context'] = 'Promised date: ' + payload['Promised Date'] + '\nEstimated date: ' + payload['Estimated Date'] + '\nDelivery Status: ' + payload['Delivery Status']
+            push_csv_dict = {}
+            for val in self.col_list:
+                if val in payload:
+                    push_csv_dict[val] = payload[val]
+                elif val not in payload and val != 'Status':
+                    push_csv_dict[val] = '--'
+                elif val == 'Status':
+                    push_csv_dict[val] = ''
+            dropdowns_to_update = [{'dropdown': self.dropdown_payload, 'row': number_of_entries+1, 'col': self.col_index['Status']}]
+            push_csv = pd.DataFrame([push_csv_dict])
+            push_csv.to_csv(self.update_csv_path, index=False)
+            self.gsheets.append_csv_to_google_sheets(csv_path=self.update_csv_path,
+                                                   sheet_name=config.crm_open_sheet_name)
+            self.gsheets.update_dropdowns(dropdowns_to_update=dropdowns_to_update, sheet_name=config.crm_open_sheet_name)
+            print('google sheets api call to add content done')
+            # self.gsheets.sort_sheet(sheet_name=config.crm_open_sheet_name,
+            #                        sorting_rule={'col': self.col_index['SLA(Hours)'], 'direction': 'ASCENDING'})
+
+    def send_wati_alarm(self, mode='Delivery delay'):
+        if mode == 'Delivery delay':
+            for name, phone_num in self.crm_alarm_contacts.items():
+                status = self.wati.send_template_message(contact_name=name, contact_number=phone_num,
+                                                    template_name='delivery_delay_opsmessage')
+
+    def sheet_mgr_cron_job(self):
+        '''
+        Goals-
+        1.Decrease SLAs by 1h since this will be an hourly cron
+        2.Trigger alarm based on SLA
+        3.Push resolved issues to the closed section
+        :return:
+        '''
+        #Load sheet again for each cron job
+        realtime_gsheet = googlesheets_apis(spreadsheet_id=config.crm_spreadsheet_id)
+        realtime_df = realtime_gsheet.load_sheet_as_csv(sheet_name=config.crm_open_sheet_name)
+        rowcount = 2
+        rows_to_add_to_closed = []
+        values_to_update = []
+        remove_from_opened = []
+        #dropdowns_to_update = []
+        rowid = 2
+        for idx, row in realtime_df.iterrows():
+            sla_breach_types = set()
+            ## Remove from opened sheet
+            if str(row['SLA(Hours)']) == 'NA':
+                remove_from_opened.append(rowid)
+                rows_to_add_to_closed.append(row)
+            elif float(row['SLA(Hours)'])<=2:
+                sla_breach_types.add(str(row['Alert Type']))
+            ##Decrease SLAs by 1h
+            values_to_update.append({'col': self.column_dict['SLA(Hours)'],
+                                     'row': rowcount,
+                                     'value': str(int(float(row['SLA(Hours)'])-1))})
+            rowid += 1
+
+        new_to_closed = pd.DataFrame(rows_to_add_to_closed)
+        new_to_closed.to_csv(self.tempdf_to_closed_path)
+        realtime_gsheet.append_csv_to_google_sheets(csv_path=self.tempdf_to_closed_path,
+                                               sheet_name=config.crm_closed_sheet_name)
+        realtime_gsheet.update_cell(values_to_update=values_to_update, sheet_name=config.crm_open_sheet_name)
+        realtime_gsheet.delete_rows(rowids= remove_from_opened)
+
+
+
+
+
+
+
+

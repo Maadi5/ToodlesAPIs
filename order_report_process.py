@@ -4,7 +4,7 @@ import pandas as pd
 from datetime import datetime
 import traceback
 from dateutil.parser import parse
-from utils import input_df_preprocessing
+from utils import input_df_preprocessing,set_shipping_mode
 import re
 
 import logging
@@ -50,16 +50,9 @@ def get_order_details(browntape_df, tracker_df):
             if len(phone_num)>10 and phone_num[0] == '0':
                 phone_num = ''.join(phone_num[1:])
 
-            try:
-                if str(row['Order Type']) == 'Prepaid':
-                    if float(row['Gross Shipping Amount']) == 700:
-                        dfdict['shipping_mode'] = 'express'
-                    else:
-                        dfdict['shipping_mode'] = 'standard'
-                else:
-                    dfdict['shipping_mode'] = 'standard'
-            except:
-                pass
+            order_type = row['Order Type']
+            shipping_amount = row['Gross Shipping Amount']
+            dfdict['shipping_mode'] = set_shipping_mode(order_type= order_type, shipping_charge= shipping_amount)
 
             phone_num = '91' + phone_num if len(phone_num)!=12 else phone_num
             print('processed phone num: ', phone_num)
@@ -93,6 +86,12 @@ def get_order_details(browntape_df, tracker_df):
             dfdict['tracking_est_update'] = ''
             dfdict['last_tracked_time'] = ''
             dfdict['alarm_status'] = ''
+            dfdict['delivery_update_message'] = ''
+            dfdict['usermanual_during_delivery_whatsapp'] = ''
+            dfdict['usermanual_during_delivery_email'] = ''
+            dfdict['delivery_delay_message'] = ''
+
+
             trackerdf.append(dfdict)
             new_orders_browntape_subset.append(row)
 
