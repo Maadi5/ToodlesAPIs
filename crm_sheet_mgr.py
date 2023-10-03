@@ -95,8 +95,8 @@ class crm_sheet():
         remove_from_opened = []
         #dropdowns_to_update = []
         rowid = 2
+        sla_breach_types = set()
         for idx, row in realtime_df.iterrows():
-            sla_breach_types = set()
             ## Remove from opened sheet
             if str(row['SLA(Hours)']) == 'NA':
                 remove_from_opened.append(rowid)
