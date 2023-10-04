@@ -7,6 +7,7 @@ import pandas as pd
 import config
 from utils import epoch_to_dd_mm_yy_time
 import time
+from miniture_wati_templates import delivery_delay_alarm_message
 
 class crm_sheet():
     def __init__(self):
@@ -110,6 +111,20 @@ class crm_sheet():
                                          'row': rowcount,
                                          'value': str(int(float(row['SLA(Hours)'])-1))})
             rowcount += 1
+
+        #SLA breach:
+        if sla_breach_types:
+            delay_trigger = False
+            customer_message_delay = False
+            for val in sla_breach_types:
+                if 'delay' in val:
+                    delay_trigger = True
+
+            if delay_trigger:
+                for name, contact in self.crm_alarm_contacts.items():
+                    status = delivery_delay_alarm_message(wati=self.wati, name= name, phone_num=contact,
+                                                 wati_template='delivery_delay_opsmessage')
+
 
         new_to_closed = pd.DataFrame(rows_to_add_to_closed)
         new_to_closed.to_csv(self.tempdf_to_closed_path)
