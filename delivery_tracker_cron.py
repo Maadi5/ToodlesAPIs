@@ -62,8 +62,8 @@ def tracking_logic_CTA(old_tracking_code_update, order_date_epoch, bluedart_stat
         ediff_del_est_minus_current = ''
         days_del_est_minus_current = ''
 
-    if bluedart_statustype == 'DL' and old_tracking_code_update != 'DL':
-        if (current_time - delivery_est_epoch)<= (3600*24):
+    if bluedart_statustype == 'DL':
+        if (current_time - delivery_est_epoch)<= (3600*24) and old_tracking_code_update != 'DL':
             actions['usermanual2 push'] = True
         actions['update values'] = True
     elif bluedart_statustype == 'PU':
