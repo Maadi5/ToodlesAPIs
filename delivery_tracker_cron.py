@@ -291,7 +291,8 @@ def bluedart_tracking_checker():
 
                         #delivery update
                         if actions['delivery update push'] and delivery_update_message != 'Success':
-                            status = delivery_reminder_whatsapp(name=name, products= ', '.join(list(product_list)), phone_num=phone_num, delivery_date=tracking_est_update)
+                            status = delivery_reminder_whatsapp(name=name, products= ', '.join(list(product_list)),
+                                                                phone_num=phone_num, delivery_date=tracking_est_update, wati=wati)
                             values_to_update.append({'col': column_dict['delivery_update_message'],
                                                      'row': rowcount,
                                                      'value': status})
@@ -303,7 +304,8 @@ def bluedart_tracking_checker():
                                                      'value': status})
 
                         if actions['delivery delay push'] and delivery_update_message != 'Success':
-                            status = delivery_delay_whatsapp()
+                            status = delivery_delay_whatsapp(name=name, phone_num=phone_num,
+                                                             products= ', '.join(list(product_list)), wati= wati)
                             values_to_update.append({'col': column_dict['delivery_delay_message'],
                                                      'row': rowcount,
                                                      'value': status})
