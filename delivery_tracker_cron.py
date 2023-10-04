@@ -115,28 +115,28 @@ def epoch_to_dd_mm_yy_time(epoch_timestamp, with_time = True):
 wati = WATI_APIS()
 gsheets = googlesheets_apis(spreadsheet_id=config.db_spreadsheet_id)
 
-def mark_row_as_skipped(row_number, column_dict):
+def mark_row_as_skipped(row_number, column_dict, message = 'Skipped'):
     return [{'col': column_dict['tracking_code_update'],
                                                  'row': row_number,
-                                                 'value': 'Skipped'},
+                                                 'value': message},
                                                  {'col': column_dict['tracking_status_update'],
                                                   'row': row_number,
-                                                  'value': 'Skipped'},
+                                                  'value': message},
                                                  {'col': column_dict['tracking_est_update'],
                                                   'row': row_number,
-                                                  'value': 'Skipped'},
+                                                  'value': message},
                                                  {'col': column_dict['last_tracked_time'],
                                                   'row': row_number,
-                                                  'value': 'Skipped'},
+                                                  'value': message},
                                                  {'col': column_dict['usermanual_during_delivery_whatsapp'],
                                                   'row': row_number,
-                                                  'value': 'Skipped'},
+                                                  'value': message},
                                                  {'col': column_dict['delivery_update_message'],
                                                   'row': row_number,
-                                                  'value': 'Skipped'},
+                                                  'value': message},
                                                  {'col': column_dict['delivery_delay_message'],
                                                   'row': row_number,
-                                                  'value': 'Skipped'}
+                                                  'value': message}
                                                  ]
 
 columns_list, column_dict,_ = gsheets.get_column_names(sheet_name=config.db_sheet_name)
@@ -161,6 +161,25 @@ def date_string_to_epoch(date_str):
 
     # If none of the formats match, raise an exception or return a default value
     raise ValueError("Invalid date format")
+
+def date_str_to_epoch2(date_string):
+    # Define the input date string in the given format
+    # date_string = '04-October-23, 11:58:16'
+
+    # Create a datetime object from the input string
+    date_object = datetime.strptime(date_string, '%d-%B-%y, %H:%M:%S')
+
+    # Convert the datetime object to epoch time (Unix timestamp)
+    epoch_time = date_object.timestamp()
+
+    return epoch_time
+
+def time_difference_to_track(last_tracked_time, time_diff_hours = 6):
+    current_time = time.time()
+    track = False
+    if current_time - last_tracked_time>= time_diff_hours*(3600):
+        track = True
+    return track
 
 def bluedart_tracking_checker():
     trackerdf = gsheets.load_sheet_as_csv(sheet_name=config.db_sheet_name)
@@ -190,6 +209,8 @@ def bluedart_tracking_checker():
                 #Run pipeline
                 else:
                     id = str(row['unique_id'])
+                    if id == '14624212128':
+                        print('checkpoint')
                     sku = str(row['sku'])
                     awb = str(row['awb'])
                     name = str(row['name'])
@@ -200,6 +221,13 @@ def bluedart_tracking_checker():
                     tracking_code_update = str(row['tracking_code_update'])
                     tracking_status_update = str(row['tracking_status_update'])
                     tracking_est_update = str(row['tracking_est_update'])
+                    last_tracked_time = str(row['last_tracked_time'])
+                    try:
+                        last_tracked_epoch = date_str_to_epoch2(last_tracked_time)
+                        last_tracked_epoch_gmt = last_tracked_epoch - 19800
+                    except:
+                        last_tracked_epoch_gmt = ''
+
                     try:
                         est_date_epoch = date_string_to_epoch(tracking_est_update)
                     except:
@@ -226,9 +254,14 @@ def bluedart_tracking_checker():
                     # indexes = []
                     for ind in cinds:
                         sku = trackerdf.at[ind, 'sku']
-                        product_name, product_manual = get_product_name_manual(sku=sku)
-                        product_list[product_name] = product_manual
-
+                        try:
+                            product_name, product_manual = get_product_name_manual(sku=sku)
+                            product_list[product_name] = product_manual
+                        except:
+                            pass
+                    valid_products = False
+                    if product_list != {}:
+                        valid_products = True
                     order_date_epoch = ''
                     try:
                         order_date_epoch = date_string_to_epoch(order_date)
@@ -237,38 +270,61 @@ def bluedart_tracking_checker():
                         logging.error(traceback.format_exc())
 
                     first_time = False
-                    tracking_failed = True
-                    if tracking_code_update == '':
-                        first_time = True
+                    tracking_failed = False
+                    if tracking_code_update != 'DL':
+
+                        should_track_again = True
                         try:
-                            tracking_status = bluedart.get_tracking_details(awb)
-                            tracking_status_update = tracking_status['Status']
-                            tracking_code_update = tracking_status['StatusType']
-                            if 'ExpectedDeliveryDate' in tracking_status:
-                                tracking_est_update = tracking_status['ExpectedDeliveryDate']
-                                est_date_epoch = date_string_to_epoch(tracking_est_update)
-                            else:
-                                est_date = ''
-                                est_date_epoch = ''
-                            tracking_failed = False
+                            should_track_again = time_difference_to_track(last_tracked_time= last_tracked_epoch_gmt)
                         except:
-                            tracking_status_update = 'failed'
-                            tracking_code_update = 'failed'
-                            tracking_est_update = 'failed'
-                            est_date_epoch = 'failed'
+                            pass
+                        if should_track_again:
+                            if tracking_code_update == '':
+                                first_time = True
+                            try:
+                                tracking_status = bluedart.get_tracking_details(awb)
+                                tracking_status_update = tracking_status['Status']
+                                tracking_code_update = tracking_status['StatusType']
+                                if 'ExpectedDeliveryDate' in tracking_status:
+                                    tracking_est_update = tracking_status['ExpectedDeliveryDate']
+                                    est_date_epoch = date_string_to_epoch(tracking_est_update)
+                                else:
+                                    tracking_est_update = 'NA'
+                                    est_date_epoch = ''
+                            except:
+                                tracking_failed = True
+                                tracking_status_update = 'bluedart failed'
+                                tracking_code_update = 'bluedart failed'
+                                tracking_est_update = 'bluedart failed'
+                                est_date_epoch = 'bluedart failed'
+                        else:
+                            print('skipped tracking id: ', id)
+                            rowcount +=1
+                            continue
                     ##Promised date check
                     promised_hard_date = 'promised date'
                     if shipping_mode == 'standard':
-                        promised_date_epoch = float(order_date_epoch) + (day_thresh_standard*24*3600)
+                        try:
+                            promised_date_epoch = float(order_date_epoch) + (day_thresh_standard*24*3600)
+                        except:
+                            promised_date_epoch = ''
                         promised_hard_date = epoch_to_dd_mm_yy_time(int(promised_date_epoch), with_time=False)
                     elif shipping_mode == 'express':
-                        promised_date_epoch = float(order_date_epoch) + (day_thresh_express*24*3600)
+                        try:
+                            promised_date_epoch = float(order_date_epoch) + (day_thresh_express*24*3600)
+                        except:
+                            promised_date_epoch = ''
                         promised_hard_date = epoch_to_dd_mm_yy_time(int(promised_date_epoch), with_time=False)
 
                     if not tracking_failed:
-                        actions = tracking_logic_CTA(old_tracking_code_update=old_tracking_code_update,order_date_epoch=order_date_epoch, bluedart_statustype=tracking_code_update,
-                                           delivery_est_epoch=est_date_epoch, delivery_update_message=delivery_update_message,
-                               shipping_mode=shipping_mode, delivery_delay_push=delivery_delay_message, promised_date_epoch=promised_date_epoch)
+                        try:
+                            actions = tracking_logic_CTA(old_tracking_code_update=old_tracking_code_update,order_date_epoch=order_date_epoch, bluedart_statustype=tracking_code_update,
+                                               delivery_est_epoch=est_date_epoch, delivery_update_message=delivery_update_message,
+                                   shipping_mode=shipping_mode, delivery_delay_push=delivery_delay_message, promised_date_epoch=promised_date_epoch,
+                                                         first_time_data=first_time)
+                        except:
+                            skip_values = mark_row_as_skipped(row_number=rowcount, column_dict=column_dict, message = 'track logic failed')
+                            values_to_update.extend(skip_values)
 
                         '''
                             actions = {'update values': False, 'usermanual2 push': False, 'order pickup delay alarm': False,
@@ -282,7 +338,8 @@ def bluedart_tracking_checker():
                             if actions['usermanual2 push'] and usermanual_during_delivery_whatsapp != 'Success':
                                 count = 0
                                 for product_name, product_manual in product_list.items():
-                                    status = usermanual_whatsapp(sku=sku, product_name=product_name, product_manual=product_manual, name=name,phone_num=phone_num, wati=wati)
+                                    status = usermanual_whatsapp(sku=sku, product_name=product_name,
+                                                                 product_manual=product_manual, name=name,phone_num=phone_num, wati=wati)
                                     values_to_update.append({'col': column_dict['usermanual_during_delivery_whatsapp'],
                                                          'row': cinds[count] + 2,
                                                          'value': status})
@@ -346,15 +403,18 @@ def bluedart_tracking_checker():
                                                       'value': tracking_est_update},
                                                      {'col': column_dict['last_tracked_time'],
                                                       'row': rowcount,
-                                                      'value': epoch_to_dd_mm_yy_time(int(time.time()))}
+                                                      'value': epoch_to_dd_mm_yy_time(int(time.time())+19800)}
                                                      ])
                     else:
-                        skip_values = mark_row_as_skipped(row_number=rowcount, column_dict=column_dict)
+                        skip_values = mark_row_as_skipped(row_number=rowcount, column_dict=column_dict, message='tracking api failed')
                         values_to_update.extend(skip_values)
 
 
             except:
                 print('Exception at checking tracking')
+                skip_values = mark_row_as_skipped(row_number=rowcount, column_dict=column_dict,
+                                                  message='Loop failed')
+                values_to_update.extend(skip_values)
                 logging.error('Failed at iteration of eta checker')
                 logging.error(traceback.format_exc())
             rowcount += 1
@@ -391,13 +451,13 @@ times_to_run = all_times
 
 print(times_to_run)
 # Schedule the job to run every day at 3pm (test)
-for time_str in times_to_run:
-    schedule.every().day.at(time_str).do(bluedart_tracking_checker)
-    break
-#
-print('running cron...')
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+# for time_str in times_to_run:
+#     schedule.every().day.at(time_str).do(bluedart_tracking_checker)
+#     break
+# #
+# print('running cron...')
+# while True:
+#     schedule.run_pending()
+#     time.sleep(1)
 
-# bluedart_tracking_checker()
+bluedart_tracking_checker()
