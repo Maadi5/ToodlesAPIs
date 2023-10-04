@@ -51,7 +51,7 @@ class crm_sheet():
             max_val = max(float_tickets)
             new_ticket = int(max_val+1)
             payload['Ticket No'] = str(new_ticket)
-            payload['SLA(hours)'] = 2
+            payload['SLA(Hours)'] = 2
             payload['Date Opened'] = epoch_to_dd_mm_yy_time(int(time.time()))
             # payload['Suggested Context'] = 'Promised date: ' + payload['Promised Date'] + '\nEstimated date: ' + payload['Estimated Date'] + '\nDelivery Status: ' + payload['Delivery Status']
             push_csv_dict = {}
