@@ -371,7 +371,7 @@ def bluedart_tracking_checker():
                                                              'row': rowcount,
                                                              'value': status})
 
-                            if actions['delivery delay push'] and delivery_update_message != 'Success':
+                            if actions['delivery delay push'] and delivery_delay_message != 'Success':
                                 status = delivery_delay_whatsapp(name=name, phone_num=phone_num,
                                                                  products= ', '.join(list(product_list)), wati= wati)
                                 values_to_update.append({'col': column_dict['delivery_delay_message'],
@@ -380,7 +380,7 @@ def bluedart_tracking_checker():
                                 gsheets.update_cell(values_to_update=values_to_update, sheet_name=config.db_sheet_name)
                                 values_to_update = []
                             else:
-                                if delivery_update_message != 'Success':
+                                if delivery_delay_message != 'Success':
                                     status = 'Not Sent'
                                     values_to_update.append({'col': column_dict['delivery_delay_message'],
                                                              'row': rowcount,
