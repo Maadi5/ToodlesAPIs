@@ -70,6 +70,8 @@ def tracking_logic_CTA(old_tracking_code_update, order_date_epoch, bluedart_stat
         if days_from_order_date>=2:
             actions['order pickup delay alarm'] = True
             actions['update values'] = True
+    # elif bluedart_statustype == 'UD':
+    #     actions['delivery delay alarm'] = True
     else:
         if delivery_update_message != 'Success':
             if (shipping_mode == 'standard' and days_from_order_date>= standard_daygap_wati)\
@@ -84,7 +86,7 @@ def tracking_logic_CTA(old_tracking_code_update, order_date_epoch, bluedart_stat
             if days_del_est_minus_current<=-0.5 or current_time>= promised_date_epoch:
                 actions['delivery delay alarm'] = True
 
-    if actions['delivery delay alarm'] == True:
+    if actions['delivery delay push'] == True:
         actions['delivery update push'] = False
 
     return actions
@@ -209,7 +211,7 @@ def bluedart_tracking_checker():
                 #Run pipeline
                 else:
                     id = str(row['unique_id'])
-                    if id == '14624212128':
+                    if id == '14757364192':
                         print('checkpoint')
                     sku = str(row['sku'])
                     awb = str(row['awb'])
@@ -345,11 +347,13 @@ def bluedart_tracking_checker():
                                                          'value': status})
                                     count += 1
                                 gsheets.update_cell(values_to_update=values_to_update, sheet_name=config.db_sheet_name)
+                                values_to_update = []
                             else:
-                                status = 'Not Sent'
-                                values_to_update.append({'col': column_dict['usermanual_during_delivery_whatsapp'],
-                                                         'row': rowcount,
-                                                         'value': status})
+                                if usermanual_during_delivery_whatsapp != 'Success':
+                                    status = 'Not Sent'
+                                    values_to_update.append({'col': column_dict['usermanual_during_delivery_whatsapp'],
+                                                             'row': rowcount,
+                                                             'value': status})
 
                             #delivery update
                             if actions['delivery update push'] and delivery_update_message != 'Success':
@@ -359,11 +363,13 @@ def bluedart_tracking_checker():
                                                          'row': rowcount,
                                                          'value': status})
                                 gsheets.update_cell(values_to_update=values_to_update, sheet_name=config.db_sheet_name)
+                                values_to_update = []
                             else:
-                                status = 'Not Sent'
-                                values_to_update.append({'col': column_dict['delivery_update_message'],
-                                                         'row': rowcount,
-                                                         'value': status})
+                                if delivery_update_message != 'Success':
+                                    status = 'Not Sent'
+                                    values_to_update.append({'col': column_dict['delivery_update_message'],
+                                                             'row': rowcount,
+                                                             'value': status})
 
                             if actions['delivery delay push'] and delivery_update_message != 'Success':
                                 status = delivery_delay_whatsapp(name=name, phone_num=phone_num,
@@ -372,11 +378,13 @@ def bluedart_tracking_checker():
                                                          'row': rowcount,
                                                          'value': status})
                                 gsheets.update_cell(values_to_update=values_to_update, sheet_name=config.db_sheet_name)
+                                values_to_update = []
                             else:
-                                status = 'Not Sent'
-                                values_to_update.append({'col': column_dict['delivery_delay_message'],
-                                                         'row': rowcount,
-                                                         'value': status})
+                                if delivery_update_message != 'Success':
+                                    status = 'Not Sent'
+                                    values_to_update.append({'col': column_dict['delivery_delay_message'],
+                                                             'row': rowcount,
+                                                             'value': status})
 
 
                             if actions['delivery delay alarm']:
