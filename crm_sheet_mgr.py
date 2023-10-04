@@ -79,6 +79,7 @@ class crm_sheet():
                                                     template_name='delivery_delay_opsmessage')
 
     def sheet_mgr_cron_job(self):
+        print('Running crm script...')
         '''
         Goals-
         1.Decrease SLAs by 1h since this will be an hourly cron
