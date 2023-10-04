@@ -37,7 +37,7 @@ class crm_sheet():
                 already_exists = True
         return already_exists
 
-    def add_alert_to_sheet(self, payload):
+    def add_alert_to_sheet(self, payload, sla_value = 6):
         opendf = self.gsheets.load_sheet_as_csv(sheet_name=config.crm_open_sheet_name)
         closeddf = self.gsheets.load_sheet_as_csv(sheet_name=config.crm_closed_sheet_name)
         order_number = payload['Order Number']
@@ -51,7 +51,7 @@ class crm_sheet():
             max_val = max(float_tickets)
             new_ticket = int(max_val+1)
             payload['Ticket No'] = str(new_ticket)
-            payload['SLA(Hours)'] = 2
+            payload['SLA(Hours)'] = sla_value
             payload['Date Opened'] = epoch_to_dd_mm_yy_time(int(time.time()))
             # payload['Suggested Context'] = 'Promised date: ' + payload['Promised Date'] + '\nEstimated date: ' + payload['Estimated Date'] + '\nDelivery Status: ' + payload['Delivery Status']
             push_csv_dict = {}
@@ -94,21 +94,22 @@ class crm_sheet():
         rows_to_add_to_closed = []
         values_to_update = []
         remove_from_opened = []
+        # rowid = 2
         #dropdowns_to_update = []
-        rowid = 2
         sla_breach_types = set()
         for idx, row in realtime_df.iterrows():
             ## Remove from opened sheet
-            if str(row['SLA(Hours)']) == 'NA':
-                remove_from_opened.append(rowid)
-                rows_to_add_to_closed.append(row)
-            elif float(row['SLA(Hours)'])<=2:
-                sla_breach_types.add(str(row['Alert Type']))
-            ##Decrease SLAs by 1h
-            values_to_update.append({'col': self.column_dict['SLA(Hours)'],
-                                     'row': rowcount,
-                                     'value': str(int(float(row['SLA(Hours)'])-1))})
-            rowid += 1
+            if rowcount>2:
+                if str(row['SLA(Hours)']) == 'NA':
+                    remove_from_opened.append(rowcount)
+                    rows_to_add_to_closed.append(row)
+                elif float(row['SLA(Hours)'])<=2:
+                    sla_breach_types.add(str(row['Alert Type']))
+                ##Decrease SLAs by 1h
+                values_to_update.append({'col': self.column_dict['SLA(Hours)'],
+                                         'row': rowcount,
+                                         'value': str(int(float(row['SLA(Hours)'])-1))})
+            rowcount += 1
 
         new_to_closed = pd.DataFrame(rows_to_add_to_closed)
         new_to_closed.to_csv(self.tempdf_to_closed_path)
@@ -117,6 +118,9 @@ class crm_sheet():
         realtime_gsheet.update_cell(values_to_update=values_to_update, sheet_name=config.crm_open_sheet_name)
         realtime_gsheet.delete_rows(rowids= remove_from_opened, sheet_name = config.crm_open_sheet_name)
 
+if __name__ == '__main__':
+    crm_obj = crm_sheet()
+    crm_obj.sheet_mgr_cron_job()
 
 
 
