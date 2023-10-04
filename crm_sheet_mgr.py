@@ -38,7 +38,7 @@ class crm_sheet():
                 already_exists = True
         return already_exists
 
-    def add_alert_to_sheet(self, payload, sla_value = 6):
+    def add_alert_to_sheet(self, payload, sla_value = 2):
         opendf = self.gsheets.load_sheet_as_csv(sheet_name=config.crm_open_sheet_name)
         closeddf = self.gsheets.load_sheet_as_csv(sheet_name=config.crm_closed_sheet_name)
         order_number = payload['Order Number']
