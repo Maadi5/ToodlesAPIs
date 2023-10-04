@@ -44,7 +44,10 @@ def job():
             sku = str(row['sku'])
             phone_num = str(row['phone_num'])
             invoice = str(row['invoice_number'])
-            product_name, product_manual = get_product_name_manual(sku=sku)
+            try:
+                product_name, product_manual = get_product_name_manual(sku=sku)
+            except:
+                product_name, product_manual = '--','--'
             ## awb whatsapp status
             if 'whatsapp_status' in empty_fields:# or row['usermanual_whatsapp_status'] == 'Failure_exception':
                 print('entering if loop')

@@ -13,8 +13,7 @@ class crm_sheet():
         self.wati = WATI_APIS()
         self.gsheets = googlesheets_apis(spreadsheet_id=config.crm_spreadsheet_id)
         self.columns_list, self.column_dict, self.col_index = self.gsheets.get_column_names(sheet_name=config.crm_open_sheet_name)
-        self.col_list = ['Ticket No', 'Order Number', 'Platform', 'Name', 'Number', 'Alert Type', 'User Message',
-                         'Status', 'Suggested Context', 'Conversation Summary', 'SLA(hours)', 'Date Opened', 'Date Closed']
+        # self.col_list =
         self.update_csv_path = os.path.join(os.getcwd(), 'update_csv_temp.csv')
         self.dropdown_payload = {
         "condition": {
@@ -42,8 +41,9 @@ class crm_sheet():
         opendf = self.gsheets.load_sheet_as_csv(sheet_name=config.crm_open_sheet_name)
         closeddf = self.gsheets.load_sheet_as_csv(sheet_name=config.crm_closed_sheet_name)
         order_number = payload['Order Number']
+        alert = payload['Alert Type']
         already_exists = self.check_recurrance(opendf=opendf, closeddf=closeddf, order_number=order_number, alert=alert)
-
+        self.columns_list, self.column_dict, self.col_index = self.gsheets.get_column_names(sheet_name=config.crm_open_sheet_name)
         if not already_exists:
             set_of_tickets = set(opendf['Ticket No']).union(set(closeddf['Ticket No']))
             number_of_entries = len(set_of_tickets)
@@ -55,7 +55,7 @@ class crm_sheet():
             payload['Date Opened'] = epoch_to_dd_mm_yy_time(int(time.time()))
             # payload['Suggested Context'] = 'Promised date: ' + payload['Promised Date'] + '\nEstimated date: ' + payload['Estimated Date'] + '\nDelivery Status: ' + payload['Delivery Status']
             push_csv_dict = {}
-            for val in self.col_list:
+            for val in self.columns_list:
                 if val in payload:
                     push_csv_dict[val] = payload[val]
                 elif val not in payload and val != 'Status':
