@@ -73,7 +73,7 @@ def get_order_details(browntape_df, tracker_df):
             dfdict['state'] = str(row['State'])
             dfdict['city'] = str(row['City'])
             dfdict['status'] = str(row['Fulfillment Status'])
-
+            dfdict['courier'] = str(row['Courier Name'])
             # dfdict['shipping_mode'] =
             dfdict['email_status'] = ''
             dfdict['whatsapp_status'] = ''

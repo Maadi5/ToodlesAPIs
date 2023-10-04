@@ -188,7 +188,12 @@ class CSVProcessing(Resource):
                         phone_num = str(row['phone_num'])
                         name = str(row['name'])
                         invoice_number = str(row['invoice_number'])
-                        product_name, product_manual = get_product_name_manual(sku=sku)
+                        valid_manual = False
+                        try:
+                            product_name, product_manual = get_product_name_manual(sku=sku)
+                            valid_manual = True
+                        except:
+                            pass
                         #product_name, product_manual = get_product_name_manual(sku=sku)
                         ## send template message
                         wa_status = 'NA'
@@ -259,48 +264,53 @@ class CSVProcessing(Resource):
                         wa_status_usermanual = 'NA'
                         if str(row['usermanual_whatsapp_status']) == '':
                             #send user manual whatsapp
-                            try:
-                                if sku in usermanual_skus_without_video:
-                                    wati_template = 'miniture_usermanual_5'
-                                else:
-                                    wati_template = 'miniture_usermanual_5'
-                                custom_params = [{'name': 'product_name', 'value': str(product_name)},
-                                                 {'name': 'media_url', 'value': str(product_manual)}]
-                                status = wati.send_template_message(contact_name=name, contact_number=phone_num,
-                                                                    template_name= wati_template,
-                                                                    custom_params=custom_params)
-                                #print('Status of whatsapp: ', status)
-                                if not status:
-                                    ## Store timeframe n number of times based on number of rows per order
-                                    # idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                                    # print('idx: ', idx)
-                                    # for idx in idxs:
-                                    live_data.at[idx, 'usermanual_whatsapp_status'] = 'Failure'
-                                    wa_status_usermanual = 'Failure'
-                                else:
-                                    ## Store timeframe n number of times based on number of rows per order
-                                    # idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                                    # # idx = live_data.index[live_data['unique_id'] == id].tolist()[0]
-                                    # # print('idx: ', idx)
-                                    # for ix in idxs:
-                                    live_data.at[idx, 'usermanual_whatsapp_status'] = 'Success'
-                                        #live_data.at[idx, 'awb_message_timestamp'] = time.time()
-                                    wa_status_usermanual = 'Success'
-                            except:
+                            if valid_manual:
                                 try:
-                                    # idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                                    # for ix in idxs:
-                                    live_data.at[idx, 'usermanual_whatsapp_status'] = 'Failure_exception'
-                                    wa_status_usermanual = 'Failure_exception'
-                                    #print('whatsapp failed: ', traceback.format_exc())
-                                    logging.error("whatsapp failed usermanual for: " + id)
-                                    logging.error(traceback.format_exc())
+                                    if sku in usermanual_skus_without_video:
+                                        wati_template = 'miniture_usermanual_5'
+                                    else:
+                                        wati_template = 'miniture_usermanual_5'
+                                    custom_params = [{'name': 'product_name', 'value': str(product_name)},
+                                                     {'name': 'media_url', 'value': str(product_manual)}]
+                                    status = wati.send_template_message(contact_name=name, contact_number=phone_num,
+                                                                        template_name= wati_template,
+                                                                        custom_params=custom_params)
+                                    #print('Status of whatsapp: ', status)
+                                    if not status:
+                                        ## Store timeframe n number of times based on number of rows per order
+                                        # idxs = live_data.index[live_data['unique_id'] == id].tolist()
+                                        # print('idx: ', idx)
+                                        # for idx in idxs:
+                                        live_data.at[idx, 'usermanual_whatsapp_status'] = 'Failure'
+                                        wa_status_usermanual = 'Failure'
+                                    else:
+                                        ## Store timeframe n number of times based on number of rows per order
+                                        # idxs = live_data.index[live_data['unique_id'] == id].tolist()
+                                        # # idx = live_data.index[live_data['unique_id'] == id].tolist()[0]
+                                        # # print('idx: ', idx)
+                                        # for ix in idxs:
+                                        live_data.at[idx, 'usermanual_whatsapp_status'] = 'Success'
+                                            #live_data.at[idx, 'awb_message_timestamp'] = time.time()
+                                        wa_status_usermanual = 'Success'
                                 except:
-                                    logging.error("exception block for whatsapp usermanual failed")
-                                    logging.error(traceback.format_exc())
-                                    failure_statement = id + ': ' + ', '.join('Adding to database might have failed at exception for usermanual whatsapp')
-                                    failure_statements.append(failure_statement)
-                                    failed_ids.add(idx)
+                                    try:
+                                        # idxs = live_data.index[live_data['unique_id'] == id].tolist()
+                                        # for ix in idxs:
+                                        live_data.at[idx, 'usermanual_whatsapp_status'] = 'Failure_exception'
+                                        wa_status_usermanual = 'Failure_exception'
+                                        #print('whatsapp failed: ', traceback.format_exc())
+                                        logging.error("whatsapp failed usermanual for: " + id)
+                                        logging.error(traceback.format_exc())
+                                    except:
+                                        logging.error("exception block for whatsapp usermanual failed")
+                                        logging.error(traceback.format_exc())
+                                        failure_statement = id + ': ' + ', '.join('Adding to database might have failed at exception for usermanual whatsapp')
+                                        failure_statements.append(failure_statement)
+                                        failed_ids.add(idx)
+
+                            else:
+                                live_data.at[idx, 'usermanual_whatsapp_status'] = 'Skipped'
+                                wa_status_usermanual = 'Failure'
 
                         #print('livedata after whatsapp usermanual: ', live_data['whatsapp_status'])
                         email_status = 'NA'
@@ -345,28 +355,34 @@ class CSVProcessing(Resource):
                         email_status_usermanual = 'NA'
                         if str(row['usermanual_email_status']) == '':
                             ## send email for usermanual
-                            try:
-                                status = send_usermanual_email(name=name, to_address=email, product_name=product_name,
-                                                               product_manual_link=product_manual)
-                                # idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                                # for ix in idxs:
-                                live_data.at[idx, 'usermanual_email_status'] = status
-                                    #live_data.at[idx, 'awb_message_timestamp'] = time.time()
-                                email_status_usermanual = status
-                            except:
-                                # idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                                # for ix in idxs:
+                            if valid_manual:
                                 try:
-                                    live_data.at[idx, 'usermanual_email_status'] = 'Failure_exception'
-                                    email_status_usermanual = 'Failure_exception'
-                                    logging.error("email failed usermanual for: " + id)
-                                    logging.error(traceback.format_exc())
+                                    status = send_usermanual_email(name=name, to_address=email, product_name=product_name,
+                                                                   product_manual_link=product_manual)
+                                    # idxs = live_data.index[live_data['unique_id'] == id].tolist()
+                                    # for ix in idxs:
+                                    live_data.at[idx, 'usermanual_email_status'] = status
+                                        #live_data.at[idx, 'awb_message_timestamp'] = time.time()
+                                    email_status_usermanual = status
                                 except:
-                                    logging.error("exception block for email usermanual failed")
-                                    logging.error(traceback.format_exc())
-                                    failure_statement = id + ': ' + ', '.join('Adding to database might have failed at exception for usermanual email')
-                                    failure_statements.append(failure_statement)
-                                    failed_ids.add(idx)
+                                    # idxs = live_data.index[live_data['unique_id'] == id].tolist()
+                                    # for ix in idxs:
+                                    try:
+                                        live_data.at[idx, 'usermanual_email_status'] = 'Failure_exception'
+                                        email_status_usermanual = 'Failure_exception'
+                                        logging.error("email failed usermanual for: " + id)
+                                        logging.error(traceback.format_exc())
+                                    except:
+                                        logging.error("exception block for email usermanual failed")
+                                        logging.error(traceback.format_exc())
+                                        failure_statement = id + ': ' + ', '.join('Adding to database might have failed at exception for usermanual email')
+                                        failure_statements.append(failure_statement)
+                                        failed_ids.add(idx)
+                            else:
+                                live_data.at[idx, 'usermanual_email_status'] = 'Skipped'
+                                # live_data.at[idx, 'awb_message_timestamp'] = time.time()
+                                email_status_usermanual = 'Skipped'
+
                         #print('livedata after usermanual eamil: ', live_data['whatsapp_status'])
 
                         try:
