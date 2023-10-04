@@ -115,6 +115,30 @@ def epoch_to_dd_mm_yy_time(epoch_timestamp, with_time = True):
 wati = WATI_APIS()
 gsheets = googlesheets_apis(spreadsheet_id=config.db_spreadsheet_id)
 
+def mark_row_as_skipped(row_number, column_dict):
+    return [{'col': column_dict['tracking_code_update'],
+                                                 'row': row_number,
+                                                 'value': 'Skipped'},
+                                                 {'col': column_dict['tracking_status_update'],
+                                                  'row': row_number,
+                                                  'value': 'Skipped'},
+                                                 {'col': column_dict['tracking_est_update'],
+                                                  'row': row_number,
+                                                  'value': 'Skipped'},
+                                                 {'col': column_dict['last_tracked_time'],
+                                                  'row': row_number,
+                                                  'value': 'Skipped'},
+                                                 {'col': column_dict['usermanual_during_delivery_whatsapp'],
+                                                  'row': row_number,
+                                                  'value': 'Skipped'},
+                                                 {'col': column_dict['delivery_update_message'],
+                                                  'row': row_number,
+                                                  'value': 'Skipped'},
+                                                 {'col': column_dict['delivery_delay_message'],
+                                                  'row': row_number,
+                                                  'value': 'Skipped'}
+                                                 ]
+
 columns_list, column_dict,_ = gsheets.get_column_names(sheet_name=config.db_sheet_name)
 bluedart = bluedart_apis()
 
@@ -158,33 +182,11 @@ def bluedart_tracking_checker():
             # status = 'Failure'
             try:
                 status = str(row['status'])
-
+                awb = str(row['status'])
                 #Code to skip 'processing' or 'cancelled' orders
                 if status in {'cancelled', 'processing'}:
-                    values_to_update.extend([{'col': column_dict['tracking_code_update'],
-                                             'row': rowcount,
-                                             'value': 'Skipped'},
-                                             {'col': column_dict['tracking_status_update'],
-                                              'row': rowcount,
-                                              'value': 'Skipped'},
-                                             {'col': column_dict['tracking_est_update'],
-                                              'row': rowcount,
-                                              'value': 'Skipped'},
-                                             {'col': column_dict['last_tracked_time'],
-                                              'row': rowcount,
-                                              'value': 'Skipped'},
-                                             {'col': column_dict['usermanual_during_delivery_whatsapp'],
-                                              'row': rowcount,
-                                              'value': 'Skipped'},
-                                             {'col': column_dict['delivery_update_message'],
-                                              'row': rowcount,
-                                              'value': 'Skipped'},
-                                             {'col': column_dict['delivery_delay_message'],
-                                              'row': rowcount,
-                                              'value': 'Skipped'}
-                                             ])
-                    rowcount += 1
-
+                    skip_values = mark_row_as_skipped(row_number=rowcount, column_dict=column_dict)
+                    values_to_update.extend(skip_values)
                 #Run pipeline
                 else:
                     id = str(row['unique_id'])
@@ -235,6 +237,7 @@ def bluedart_tracking_checker():
                         logging.error(traceback.format_exc())
 
                     first_time = False
+                    tracking_failed = True
                     if tracking_code_update == '':
                         first_time = True
                         try:
@@ -247,6 +250,7 @@ def bluedart_tracking_checker():
                             else:
                                 est_date = ''
                                 est_date_epoch = ''
+                            tracking_failed = False
                         except:
                             tracking_status_update = 'failed'
                             tracking_code_update = 'failed'
@@ -261,88 +265,93 @@ def bluedart_tracking_checker():
                         promised_date_epoch = float(order_date_epoch) + (day_thresh_express*24*3600)
                         promised_hard_date = epoch_to_dd_mm_yy_time(int(promised_date_epoch), with_time=False)
 
-                    actions = tracking_logic_CTA(old_tracking_code_update=old_tracking_code_update,order_date_epoch=order_date_epoch, bluedart_statustype=tracking_code_update,
-                                       delivery_est_epoch=est_date_epoch, delivery_update_message=delivery_update_message,
-                           shipping_mode=shipping_mode, delivery_delay_push=delivery_delay_message, promised_date_epoch=promised_date_epoch)
+                    if not tracking_failed:
+                        actions = tracking_logic_CTA(old_tracking_code_update=old_tracking_code_update,order_date_epoch=order_date_epoch, bluedart_statustype=tracking_code_update,
+                                           delivery_est_epoch=est_date_epoch, delivery_update_message=delivery_update_message,
+                               shipping_mode=shipping_mode, delivery_delay_push=delivery_delay_message, promised_date_epoch=promised_date_epoch)
 
-                    '''
-                        actions = {'update values': False, 'usermanual2 push': False, 'order pickup delay alarm': False,
-                   'delivery update push': False, 'delivery delay alarm': False, 'delivery delay push': False}
-                    '''
-                    if actions['update values'] == False:
-                        rowcount +=1
-                        continue
-                    else:
-                        #Delivery message
-                        if actions['usermanual2 push'] and usermanual_during_delivery_whatsapp != 'Success':
-                            count = 0
-                            for product_name, product_manual in product_list.items():
-                                status = usermanual_whatsapp(sku=sku, product_name=product_name, product_manual=product_manual, name=name,phone_num=phone_num, wati=wati)
+                        '''
+                            actions = {'update values': False, 'usermanual2 push': False, 'order pickup delay alarm': False,
+                       'delivery update push': False, 'delivery delay alarm': False, 'delivery delay push': False}
+                        '''
+                        if actions['update values'] == False:
+                            rowcount +=1
+                            continue
+                        else:
+                            #Delivery message
+                            if actions['usermanual2 push'] and usermanual_during_delivery_whatsapp != 'Success':
+                                count = 0
+                                for product_name, product_manual in product_list.items():
+                                    status = usermanual_whatsapp(sku=sku, product_name=product_name, product_manual=product_manual, name=name,phone_num=phone_num, wati=wati)
+                                    values_to_update.append({'col': column_dict['usermanual_during_delivery_whatsapp'],
+                                                         'row': cinds[count] + 2,
+                                                         'value': status})
+                                    count += 1
+                                gsheets.update_cell(values_to_update=values_to_update, sheet_name=config.db_sheet_name)
+                            else:
+                                status = 'Not Sent'
                                 values_to_update.append({'col': column_dict['usermanual_during_delivery_whatsapp'],
-                                                     'row': cinds[count] + 2,
-                                                     'value': status})
-                                count += 1
-                            gsheets.update_cell(values_to_update=values_to_update, sheet_name=config.db_sheet_name)
-                        else:
-                            status = 'Not Sent'
-                            values_to_update.append({'col': column_dict['usermanual_during_delivery_whatsapp'],
+                                                         'row': rowcount,
+                                                         'value': status})
+
+                            #delivery update
+                            if actions['delivery update push'] and delivery_update_message != 'Success':
+                                status = delivery_reminder_whatsapp(name=name, products= ', '.join(list(product_list)),
+                                                                    phone_num=phone_num, delivery_date=tracking_est_update, wati=wati)
+                                values_to_update.append({'col': column_dict['delivery_update_message'],
+                                                         'row': rowcount,
+                                                         'value': status})
+                                gsheets.update_cell(values_to_update=values_to_update, sheet_name=config.db_sheet_name)
+                            else:
+                                status = 'Not Sent'
+                                values_to_update.append({'col': column_dict['delivery_update_message'],
+                                                         'row': rowcount,
+                                                         'value': status})
+
+                            if actions['delivery delay push'] and delivery_update_message != 'Success':
+                                status = delivery_delay_whatsapp(name=name, phone_num=phone_num,
+                                                                 products= ', '.join(list(product_list)), wati= wati)
+                                values_to_update.append({'col': column_dict['delivery_delay_message'],
+                                                         'row': rowcount,
+                                                         'value': status})
+                                gsheets.update_cell(values_to_update=values_to_update, sheet_name=config.db_sheet_name)
+                            else:
+                                status = 'Not Sent'
+                                values_to_update.append({'col': column_dict['delivery_delay_message'],
+                                                         'row': rowcount,
+                                                         'value': status})
+
+
+                            if actions['delivery delay alarm']:
+                                delivery_delay_payload = payload_to_add
+                                delivery_delay_payload['Suggested Context'] = 'Promised hard date: ' + promised_hard_date + '\nEstimated date: ' + tracking_est_update + '\nDelivery Status: ' + tracking_status_update \
+                                                     + '\nDelivery update message: ' + delivery_update_message + '\nDelivery delay message: ' + delivery_delay_message
+                                delivery_delay_payload['Alert Type'] = 'Delivery delay'
+                                crm_sheet_parser.add_alert_to_sheet(payload=delivery_delay_payload)
+                            if actions['order pickup delay alarm']:
+                                pickup_delay_alarm = payload_to_add
+                                pickup_delay_alarm['Suggested Context'] = 'Order date: ' + order_date + '\nShipping mode: ' + shipping_mode + '\nDelivery Status: ' + tracking_status_update
+                                pickup_delay_alarm['Alert Type'] = 'Pickup delay'
+                                crm_sheet_parser.add_alert_to_sheet(payload=pickup_delay_alarm)
+
+
+                            values_to_update.extend([{'col': column_dict['tracking_code_update'],
                                                      'row': rowcount,
-                                                     'value': status})
+                                                     'value': tracking_code_update},
+                                                     {'col': column_dict['tracking_status_update'],
+                                                      'row': rowcount,
+                                                      'value': tracking_status_update},
+                                                     {'col': column_dict['tracking_est_update'],
+                                                      'row': rowcount,
+                                                      'value': tracking_est_update},
+                                                     {'col': column_dict['last_tracked_time'],
+                                                      'row': rowcount,
+                                                      'value': epoch_to_dd_mm_yy_time(int(time.time()))}
+                                                     ])
+                    else:
+                        skip_values = mark_row_as_skipped(row_number=rowcount, column_dict=column_dict)
+                        values_to_update.extend(skip_values)
 
-                        #delivery update
-                        if actions['delivery update push'] and delivery_update_message != 'Success':
-                            status = delivery_reminder_whatsapp(name=name, products= ', '.join(list(product_list)),
-                                                                phone_num=phone_num, delivery_date=tracking_est_update, wati=wati)
-                            values_to_update.append({'col': column_dict['delivery_update_message'],
-                                                     'row': rowcount,
-                                                     'value': status})
-                            gsheets.update_cell(values_to_update=values_to_update, sheet_name=config.db_sheet_name)
-                        else:
-                            status = 'Not Sent'
-                            values_to_update.append({'col': column_dict['delivery_update_message'],
-                                                     'row': rowcount,
-                                                     'value': status})
-
-                        if actions['delivery delay push'] and delivery_update_message != 'Success':
-                            status = delivery_delay_whatsapp(name=name, phone_num=phone_num,
-                                                             products= ', '.join(list(product_list)), wati= wati)
-                            values_to_update.append({'col': column_dict['delivery_delay_message'],
-                                                     'row': rowcount,
-                                                     'value': status})
-                            gsheets.update_cell(values_to_update=values_to_update, sheet_name=config.db_sheet_name)
-                        else:
-                            status = 'Not Sent'
-                            values_to_update.append({'col': column_dict['delivery_delay_message'],
-                                                     'row': rowcount,
-                                                     'value': status})
-
-
-                        if actions['delivery delay alarm']:
-                            delivery_delay_payload = payload_to_add
-                            delivery_delay_payload['Suggested Context'] = 'Promised hard date: ' + promised_hard_date + '\nEstimated date: ' + tracking_est_update + '\nDelivery Status: ' + tracking_status_update \
-                                                 + '\nDelivery update message: ' + delivery_update_message + '\nDelivery delay message: ' + delivery_delay_message
-                            delivery_delay_payload['Alert Type'] = 'Delivery delay'
-                            crm_sheet_parser.add_alert_to_sheet(payload=delivery_delay_payload)
-                        if actions['order pickup delay alarm']:
-                            pickup_delay_alarm = payload_to_add
-                            pickup_delay_alarm['Suggested Context'] = 'Order date: ' + order_date + '\nShipping mode: ' + shipping_mode + '\nDelivery Status: ' + tracking_status_update
-                            pickup_delay_alarm['Alert Type'] = 'Pickup delay'
-                            crm_sheet_parser.add_alert_to_sheet(payload=pickup_delay_alarm)
-
-
-                        values_to_update.extend([{'col': column_dict['tracking_code_update'],
-                                                 'row': rowcount,
-                                                 'value': tracking_code_update},
-                                                 {'col': column_dict['tracking_status_update'],
-                                                  'row': rowcount,
-                                                  'value': tracking_status_update},
-                                                 {'col': column_dict['tracking_est_update'],
-                                                  'row': rowcount,
-                                                  'value': tracking_est_update},
-                                                 {'col': column_dict['last_tracked_time'],
-                                                  'row': rowcount,
-                                                  'value': epoch_to_dd_mm_yy_time(int(time.time()))}
-                                                 ])
 
             except:
                 print('Exception at checking tracking')
