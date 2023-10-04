@@ -459,13 +459,13 @@ times_to_run = all_times
 
 print(times_to_run)
 # Schedule the job to run every day at 3pm (test)
-# for time_str in times_to_run:
-#     schedule.every().day.at(time_str).do(bluedart_tracking_checker)
-#     break
-# #
-# print('running cron...')
-# while True:
-#     schedule.run_pending()
-#     time.sleep(1)
+for time_str in times_to_run:
+    schedule.every().day.at(time_str).do(bluedart_tracking_checker)
+    break
+#
+print('running cron...')
+while True:
+    schedule.run_pending()
+    time.sleep(1)
 
-bluedart_tracking_checker()
+# bluedart_tracking_checker()
