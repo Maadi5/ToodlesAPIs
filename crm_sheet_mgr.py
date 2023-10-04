@@ -24,7 +24,7 @@ class crm_sheet():
         "showCustomUi": True
         }
         self.crm_alarm_contacts = {'Javith': '919698606713', 'Milan': '919445574311',
-                                 'Sanaa': '919731011565'}
+                                 'Sanaa': '919731011565', 'Adithya': '919176270768'}
         self.wati = WATI_APIS()
         self.alert_types = ['Delivery delay', 'Query reply SLA']
         self.tempdf_to_closed_path = os.path.join(os.getcwd(), 'tempdf_to_closed.csv')
