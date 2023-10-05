@@ -8,6 +8,7 @@ Flask==2.3.2
 flask-restx
 gpt-index==0.5.15
 google-api-python-client
+gspread
 secure-smtplib
 gradio
 idna==3.4
