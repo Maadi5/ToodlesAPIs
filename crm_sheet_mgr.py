@@ -38,7 +38,7 @@ class crm_sheet():
                 already_exists = True
         return already_exists
 
-    def add_alert_to_sheet(self, payload, sla_value = 2):
+    def add_alert_to_sheet(self, payload, sla_value = float(2)):
         opendf = self.gsheets.load_sheet_as_csv(sheet_name=config.crm_open_sheet_name)
         closeddf = self.gsheets.load_sheet_as_csv(sheet_name=config.crm_closed_sheet_name)
         order_number = payload['Order Number']
@@ -106,10 +106,10 @@ class crm_sheet():
                     rows_to_add_to_closed.append(row)
                 elif float(row['SLA(Hours)'])<=2:
                     sla_breach_types.add(str(row['Alert Type']))
-                ##Decrease SLAs by 1h
-                values_to_update.append({'col': self.column_dict['SLA(Hours)'],
-                                         'row': rowcount,
-                                         'value': str(int(float(row['SLA(Hours)'])-1))})
+                    ##Decrease SLAs by 1h
+                    values_to_update.append({'col': self.column_dict['SLA(Hours)'],
+                                             'row': rowcount,
+                                             'value': float(row['SLA(Hours)'])-1})
             rowcount += 1
 
         #SLA breach:
