@@ -5,7 +5,7 @@ from googleapiclient.discovery import build
 from google.oauth2 import service_account
 import pandas as pd
 import config
-
+import gspread
 
 class googlesheets_apis():
 
@@ -18,6 +18,9 @@ class googlesheets_apis():
         self.spreadsheet_id = spreadsheet_id
         # Build the Sheets API service
         self.service = build('sheets', 'v4', credentials=self.credentials)
+        # Authenticate with the API
+        self.gspread_gc = gspread.authorize(credentials= self.credentials)
+        self.gspread_spreadsheet = self.gspread_gc.open_by_url('https://docs.google.com/spreadsheets/d/' + self.spreadsheet_id + '/edit#gid=0')
 
     def get_column_names(self, sheet_name):
 
@@ -412,6 +415,32 @@ class googlesheets_apis():
 
             response = request.execute()
             print(response)
+    def delete_rows2(self, sheet_name, rowids):
+        # Get the worksheet by title or other methods
+        worksheet = self.gspread_spreadsheet.worksheet(sheet_name)
+
+        # Get the index of the worksheet
+        worksheet_index = worksheet.index
+        worksheet = self.gspread_spreadsheet.get_worksheet(index=worksheet_index)
+        minval = rowids[0]
+
+        jump = 0
+        for idx, r in enumerate(rowids):
+            print('doing delete operation for ', r)
+            #if idx>0:
+            if r<minval:
+                final_row = r
+                minval = r
+            elif r>=minval:
+                final_row = r-jump
+            jump += 1
+            worksheet.delete_rows(final_row, final_row)
+            # self.gspread_spreadsheet.update_worksheet(worksheet, value_input_option='RAW')
+            # Save changes by updating cells (replace cell values with empty strings)
+            # worksheet.update([[""] * len(worksheet.row_values(1)) for _ in range(r, r+2)])
+
+            # Resize the worksheet to remove the empty rows
+            # worksheet.resize(rows=len(worksheet.get_all_values()))
             # # Check the response to ensure the row was deleted
             # if 'replies' in response and response['replies'][0].get('deleteDimension', {}).get('rowCount', 0) == 1:
             #     print(f"Row {rowid} deleted successfully.")
@@ -454,7 +483,7 @@ if __name__ == '__main__':
     #query = f"SELECT unique_id, awb, name, phone_num, invoice_number, channel_order_number, order_date, shipping_mode WHERE tracking_code_update != 'DL'"
     # gdb.filter_query_data(sheet_name='dev_test')
 
-    gdb.delete_rows(sheet_name='dev_test', rowids= [])
+    gdb.delete_rows2(sheet_name='dev_test', rowids= [149,147,151])
     # filter_func = lambda row: row['phone_num'] == '919900159770'
     # out = googlesheet.query_data(sheet_name=config.db_sheet_name, filter_func= filter_func)
     # # out = googlesheet.get_row_numbers(column_name='A', target_values=['13892283644'])
