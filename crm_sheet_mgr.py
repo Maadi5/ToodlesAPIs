@@ -127,7 +127,7 @@ class crm_sheet():
 
 
         new_to_closed = pd.DataFrame(rows_to_add_to_closed)
-        new_to_closed.to_csv(self.tempdf_to_closed_path)
+        new_to_closed.to_csv(self.tempdf_to_closed_path, index=False)
         realtime_gsheet.append_csv_to_google_sheets(csv_path=self.tempdf_to_closed_path,
                                                sheet_name=config.crm_closed_sheet_name)
         realtime_gsheet.update_cell(values_to_update=values_to_update, sheet_name=config.crm_open_sheet_name)
