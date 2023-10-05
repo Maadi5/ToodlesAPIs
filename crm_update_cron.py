@@ -14,7 +14,7 @@ starting_epoch = time.time()
 
 for idx, val in enumerate(range(0,24)):
     if val%every_n_hours == 0:
-        date_time_obj = datetime.utcfromtimestamp(starting_epoch + 3600*val+ 30)
+        date_time_obj = datetime.utcfromtimestamp(starting_epoch + 3600*val+ 60)
         hour = date_time_obj.strftime('%H')
         minute = date_time_obj.strftime('%M')
         all_times.append(hour + ':' + minute)
