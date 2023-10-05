@@ -103,6 +103,7 @@ class crm_sheet():
             if rowcount>2:
                 if str(row['SLA(Hours)']) == 'NA':
                     remove_from_opened.append(rowcount)
+                    row['Date Closed'] = epoch_to_dd_mm_yy_time(int(time.time()))
                     rows_to_add_to_closed.append(row)
                 elif float(row['SLA(Hours)'])<=2:
                     sla_breach_types.add(str(row['Alert Type']))
