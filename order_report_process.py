@@ -45,7 +45,7 @@ def get_order_details(browntape_df, tracker_df):
 
     for idx, row in browntape_df.iterrows():
         dfdict = {}
-        if str(row['Order Id']) in new_ids and row['Fulfillment Status'] in {'shipped', 'delivered', 'packed','packing', 'manifested'}:
+        if str(row['Order Id']) in new_ids and row['Fulfillment Status'] in {'shipped', 'delivered', 'packed','packing', 'manifested', 'processing'}:
             phone_num = ''.join(''.join(str(row['Phone']).split(' ')).split('+'))
             if len(phone_num)>10 and phone_num[0] == '0':
                 phone_num = ''.join(phone_num[1:])
@@ -95,7 +95,7 @@ def get_order_details(browntape_df, tracker_df):
             trackerdf.append(dfdict)
             new_orders_browntape_subset.append(row)
 
-        elif str(row['Order Id']) in new_ids and row['Fulfillment Status'] not in {'shipped', 'delivered', 'packed','packing', 'manifested', 'cancelled', 'returned'}:
+        elif str(row['Order Id']) in new_ids and row['Fulfillment Status'] not in {'shipped', 'delivered', 'packed','packing', 'manifested', 'cancelled', 'returned', 'processing'}:
             incomplete_orders.append(row)
 
         elif row['Fulfillment Status'] == 'cancelled' and row['Order Type'] == 'COD':

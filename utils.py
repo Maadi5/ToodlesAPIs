@@ -186,6 +186,54 @@ def check_fields(val, field):
     return verdict
 
 
+def epoch_to_dd_mm_yy_time(epoch_timestamp, with_time = True):
+    # Convert the epoch timestamp to a datetime object
+    date_time_obj = datetime.utcfromtimestamp(epoch_timestamp)
+
+    # Extract the day, month, year, hour, minute, and second components
+    day = date_time_obj.strftime('%d')
+    month = date_time_obj.strftime('%B')
+    year = date_time_obj.strftime('%y')
+    hour = date_time_obj.strftime('%H')
+    minute = date_time_obj.strftime('%M')
+    second = date_time_obj.strftime('%S')
+
+    # Create the formatted date and time string
+    if with_time:
+        formatted_date_time = f'{day}-{month}-{year}, {hour}:{minute}:{second}'
+    else:
+        formatted_date_time = f'{day}-{month}-{year}'
+
+    return formatted_date_time
+
+def date_string_to_epoch(date_str):
+    # Define a list of possible date formats
+    date_formats = ['%d %B %Y', '%d-%b-%Y', '%d %B %Y']
+
+    # Try parsing the date string using each format until one succeeds
+    for date_format in date_formats:
+        try:
+            date_obj = datetime.strptime(date_str, date_format)
+            # Convert the datetime object to epoch time (seconds since January 1, 1970)
+            epoch_time = int(date_obj.timestamp())
+            return epoch_time
+        except ValueError:
+            pass
+
+    # If none of the formats match, raise an exception or return a default value
+    raise ValueError("Invalid date format")
+
+def date_str_to_epoch2(date_string):
+    # Define the input date string in the given format
+    # date_string = '04-October-23, 11:58:16'
+
+    # Create a datetime object from the input string
+    date_object = datetime.strptime(date_string, '%d-%B-%y, %H:%M:%S')
+
+    # Convert the datetime object to epoch time (Unix timestamp)
+    epoch_time = date_object.timestamp()
+
+    return epoch_time
 
 
 def input_df_preprocessing(df):

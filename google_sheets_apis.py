@@ -415,6 +415,35 @@ class googlesheets_apis():
 
             response = request.execute()
             print(response)
+
+    def add_new_sheet(self, new_sheet_name):
+        requests = [
+            {
+                "addSheet": {
+                    "properties": {
+                        "title": new_sheet_name
+                    }
+                }
+            }
+        ]
+
+        # Execute the request to add the new sheet
+        response = self.service.spreadsheets().batchUpdate(
+            spreadsheetId=self.spreadsheet_id, body={'requests': requests}).execute()
+
+        # Check the response to confirm the sheet was added
+        if 'replies' in response:
+            print(f"Sheet '{new_sheet_name}' added successfully.")
+        else:
+            print("Sheet addition failed.")
+    def get_sheet_names(self):
+        # Call the Google Sheets API to get the sheet names
+        sheet_metadata = self.service.spreadsheets().get(spreadsheetId=self.spreadsheet_id).execute()
+        sheets = sheet_metadata.get('sheets', [])
+        return sheets
+
+        # Extract and print the sheet names
+        sheet_names = [sheet['properties']['title'] for sheet in sheets]
     def delete_rows2(self, sheet_name, rowids):
         # Get the worksheet by title or other methods
         worksheet = self.gspread_spreadsheet.worksheet(sheet_name)
