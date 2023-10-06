@@ -69,7 +69,7 @@ def delivery_reminder_whatsapp(name, phone_num, products, delivery_date, wati):
     custom_params = [{'name': 'products', 'value': products,
                       'name': 'est_delivery_date', 'value': delivery_date}]
     wati_status = wati.send_template_message(contact_name=name, contact_number=phone_num,
-                                        template_name='order_dispatched_with_awb2',
+                                        template_name='delivery_reminder',
                                         custom_params=custom_params)
     if wati_status:
         status = 'Success'
