@@ -72,35 +72,39 @@ def marketing_campaign_cron():
     values_to_update = []
     rowcount = 2
     for idx, row in marketing_sheet.iterrows():
-        print('idx: ', idx, ' row: ', rowcount)
-        date = row['Date']
-        timeval = row['Time']
-        status = row['Sent?']
-        template_name = row['WATI template']
-        skus = str(row['SKU'])
-        sku_payload = None
-        if skus != '':
-            sku_payload = skus.split(',')
-        print('Status: ', status)
+        try:
+            print('idx: ', idx, ' row: ', rowcount)
+            date = row['Date']
+            timeval = row['Time']
+            status = row['Sent?']
+            template_name = row['WATI template']
+            skus = str(row['SKU'])
+            sku_payload = None
+            if skus != '':
+                sku_payload = skus.split(',')
+            print('Status: ', status)
 
 
-        # Define the date and time as a string
-        date_time_str = f'{date} {timeval}'
+            # Define the date and time as a string
+            date_time_str = f'{date} {timeval}'
 
-        # Parse the date and time string into a datetime object
-        date_time_obj = datetime.strptime(date_time_str, '%m/%d/%Y %I:%M %p')
+            # Parse the date and time string into a datetime object
+            date_time_obj = datetime.strptime(date_time_str, '%m/%d/%Y %I:%M %p')
 
-        # Convert the datetime object to an epoch timestamp (seconds since January 1, 1970)
-        epoch_timestamp = int(date_time_obj.timestamp())
+            # Convert the datetime object to an epoch timestamp (seconds since January 1, 1970)
+            epoch_timestamp = int(date_time_obj.timestamp())
 
-        #Provide a 10-12 hour timeframe to send message
-        if epoch_timestamp-1800<time.time()<=epoch_timestamp+1800 and status =='FALSE':
-            print('Trigger campaign function')
-            status_response = marketing_campaign_wati(wati=wati, template=template_name, skus=sku_payload)
-            values_to_update.append({'col': column_dict['Sent?'],
-                                                 'row': rowcount,
-                                                 'value': status_response})
-        print(epoch_timestamp, time.time())
+            #Provide a 10-12 hour timeframe to send message
+            if epoch_timestamp-1800<time.time()<=epoch_timestamp+1800 and status =='FALSE':
+                print('Trigger campaign function')
+                status_response = marketing_campaign_wati(wati=wati, template=template_name, skus=sku_payload)
+                values_to_update.append({'col': column_dict['Sent?'],
+                                                     'row': rowcount,
+                                                     'value': status_response})
+            print(epoch_timestamp, time.time())
+        except:
+            print('FAILED AT ROW: ', rowcount)
+            print(traceback.format_exc())
         rowcount += 1
 
 
