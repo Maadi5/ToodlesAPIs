@@ -78,7 +78,7 @@ def tracking_logic_CTA(old_tracking_code_update, order_date_epoch, bluedart_stat
         if delivery_update_message != 'Success':
             if (shipping_mode == 'standard' and days_from_order_date>= standard_daygap_wati)\
                     or  (shipping_mode == 'express' and days_from_order_date>= express_daygap_wati)\
-                    or 0.5<days_del_est_minus_current<=1:
+                    or days_del_est_minus_current<=2:
                 actions['delivery update push'] = True
                 actions['update values'] = True
 
@@ -167,7 +167,7 @@ def bluedart_tracking_checker():
                 #Run pipeline
                 else:
                     id = str(row['unique_id'])
-                    if id == '9999999999':
+                    if id == '14915705761':
                         print('checkpoint')
                     sku = str(row['sku'])
                     awb = str(row['awb'])
@@ -388,7 +388,7 @@ def bluedart_tracking_checker():
                 logging.error(traceback.format_exc())
             rowcount += 1
 
-        print('values_to_update: ', values_to_update)
+        # print('values_to_update: ', values_to_update)
         gsheets.update_cell(values_to_update=values_to_update, sheet_name=config.db_sheet_name)
         print("This is a cron job!")
 
