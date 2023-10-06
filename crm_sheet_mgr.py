@@ -132,7 +132,10 @@ class crm_sheet():
         realtime_gsheet.append_csv_to_google_sheets(csv_path=self.tempdf_to_closed_path,
                                                sheet_name=config.crm_closed_sheet_name)
         realtime_gsheet.update_cell(values_to_update=values_to_update, sheet_name=config.crm_open_sheet_name)
-        realtime_gsheet.delete_rows2(rowids= remove_from_opened, sheet_name = config.crm_open_sheet_name)
+        try:
+            realtime_gsheet.delete_rows2(rowids= remove_from_opened, sheet_name = config.crm_open_sheet_name)
+        except:
+            print('row delete failed')
 
 if __name__ == '__main__':
     crm_obj = crm_sheet()

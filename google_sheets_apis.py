@@ -446,24 +446,25 @@ class googlesheets_apis():
         sheet_names = [sheet['properties']['title'] for sheet in sheets]
     def delete_rows2(self, sheet_name, rowids):
         # Get the worksheet by title or other methods
-        worksheet = self.gspread_spreadsheet.worksheet(sheet_name)
+        if rowids:
+            worksheet = self.gspread_spreadsheet.worksheet(sheet_name)
 
-        # Get the index of the worksheet
-        worksheet_index = worksheet.index
-        worksheet = self.gspread_spreadsheet.get_worksheet(index=worksheet_index)
-        minval = rowids[0]
+            # Get the index of the worksheet
+            worksheet_index = worksheet.index
+            worksheet = self.gspread_spreadsheet.get_worksheet(index=worksheet_index)
+            minval = rowids[0]
 
-        jump = 0
-        for idx, r in enumerate(rowids):
-            print('doing delete operation for ', r)
-            #if idx>0:
-            if r<minval:
-                final_row = r
-                minval = r
-            elif r>=minval:
-                final_row = r-jump
-            jump += 1
-            worksheet.delete_rows(final_row, final_row)
+            jump = 0
+            for idx, r in enumerate(rowids):
+                print('doing delete operation for ', r)
+                #if idx>0:
+                if r<minval:
+                    final_row = r
+                    minval = r
+                elif r>=minval:
+                    final_row = r-jump
+                jump += 1
+                worksheet.delete_rows(final_row, final_row)
             # self.gspread_spreadsheet.update_worksheet(worksheet, value_input_option='RAW')
             # Save changes by updating cells (replace cell values with empty strings)
             # worksheet.update([[""] * len(worksheet.row_values(1)) for _ in range(r, r+2)])
