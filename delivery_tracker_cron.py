@@ -172,6 +172,7 @@ def bluedart_tracking_checker():
                     sku = str(row['sku'])
                     awb = str(row['awb'])
                     name = str(row['name'])
+                    #Temporarily put my number
                     phone_num = '919176270768' #str(row['phone_num'])
                     invoice_number = str(row['invoice_number'])
                     platform = invoice_number_to_platform(invoice_number)
