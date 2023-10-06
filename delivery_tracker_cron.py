@@ -398,7 +398,7 @@ def bluedart_tracking_checker():
 
     # print('values_to_update: ', values_to_update)
     gsheets.update_cell(values_to_update= values_to_update, sheet_name=config.db_sheet_name)
-    print('Cron finished running at: ', time.time())
+    print('Cron finished running at: ', epoch_to_dd_mm_yy_time(time.time()))
 
 ##Run every n hour
 
