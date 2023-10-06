@@ -68,14 +68,19 @@ def date_string_to_epoch(date_str):
 
 def marketing_campaign_cron():
     marketing_sheet = gsheets.load_sheet_as_csv(sheet_name=config.marketing_all_sheet_name)
-
+    marketing_sheet.fillna('', inplace = True)
     values_to_update = []
     rowcount = 2
     for idx, row in marketing_sheet.iterrows():
+        print('idx: ', idx, ' row: ', rowcount)
         date = row['Date']
         timeval = row['Time']
         status = row['Sent?']
         template_name = row['WATI template']
+        skus = str(row['SKU'])
+        sku_payload = None
+        if skus != '':
+            sku_payload = skus.split(',')
         print('Status: ', status)
 
 
@@ -89,9 +94,9 @@ def marketing_campaign_cron():
         epoch_timestamp = int(date_time_obj.timestamp())
 
         #Provide a 10-12 hour timeframe to send message
-        if epoch_timestamp-18000<time.time()<epoch_timestamp+18000 and status =='FALSE':
+        if epoch_timestamp-1800<time.time()<=epoch_timestamp+1800 and status =='FALSE':
             print('Trigger campaign function')
-            status_response = marketing_campaign_wati(wati=wati, template=template_name)
+            status_response = marketing_campaign_wati(wati=wati, template=template_name, skus=sku_payload)
             values_to_update.append({'col': column_dict['Sent?'],
                                                  'row': rowcount,
                                                  'value': status_response})
@@ -103,10 +108,21 @@ def marketing_campaign_cron():
     gsheets.update_cell(values_to_update=values_to_update, sheet_name=config.marketing_all_sheet_name)
 
 
-times_to_run = ["11:00"]
+all_times = []
+
+every_n_hours = 1
+
+starting_epoch = time.time()
+
+for idx, val in enumerate(range(0,24)):
+    if val%every_n_hours == 0:
+        date_time_obj = datetime.utcfromtimestamp(starting_epoch + 3600*val+ 60)
+        hour = date_time_obj.strftime('%H')
+        minute = date_time_obj.strftime('%M')
+        all_times.append(hour + ':' + minute)
 
 # Schedule the job to run every day at 3pm (test)
-for time_str in times_to_run:
+for time_str in all_times:
     schedule.every().day.at(time_str).do(marketing_campaign_cron)
 #
 print('running cron...')

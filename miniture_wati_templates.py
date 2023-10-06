@@ -94,11 +94,11 @@ def awb_whatsapp(awb,name, phone_num, wati):
 
 
 def marketing_campaign_wati(template, wati):
-    preorder_customers = pd.read_csv(r'woocommerce_contacts_w_names2.csv')
-    total_number_of_customers = preorder_customers.shape[0]
+    customers = pd.read_csv(r'woocommerce_contacts_w_names2.csv')
+    total_number_of_customers = customers.shape[0]
 
     status_of_each_message = []
-    for idx, row in preorder_customers.iterrows():
+    for idx, row in customers.iterrows():
         try:
             customer_name = row['Name']
             customer_phone_number = row['Phone'] #'919176270768' #
@@ -117,3 +117,46 @@ def marketing_campaign_wati(template, wati):
     total_success_count = sum(status_of_each_message)
 
     return  str(total_success_count) + ' out of ' + str(total_number_of_customers) + ' succeeded'
+
+
+def marketing_campaign_wati(template, wati, skus = None):
+    customers = pd.read_csv(r'woocommerce_customers_w_orders4.csv')
+    total_number_of_customers = customers.shape[0]
+    number_of_applicable_customers = 0
+    customers.fillna('', inplace = True)
+    status_of_each_message = []
+    valid = False
+    for idx, row in customers.iterrows():
+        try:
+            customer_name = row['Name']
+            customer_phone_number = row['Phone'] #9176270768 #
+            order_skus = str(row['order skus'])
+
+            if skus == None:
+                valid = True
+                number_of_applicable_customers += 1
+            else:
+                for sku in skus:
+                    if sku in order_skus:
+                        valid = True
+                        number_of_applicable_customers += 1
+                        break
+
+            if valid == True:
+                wati_status = wati.send_template_message(contact_name=customer_name, contact_number=customer_phone_number,
+                                                    template_name=template)
+                if wati_status:
+                    status = 1
+                else:
+                    status = 0
+            else:
+                status = 0
+        except:
+            status = 0
+
+        status_of_each_message.append(status)
+        # if idx>1:
+        #     break
+    total_success_count = sum(status_of_each_message)
+
+    return  str(total_success_count) + ' out of ' + str(number_of_applicable_customers) + ' succeeded'
