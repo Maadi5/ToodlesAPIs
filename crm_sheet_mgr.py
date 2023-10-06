@@ -48,6 +48,7 @@ class crm_sheet():
         if not already_exists:
             set_of_tickets = set(opendf['Ticket No']).union(set(closeddf['Ticket No']))
             number_of_entries = len(set_of_tickets)
+            number_of_tickets_in_open = len(set(opendf['Ticket No']))
             float_tickets = [float(val) for val in set_of_tickets]
             max_val = max(float_tickets)
             new_ticket = int(max_val+1)
@@ -63,7 +64,7 @@ class crm_sheet():
                     push_csv_dict[val] = '--'
                 elif val == 'Status':
                     push_csv_dict[val] = ''
-            dropdowns_to_update = [{'dropdown': self.dropdown_payload, 'row': number_of_entries+1, 'col': self.col_index['Status']}]
+            dropdowns_to_update = [{'dropdown': self.dropdown_payload, 'row': number_of_tickets_in_open+1, 'col': self.col_index['Status']}]
             push_csv = pd.DataFrame([push_csv_dict])
             push_csv.to_csv(self.update_csv_path, index=False)
             self.gsheets.append_csv_to_google_sheets(csv_path=self.update_csv_path,
