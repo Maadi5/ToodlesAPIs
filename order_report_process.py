@@ -95,7 +95,7 @@ def get_order_details(browntape_df, tracker_df):
             trackerdf.append(dfdict)
             new_orders_browntape_subset.append(row)
 
-        elif str(row['Order Id']) in new_ids and row['Fulfillment Status'] not in {'shipped', 'delivered', 'packed','packing', 'manifested', 'cancelled', 'returned', 'processing'}:
+        if str(row['Order Id']) in new_ids and row['Fulfillment Status'] not in {'shipped', 'delivered', 'packed','packing', 'manifested', 'cancelled', 'returned'}:
             incomplete_orders.append(row)
 
         elif row['Fulfillment Status'] == 'cancelled' and row['Order Type'] == 'COD':
