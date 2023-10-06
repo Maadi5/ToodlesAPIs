@@ -203,6 +203,10 @@ def bluedart_tracking_checker():
                     print('id: ', id)
                     shipping_mode = str(row['shipping_mode'])
 
+                    if shipping_mode == '':
+                        rowcount += 1
+                        continue
+
                     old_tracking_code_update = tracking_code_update
 
                     indexes = trackerdf.index[trackerdf['awb'] == awb].tolist()
@@ -293,7 +297,7 @@ def bluedart_tracking_checker():
                             continue
                         else:
                             #Delivery message
-                            if actions['usermanual2 push'] and usermanual_during_delivery_whatsapp != 'Success':
+                            if actions['usermanual2 push'] and (usermanual_during_delivery_whatsapp != 'Success' and usermanual_during_delivery_whatsapp != 'NA'):
                                 count = 0
                                 for product_name, product_manual in product_list.items():
                                     status = usermanual_whatsapp(sku=sku, product_name=product_name,
@@ -305,14 +309,14 @@ def bluedart_tracking_checker():
                                 gsheets.update_cell(values_to_update=values_to_update, sheet_name=config.db_sheet_name)
                                 values_to_update = []
                             else:
-                                if usermanual_during_delivery_whatsapp != 'Success':
+                                if usermanual_during_delivery_whatsapp != 'Success' and usermanual_during_delivery_whatsapp != 'NA':
                                     status = 'Not Sent'
                                     values_to_update.append({'col': column_dict['usermanual_during_delivery_whatsapp'],
                                                              'row': rowcount,
                                                              'value': status})
 
                             #delivery update
-                            if actions['delivery update push'] and delivery_update_message != 'Success':
+                            if actions['delivery update push'] and (delivery_update_message != 'Success' and delivery_update_message != 'NA'):
                                 status = delivery_reminder_whatsapp(name=name, products= ', '.join(list(product_list)),
                                                                     phone_num=phone_num, delivery_date=tracking_est_update, wati=wati)
                                 values_to_update.append({'col': column_dict['delivery_update_message'],
@@ -321,13 +325,13 @@ def bluedart_tracking_checker():
                                 gsheets.update_cell(values_to_update=values_to_update, sheet_name=config.db_sheet_name)
                                 values_to_update = []
                             else:
-                                if delivery_update_message != 'Success':
+                                if delivery_update_message != 'Success' and delivery_update_message != 'NA':
                                     status = 'Not Sent'
                                     values_to_update.append({'col': column_dict['delivery_update_message'],
                                                              'row': rowcount,
                                                              'value': status})
 
-                            if actions['delivery delay push'] and delivery_delay_message != 'Success':
+                            if actions['delivery delay push'] and (delivery_delay_message != 'Success' and delivery_delay_message != 'NA'):
                                 status = delivery_delay_whatsapp(name=name, phone_num=phone_num,
                                                                  products= ', '.join(list(product_list)), wati= wati)
                                 values_to_update.append({'col': column_dict['delivery_delay_message'],
@@ -336,7 +340,7 @@ def bluedart_tracking_checker():
                                 gsheets.update_cell(values_to_update=values_to_update, sheet_name=config.db_sheet_name)
                                 values_to_update = []
                             else:
-                                if delivery_delay_message != 'Success':
+                                if delivery_delay_message != 'Success' and delivery_delay_message != 'NA':
                                     status = 'Not Sent'
                                     values_to_update.append({'col': column_dict['delivery_delay_message'],
                                                              'row': rowcount,
@@ -414,14 +418,14 @@ for idx, val in enumerate(range(0,24)):
 times_to_run = all_times
 
 print(times_to_run)
-# ## Schedule the job to run every day at 3pm (test)
-# for time_str in times_to_run:
-#     schedule.every().day.at(time_str).do(bluedart_tracking_checker)
-#     break
-# #
-# print('running cron...')
-# while True:
-#     schedule.run_pending()
-#     time.sleep(1)
+## Schedule the job to run every day at 3pm (test)
+for time_str in times_to_run:
+    schedule.every().day.at(time_str).do(bluedart_tracking_checker)
+    break
+#
+print('running cron...')
+while True:
+    schedule.run_pending()
+    time.sleep(1)
 
-bluedart_tracking_checker()
+# bluedart_tracking_checker()
