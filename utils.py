@@ -194,14 +194,16 @@ def input_df_preprocessing(df):
     df = df.applymap(str)
     df = df.applymap(forced_float_removal)
     df = fix_amount_summation(browntape_df=df)
+    df = df.applymap(str)
+    df = df.applymap(forced_float_removal)
     # df['Order Id'] = df['Order Id'].astype(str)
     # df['Phone'] = df['Phone'].astype(str)
 
     return df
 
 if __name__ == '__main__':
-    browntape_df = pd.read_csv(r'/Users/adithyam.a/Downloads/btreport_894565.csv', index_col = False)
-    browntape_df = input_df_preprocessing(browntape_df)
+    browntape_df = pd.read_csv(r'/Users/adithyam.a/Downloads/btreport_908201.csv', index_col = False)
+    # browntape_df = input_df_preprocessing(browntape_df)
     # browntape_df = fix_amount_summation(browntape_df)
-    browntape_df.to_csv(r'/Users/adithyam.a/Downloads/btreport_894565_fixedamounts.csv', index= False)
+    # browntape_df.to_csv(r'/Users/adithyam.a/Downloads/btreport_908201_fixed.csv', index= False)
     # sum_amounts_across_order(browntape_df)

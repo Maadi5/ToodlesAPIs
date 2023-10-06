@@ -304,11 +304,18 @@ def create_zoho_invoice_csv(new_browntape_df):
                     discount_without_gst = discount_fraction*item_price_without_gst
                     dfdict['Entity Discount Amount'] = str(discount_without_gst)
             except:
+                print('Discount: ', dfdict['Entity Discount Amount'])
                 print(traceback.format_exc())
 
-            #Quantity logic
+            #Quantity logic -- update: if qty is 0, don't consider it.
+            if float(dfdict['Quantity'])>0:
+                quantity_val = float(dfdict['Quantity'])
+            else:
+                continue
+
+
             try:
-                dfdict['Item Price'] = str(float(dfdict['Item Price'].replace(',',''))/float(dfdict['Quantity']))
+                dfdict['Item Price'] = str(float(dfdict['Item Price'].replace(',',''))/quantity_val)
             except:
                 print(traceback.format_exc())
 
@@ -342,14 +349,14 @@ def create_zoho_invoice_csv(new_browntape_df):
 
 
 if __name__ == '__main__':
-    browntape_df = pd.read_csv(r'/Users/adithyam.a/Downloads/btreport_898829 (1).csv', index_col = False)
-    browntape_df = input_df_preprocessing(browntape_df)
-    tracker_df = pd.read_csv(r'/Users/adithyam.a/Downloads/MinitureUserData - Main Dataset.csv')
-    to_be_pushed_df, incomplete_orders_csv, cancelled_cod_orders_csv, new_browntape_subset_df = get_order_details(browntape_df= browntape_df, tracker_df=tracker_df)
-    check_cod_cancellations(tracker_df=tracker_df, cancelled_orders_df=cancelled_cod_orders_csv)
+    browntape_df = pd.read_csv(r'/Users/adithyam.a/Downloads/btreport_908201.csv', index_col = False)
+    # browntape_df = input_df_preprocessing(browntape_df)
+    # tracker_df = pd.read_csv(r'/Users/adithyam.a/Downloads/MinitureUserData - Main Dataset.csv')
+    # to_be_pushed_df, incomplete_orders_csv, cancelled_cod_orders_csv, new_browntape_subset_df = get_order_details(browntape_df= browntape_df, tracker_df=tracker_df)
+    # check_cod_cancellations(tracker_df=tracker_df, cancelled_orders_df=cancelled_cod_orders_csv)
     # testdf = input_df_preprocessing(testdf)
-    # newdf,_ = create_zoho_invoice_csv(new_browntape_df=testdf)
-    # newdf.to_csv(r'/Users/adithyam.a/Downloads/zoho_invoices_latest_new5.csv', index= False)
+    newdf,_ = create_zoho_invoice_csv(new_browntape_df=browntape_df)
+    newdf.to_csv(r'/Users/adithyam.a/Downloads/zoho_invoices_september.csv', index= False)
 
 
         

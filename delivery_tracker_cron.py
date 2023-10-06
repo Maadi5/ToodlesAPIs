@@ -435,9 +435,9 @@ def bluedart_tracking_checker():
         logging.error('bluedart checker script failed')
         logging.error(traceback.format_exc())
 
-    print('values_to_update: ', values_to_update)
+    # print('values_to_update: ', values_to_update)
     gsheets.update_cell(values_to_update= values_to_update, sheet_name=config.db_sheet_name)
-    print("This is a cron job!")
+    print('Cron finished running at: ', time.time())
 
 ##Run every n hour
 

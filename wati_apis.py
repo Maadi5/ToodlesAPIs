@@ -1,7 +1,7 @@
 import requests
 import json
 import config
-
+from miniture_wati_templates import chat_revive_message
 class WATI_APIS:
     def __init__(self):
         self.wati_endpoint = config.wati_end_point
@@ -169,12 +169,19 @@ if __name__ == '__main__':
 
     test = WATI_APIS()
 
-    preorder_customers = pd.read_csv(r'/Users/adithyam.a/Documents/woocommerce_contacts_w_names2.csv')
-    for idx, row in preorder_customers.iterrows():
-        customer_name = row['Name']
-        customer_phone_number = row['Phone']
-        # estimated_delivery_date = 'static date string value'
-        custom_params = []
-        status = test.send_template_message(contact_name=customer_name, contact_number=customer_phone_number,
-                                            template_name='miniture_reveal')#, custom_params=custom_params)
-        print('sent to: ', customer_phone_number)
+    # preorder_customers = pd.read_csv(r'/Users/adithyam.a/Documents/woocommerce_contacts_w_names2.csv')
+    # for idx, row in preorder_customers.iterrows():
+    #     customer_name = row['Name']
+    #     customer_phone_number = row['Phone']
+    #     # estimated_delivery_date = 'static date string value'
+    #     custom_params = []
+    #     status = test.send_template_message(contact_name=customer_name, contact_number=customer_phone_number,
+    #                                         template_name='miniture_reveal')#, custom_params=custom_params)
+    #     print('sent to: ', customer_phone_number)
+
+    # customers_to_revive = {
+    # 'Afeefa': '917025292204',
+    # 'Ruch': '917044057565'}
+    #
+    # for name, contact in customers_to_revive.items():
+    #     status = chat_revive_message(wati=test, name=name, phone_num=contact)

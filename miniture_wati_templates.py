@@ -6,7 +6,18 @@ usermanual_skus_without_video = {'YK-PZ-007 - BLUE', 'YK-PZ-007 - PINK', 'YK-PZ-
                                  'YK-KW-012'}
 
 
-def delivery_delay_alarm_message(wati, name, phone_num,wati_template):
+def chat_revive_message(wati, name, phone_num, wati_template='miniture_message_reply_plain'):
+    wati_status = wati.send_template_message(contact_name=name, contact_number=phone_num,
+                                        template_name=wati_template)
+
+    if wati_status:
+        status = 'Success'
+    else:
+        status = 'Failure'
+
+    return status
+
+def delivery_delay_alarm_message(wati, name, phone_num,wati_template='delivery_delay_opsmessage'):
     wati_status = wati.send_template_message(contact_name=name, contact_number=phone_num,
                                         template_name=wati_template)
 

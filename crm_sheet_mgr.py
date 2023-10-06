@@ -123,8 +123,7 @@ class crm_sheet():
 
             if delay_trigger:
                 for name, contact in self.crm_alarm_contacts.items():
-                    status = delivery_delay_alarm_message(wati=self.wati, name= name, phone_num=contact,
-                                                 wati_template='delivery_delay_opsmessage')
+                    status = delivery_delay_alarm_message(wati=self.wati, name= name, phone_num=contact)
 
 
         new_to_closed = pd.DataFrame(rows_to_add_to_closed)
