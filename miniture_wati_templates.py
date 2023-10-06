@@ -66,8 +66,8 @@ def usermanual_delivery_whatsapp(sku, product_name, product_manual, name,phone_n
 
 def delivery_reminder_whatsapp(name, phone_num, products, delivery_date, wati):
     status = False
-    custom_params = [{'name': 'products', 'value': products,
-                      'name': 'est_delivery_date', 'value': delivery_date}]
+    custom_params = [{'name': 'products', 'value': products},
+                     {'name': 'est_delivery_date', 'value': delivery_date}]
     wati_status = wati.send_template_message(contact_name=name, contact_number=phone_num,
                                         template_name='delivery_reminder',
                                         custom_params=custom_params)

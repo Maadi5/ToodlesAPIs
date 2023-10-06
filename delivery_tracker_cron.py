@@ -82,10 +82,10 @@ def tracking_logic_CTA(old_tracking_code_update, order_date_epoch, bluedart_stat
                 actions['delivery update push'] = True
                 actions['update values'] = True
 
-        if delivery_delay_push != 'Success' and days_del_est_minus_current<=0:
+        if delivery_delay_push != 'Success' and days_del_est_minus_current<= -1:
             actions['delivery delay push'] = True
             actions['update values'] = True
-            if days_del_est_minus_current<=-0.5 or current_time>= promised_date_epoch:
+            if days_del_est_minus_current<=-1 or current_time>= promised_date_epoch:
                 actions['delivery delay alarm'] = True
 
     if actions['delivery delay push'] == True:
@@ -101,11 +101,9 @@ def tracking_logic_CTA(old_tracking_code_update, order_date_epoch, bluedart_stat
 wati = WATI_APIS()
 gsheets = googlesheets_apis(spreadsheet_id=config.db_spreadsheet_id)
 
-def mark_row_as_skipped(row_number, column_dict, message = 'Skipped'):
-    return [{'col': column_dict['tracking_code_update'],
-                                                 'row': row_number,
-                                                 'value': message},
-                                                 {'col': column_dict['tracking_status_update'],
+def mark_row_as_skipped(row_number, column_dict, message = 'Skipped', skip_bluedart_status= False):
+    if skip_bluedart_status:
+        update_values = [{'col': column_dict['tracking_status_update'],
                                                   'row': row_number,
                                                   'value': message},
                                                  {'col': column_dict['tracking_est_update'],
@@ -124,6 +122,30 @@ def mark_row_as_skipped(row_number, column_dict, message = 'Skipped'):
                                                   'row': row_number,
                                                   'value': message}
                                                  ]
+    else:
+        update_values = [{'col': column_dict['tracking_code_update'],
+                                                  'row': row_number,
+                                                  'value': message},
+                                             {'col': column_dict['tracking_status_update'],
+                                              'row': row_number,
+                                              'value': message},
+                                                 {'col': column_dict['tracking_est_update'],
+                                                  'row': row_number,
+                                                  'value': message},
+                                                 {'col': column_dict['last_tracked_time'],
+                                                  'row': row_number,
+                                                  'value': message},
+                                                 {'col': column_dict['usermanual_during_delivery_whatsapp'],
+                                                  'row': row_number,
+                                                  'value': message},
+                                                 {'col': column_dict['delivery_update_message'],
+                                                  'row': row_number,
+                                                  'value': message},
+                                                 {'col': column_dict['delivery_delay_message'],
+                                                  'row': row_number,
+                                                  'value': message}
+                                                 ]
+    return update_values
 
 columns_list, column_dict,_ = gsheets.get_column_names(sheet_name=config.db_sheet_name)
 bluedart = bluedart_apis()
@@ -167,7 +189,7 @@ def bluedart_tracking_checker():
                 #Run pipeline
                 else:
                     id = str(row['unique_id'])
-                    if id == '14926645788':
+                    if id == '14915705761':
                         print('checkpoint')
                     sku = str(row['sku'])
                     awb = str(row['awb'])
@@ -286,8 +308,13 @@ def bluedart_tracking_checker():
                                    shipping_mode=shipping_mode, delivery_delay_push=delivery_delay_message, promised_date_epoch=promised_date_epoch,
                                                          first_time_data=first_time)
                         except:
-                            skip_values = mark_row_as_skipped(row_number=rowcount, column_dict=column_dict, message = 'track logic failed')
+                            skip_values = mark_row_as_skipped(row_number=rowcount, column_dict=column_dict, message = 'track logic failed', skip_bluedart_status = True)
+                            skip_values.append({'col': column_dict['tracking_code_update'],
+                                                  'row': rowcount,
+                                                  'value': tracking_code_update})
                             values_to_update.extend(skip_values)
+                            rowcount += 1
+                            continue
 
                         '''
                             actions = {'update values': False, 'usermanual2 push': False, 'order pickup delay alarm': False,
@@ -307,6 +334,8 @@ def bluedart_tracking_checker():
                                                          'row': cinds[count] + 2,
                                                          'value': status})
                                     count += 1
+                                    trackerdf.at[cinds[count]+2, 'usermanual_during_delivery_whatsapp'] = status
+
                                 gsheets.update_cell(values_to_update=values_to_update, sheet_name=config.db_sheet_name)
                                 values_to_update = []
                             else:
@@ -320,9 +349,12 @@ def bluedart_tracking_checker():
                             if actions['delivery update push'] and (delivery_update_message != 'Success' and delivery_update_message != 'NA'):
                                 status = delivery_reminder_whatsapp(name=name, products= ', '.join(list(product_list)),
                                                                     phone_num=phone_num, delivery_date=tracking_est_update, wati=wati)
-                                values_to_update.append({'col': column_dict['delivery_update_message'],
-                                                         'row': rowcount,
-                                                         'value': status})
+                                for idx, val in enumerate(cinds):
+                                    print('updating cind values...', val, val+2)
+                                    values_to_update.append({'col': column_dict['delivery_update_message'],
+                                                             'row': val+2,
+                                                             'value': status})
+                                    trackerdf.at[val, 'delivery_update_message'] = status
                                 gsheets.update_cell(values_to_update=values_to_update, sheet_name=config.db_sheet_name)
                                 values_to_update = []
                             else:
@@ -332,12 +364,15 @@ def bluedart_tracking_checker():
                                                              'row': rowcount,
                                                              'value': status})
 
+
                             if actions['delivery delay push'] and (delivery_delay_message != 'Success' and delivery_delay_message != 'NA'):
                                 status = delivery_delay_whatsapp(name=name, phone_num=phone_num,
                                                                  products= ', '.join(list(product_list)), wati= wati)
-                                values_to_update.append({'col': column_dict['delivery_delay_message'],
-                                                         'row': rowcount,
-                                                         'value': status})
+                                for idx, val in enumerate(cinds):
+                                    values_to_update.append({'col': column_dict['delivery_delay_message'],
+                                                             'row': val+2,
+                                                             'value': status})
+                                    trackerdf.at[val, 'delivery_update_message'] = status
                                 gsheets.update_cell(values_to_update=values_to_update, sheet_name=config.db_sheet_name)
                                 values_to_update = []
                             else:
@@ -419,14 +454,14 @@ for idx, val in enumerate(range(0,24)):
 times_to_run = all_times
 
 print(times_to_run)
-## Schedule the job to run every day at 3pm (test)
-for time_str in times_to_run:
-    schedule.every().day.at(time_str).do(bluedart_tracking_checker)
-    break
-#
-print('running cron...')
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+# ## Schedule the job to run every day at 3pm (test)
+# for time_str in times_to_run:
+#     schedule.every().day.at(time_str).do(bluedart_tracking_checker)
+#     break
+# #
+# print('running cron...')
+# while True:
+#     schedule.run_pending()
+#     time.sleep(1)
 
-# bluedart_tracking_checker()
+bluedart_tracking_checker()
