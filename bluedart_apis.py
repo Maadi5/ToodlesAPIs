@@ -14,7 +14,7 @@ class bluedart_apis():
         if str(response) == '<Response [200]>':
             print('success at get api for bluedart')
             tracking_payload = xmltodict.parse(response.content)
-            print(tracking_payload)
+            # print(tracking_payload)
             tracking_status = {}
             if 'Status' in tracking_payload['ShipmentData']['Shipment']:
                 tracking_status['Status'] = tracking_payload['ShipmentData']['Shipment']['Status']
