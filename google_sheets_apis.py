@@ -493,14 +493,6 @@ class googlesheets_apis():
             body=drawing_request
         ).execute()
 
-    def get_sheet_names(self):
-        # Call the Google Sheets API to get the sheet names
-        sheet_metadata = self.service.spreadsheets().get(spreadsheetId=self.spreadsheet_id).execute()
-        sheets = sheet_metadata.get('sheets', [])
-        return sheets
-
-        # Extract and print the sheet names
-        sheet_names = [sheet['properties']['title'] for sheet in sheets]
     def delete_rows2(self, sheet_name, rowids):
         # Get the worksheet by title or other methods
         if rowids:
