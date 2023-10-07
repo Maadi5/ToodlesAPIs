@@ -15,6 +15,16 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
+
+def wati_date_to_epoch(date_string):
+    # Create a datetime object from the string
+    datetime_obj = datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%S.%fZ')
+
+    # Convert the datetime object to epoch time (Unix timestamp)
+    epoch_time = datetime_obj.timestamp()
+
+    print(epoch_time)
+
 def epoch_to_dd_mm_yy_time(epoch_timestamp, with_time = True):
     # Convert the epoch timestamp to a datetime object
     date_time_obj = datetime.utcfromtimestamp(epoch_timestamp)

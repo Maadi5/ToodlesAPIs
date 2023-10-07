@@ -9,6 +9,20 @@ class WATI_APIS:
         self.significant_keys = {'phone': 'phone_number', 'fullName': 'name'}
         self.preloaded_contacts = self.get_contact_list()
 
+    def get_previous_n_chats(self, contact_number, n):
+        url = "https://" + self.wati_endpoint +"/api/v1/getMessages/" + contact_number + "?pageSize=" + str(n) + "&pageNumber=1"
+
+        headers = {
+                    "Authorization": self.wati_auth
+        }
+
+        response = requests.get(url, headers=headers)
+        if str(response) == '<Response [200]>':
+            message_payload = json.loads(response.content.decode('utf8'))
+        else:
+            message_payload = {}
+        return message_payload
+
     def send_template_message(self, contact_number, contact_name, template_name = "new_chat_v1", broadcast_name= "my_broadcast",
                               custom_params= None):#[{"name": "name", "value": "there"}]):
 

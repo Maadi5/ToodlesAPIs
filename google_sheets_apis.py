@@ -436,6 +436,63 @@ class googlesheets_apis():
             print(f"Sheet '{new_sheet_name}' added successfully.")
         else:
             print("Sheet addition failed.")
+
+    def remove_sheet(self, sheet_name):
+        sheet_id = self.get_sheet_id(sheet_name)
+        requests = [
+            {
+                "deleteSheet": {
+                    "sheetId": sheet_id
+                }
+            }
+        ]
+
+        # Execute the request to delete the sheet
+        response = self.service.spreadsheets().batchUpdate(
+            spreadsheetId=self.spreadsheet_id, body={'requests': requests}).execute()
+
+        # Check the response to confirm the sheet was deleted
+        if 'replies' in response:
+            print(f"Sheet with ID {sheet_id} deleted successfully.")
+        else:
+            print(f"Sheet deletion failed for sheet with ID {sheet_id}.")
+
+
+    def add_buttons(self, button_locations, sheet_name):
+        sheet_id = self.get_sheet_id(sheet_name)
+        requests = []
+        for b in button_locations:
+            row_loc = b['row']
+            col_loc = b['col']
+            text = b['text']
+            request = {
+                "createTextbox": {
+                    "textbox": {
+                        "text": text,
+                        "autofit": "AUTOFIT_NORMAL"
+                    },
+                    "anchor": {
+                        "sheetId": sheet_id,
+                        "overlayPosition": {
+                            "startColumnIndex": col_loc,
+                            "startRowIndex": row_loc
+                        },
+                    }
+                }
+            }
+            requests.append(request)
+
+
+        drawing_request = {
+            "requests": requests
+        }
+
+        # Execute the drawing request to add the text box to the cell
+        self.service.spreadsheets().batchUpdate(
+            spreadsheetId=self.spreadsheet_id,
+            body=drawing_request
+        ).execute()
+
     def get_sheet_names(self):
         # Call the Google Sheets API to get the sheet names
         sheet_metadata = self.service.spreadsheets().get(spreadsheetId=self.spreadsheet_id).execute()

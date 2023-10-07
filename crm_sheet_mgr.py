@@ -7,7 +7,7 @@ import pandas as pd
 import config
 from utils import epoch_to_dd_mm_yy_time
 import time
-from miniture_wati_templates import delivery_delay_alarm_message
+from miniture_wati_templates import delivery_delay_alarm_message, chat_revive_message
 
 class crm_sheet():
     def __init__(self):
@@ -30,7 +30,7 @@ class crm_sheet():
         self.tempdf_to_closed_path = os.path.join(os.getcwd(), 'tempdf_to_closed.csv')
 
 
-    def check_recurrance(self, opendf, closeddf, order_number, alert):
+    def check_recurrance_ops_ticket(self, opendf, closeddf, order_number, alert):
         newdf = pd.concat([opendf, closeddf])
         already_exists = False
         for idx, row in newdf.iterrows():
@@ -38,39 +38,69 @@ class crm_sheet():
                 already_exists = True
         return already_exists
 
+    def check_recurrance_chat_ticket(self, opendf, closeddf, phone_num):
+        already_exists = False
+        if phone_num in list(closeddf['Phone']):
+            index = None
+            count = 0
+            for val in list(closeddf['Phone']):
+                if val == phone_num:
+                    index= count
+                    break
+                count += 1
+            realtime_gsheet = googlesheets_apis(spreadsheet_id=config.crm_spreadsheet_id)
+            realtime_gsheet.delete_rows2(rowids=index, sheet_name=config.crm_closed_sheet_name)
+        elif phone_num in list(opendf['Phone']):
+            already_exists = True
+        return already_exists
+
+
+
+
     def add_alert_to_sheet(self, payload, sla_value = float(2)):
-        opendf = self.gsheets.load_sheet_as_csv(sheet_name=config.crm_open_sheet_name)
-        closeddf = self.gsheets.load_sheet_as_csv(sheet_name=config.crm_closed_sheet_name)
-        order_number = payload['Order Number']
-        alert = payload['Alert Type']
-        already_exists = self.check_recurrance(opendf=opendf, closeddf=closeddf, order_number=order_number, alert=alert)
-        self.columns_list, self.column_dict, self.col_index = self.gsheets.get_column_names(sheet_name=config.crm_open_sheet_name)
-        if not already_exists:
-            set_of_tickets = set(opendf['Ticket No']).union(set(closeddf['Ticket No']))
-            number_of_entries = len(set_of_tickets)
-            number_of_tickets_in_open = len(set(opendf['Ticket No']))
-            float_tickets = [float(val) for val in set_of_tickets]
-            max_val = max(float_tickets)
-            new_ticket = int(max_val+1)
-            payload['Ticket No'] = str(new_ticket)
-            payload['SLA(Hours)'] = sla_value
-            payload['Date Opened'] = epoch_to_dd_mm_yy_time(int(time.time()))
-            # payload['Suggested Context'] = 'Promised date: ' + payload['Promised Date'] + '\nEstimated date: ' + payload['Estimated Date'] + '\nDelivery Status: ' + payload['Delivery Status']
-            push_csv_dict = {}
-            for val in self.columns_list:
-                if val in payload:
-                    push_csv_dict[val] = payload[val]
-                elif val not in payload and val != 'Status':
-                    push_csv_dict[val] = '--'
-                elif val == 'Status':
-                    push_csv_dict[val] = ''
-            dropdowns_to_update = [{'dropdown': self.dropdown_payload, 'row': number_of_tickets_in_open+1, 'col': self.col_index['Status']}]
-            push_csv = pd.DataFrame([push_csv_dict])
-            push_csv.to_csv(self.update_csv_path, index=False)
-            self.gsheets.append_csv_to_google_sheets(csv_path=self.update_csv_path,
-                                                   sheet_name=config.crm_open_sheet_name)
-            self.gsheets.update_dropdowns(dropdowns_to_update=dropdowns_to_update, sheet_name=config.crm_open_sheet_name)
-            print('google sheets api call to add content done')
+        try:
+            opendf = self.gsheets.load_sheet_as_csv(sheet_name=config.crm_open_sheet_name)
+            closeddf = self.gsheets.load_sheet_as_csv(sheet_name=config.crm_closed_sheet_name)
+            order_number = payload['Order Number']
+            alert = payload['Alert Type']
+            phone_num = payload['Phone']
+            if alert in {'Delivery delay', 'Pickup delay'}:
+                already_exists = self.check_recurrance_ops_ticket(opendf=opendf, closeddf=closeddf, order_number=order_number, alert=alert)
+            elif alert in {'Reply delay'}:
+                already_exists = self.check_recurrance_chat_ticket(opendf=opendf, closeddf=closeddf, phone_num=phone_num)
+            self.columns_list, self.column_dict, self.col_index = self.gsheets.get_column_names(sheet_name=config.crm_open_sheet_name)
+            if not already_exists:
+                set_of_tickets = set(opendf['Ticket No']).union(set(closeddf['Ticket No']))
+                number_of_entries = len(set_of_tickets)
+                number_of_tickets_in_open = len(set(opendf['Ticket No']))
+                float_tickets = [float(val) for val in set_of_tickets]
+                max_val = max(float_tickets)
+                new_ticket = int(max_val+1)
+                payload['Ticket No'] = str(new_ticket)
+                payload['SLA(Hours)'] = sla_value
+                payload['Date Opened'] = epoch_to_dd_mm_yy_time(int(time.time()))
+                # payload['Suggested Context'] = 'Promised date: ' + payload['Promised Date'] + '\nEstimated date: ' + payload['Estimated Date'] + '\nDelivery Status: ' + payload['Delivery Status']
+                # if alert in {'Reply delay'}: #{'Delivery delay', 'Pickup delay'}:
+                push_csv_dict = {}
+                for val in self.columns_list:
+                    if val in payload:
+                        push_csv_dict[val] = payload[val]
+                    elif val not in payload and val != 'Status':
+                        push_csv_dict[val] = '--'
+                    elif val == 'Status':
+                        push_csv_dict[val] = ''
+
+                push_csv = pd.DataFrame([push_csv_dict])
+                push_csv.to_csv(self.update_csv_path, index=False)
+                self.gsheets.append_csv_to_google_sheets(csv_path=self.update_csv_path,
+                                                       sheet_name=config.crm_open_sheet_name)
+
+                if alert in {'Delivery delay', 'Pickup delay'}:
+                    dropdowns_to_update = [{'dropdown': self.dropdown_payload, 'row': number_of_tickets_in_open+1, 'col': self.col_index['Status']}]
+                    self.gsheets.update_dropdowns(dropdowns_to_update=dropdowns_to_update, sheet_name=config.crm_open_sheet_name)
+                print('google sheets api call to add content done')
+        except:
+            print('Add to CRM failed')
             # self.gsheets.sort_sheet(sheet_name=config.crm_open_sheet_name,
             #                        sorting_rule={'col': self.col_index['SLA(Hours)'], 'direction': 'ASCENDING'})
 
@@ -99,19 +129,47 @@ class crm_sheet():
         # rowid = 2
         #dropdowns_to_update = []
         sla_breach_types = set()
+        add_buttons = []
         for idx, row in realtime_df.iterrows():
             ## Remove from opened sheet
             if rowcount>2:
-                if str(row['SLA(Hours)']) == 'NA':
-                    remove_from_opened.append(rowcount)
-                    row['Date Closed'] = epoch_to_dd_mm_yy_time(int(time.time()))
-                    rows_to_add_to_closed.append(row)
-                elif float(row['SLA(Hours)'])<=2:
-                    sla_breach_types.add(str(row['Alert Type']))
-                    ##Decrease SLAs by 1h
-                    values_to_update.append({'col': self.column_dict['SLA(Hours)'],
-                                             'row': rowcount,
-                                             'value': float(row['SLA(Hours)'])-1})
+                if row['Alert Type'] in {'Delivery delay', 'Pickup delay'}:
+                    if str(row['SLA(Hours)']) == 'NA':
+                        remove_from_opened.append(rowcount)
+                        row['Date Closed'] = epoch_to_dd_mm_yy_time(int(time.time()))
+                        rows_to_add_to_closed.append(row)
+                    else:
+                        if float(row['SLA(Hours)'])<=2:
+                            sla_breach_types.add(str(row['Alert Type']))
+                        values_to_update.append({'col': self.column_dict['SLA(Hours)'],
+                                                 'row': rowcount,
+                                                 'value': float(row['SLA(Hours)'])-1})
+                        ##Decrease SLAs by 1h
+                elif row['Alert Type'] in {'Reply delay'}:
+                    if str(row['SLA(Hours)']).lower() == 'revive requested':
+                        try:
+                            status = chat_revive_message(wati=self.wati, name=row['Name'], phone_num='919176270768')
+                        except:
+                            status = 'Failure'
+
+                        if status == 'Success':
+                            remove_from_opened.append(rowcount)
+                            row['Date Closed'] = epoch_to_dd_mm_yy_time(int(time.time()))
+                            rows_to_add_to_closed.append(row)
+                        else:
+                            values_to_update.append({'col': self.column_dict['SLA(Hours)'],
+                                                     'row': rowcount,
+                                                     'value': 'Revive failed'})
+                    else:
+                        if float(row['SLA(Hours)'])<=4:
+                            sla_breach_types.add(str(row['Alert Type']))
+                            if float(row['SLA(Hours)'])<=0:
+                                add_buttons.append({'text': 'Revive chat', 'row': rowcount, 'col': self.col_index['Status']})
+
+                        values_to_update.append({'col': self.column_dict['SLA(Hours)'],
+                                                 'row': rowcount,
+                                                 'value': float(row['SLA(Hours)'])-1})
+
             rowcount += 1
 
         #SLA breach:
@@ -119,12 +177,17 @@ class crm_sheet():
             delay_trigger = False
             customer_message_delay = False
             for val in sla_breach_types:
-                if 'delay' in val:
+                if val in {'Delivery delay', 'Pickup delay'}:
                     delay_trigger = True
+                elif val in {'Reply delay'}:
+                    customer_message_delay = True
 
             if delay_trigger:
                 for name, contact in self.crm_alarm_contacts.items():
                     status = delivery_delay_alarm_message(wati=self.wati, name= name, phone_num=contact)
+            if customer_message_delay:
+                for name, contact in self.crm_alarm_contacts.items():
+                    status = delivery_delay_alarm_message(wati=self.wati, name= name, phone_num=contact, wati_template='miniture_reply_delay')
 
 
         new_to_closed = pd.DataFrame(rows_to_add_to_closed)
@@ -132,6 +195,7 @@ class crm_sheet():
         realtime_gsheet.append_csv_to_google_sheets(csv_path=self.tempdf_to_closed_path,
                                                sheet_name=config.crm_closed_sheet_name)
         realtime_gsheet.update_cell(values_to_update=values_to_update, sheet_name=config.crm_open_sheet_name)
+        realtime_gsheet.add_buttons(button_locations=add_buttons, sheet_name=config.crm_open_sheet_name)
         try:
             realtime_gsheet.delete_rows2(rowids= remove_from_opened, sheet_name = config.crm_open_sheet_name)
         except:

@@ -3,9 +3,12 @@ import requests
 import json
 from flask import Flask, request, jsonify
 from gpt_base_v2 import GPT_Inference
+from chat_tracking import chat_tracker
+import time
 
 from wati_apis import WATI_APIS
 
+chats = chat_tracker()
 wati_triggers = WATI_APIS()
 gpt_inference = GPT_Inference()
 app = Flask(__name__)
@@ -49,6 +52,11 @@ def receive_wati_webhook():
     wa_message_id = webhook_response['whatsappMessageId']
     print('\ntext received from user ',text)
     person_name = webhook_response['senderName']
+
+    payload = {'name': person_name,
+               'phone_num': phone_num,
+               'timestamp': time.time()}
+    chats.add_chat(payload=payload)
 
     gpt_test_numbers = ['919176270768', '919445574311', '918754563901']
 
