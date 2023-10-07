@@ -35,13 +35,17 @@ class chat_tracker():
         self.gsheets.append_csv_to_google_sheets(csv_path=self.add_to_csv_path, sheet_name=phone_num)
 
 
-    def get_previous_chat_chunk(self, phone_num, n=5):
+    def get_previous_chat_chunk(self, phone_num, n=5, include_latest = False):
         chat_history_payload = self.wati.get_previous_n_chats(contact_number= phone_num, n=n)
         message_items = chat_history_payload['messages']['items']
         chat_interactions = []
         chat_track = 0
         print('message_items: ', message_items)
-        for item in message_items[1:]:
+        if include_latest == False:
+            messagelist = message_items[1:]
+        else:
+            messagelist = message_items
+        for item in messagelist:
             if item['eventType'] == 'ticket':
                     wati_time = item['created']
                     timestamp = wati_date_to_epoch(wati_time)
