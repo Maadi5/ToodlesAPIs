@@ -9,6 +9,7 @@ from crm_sheet_mgr import crm_sheet
 from wati_apis import WATI_APIS
 class chat_tracker():
     def __init__(self):
+        self.gsheets = googlesheets_apis(spreadsheet_id=config.chats_spreadsheet_id)
         self.tempdf_new = pd.DataFrame([{'From': 'NEWCHAT', 'Message': 'NEWCHAT', 'Time': 'NEWCHAT', 'Timestamp': 'NEWCHAT'}])
         self.tempdf_new.to_csv(os.path.join(os.getcwd(), 'temp_new_df.csv'), index=False)
         self.add_to_csv_path = os.path.join(os.getcwd(), 'tempdf.csv')
@@ -16,7 +17,6 @@ class chat_tracker():
         self.wati = WATI_APIS()
 
     def add_chat(self, payload):
-        self.gsheets = googlesheets_apis(spreadsheet_id=config.chats_spreadsheet_id)
         sheet_names = self.gsheets.get_sheet_names()
         print('Sheet names: ', sheet_names)
         phone_num = payload['phone_num']
