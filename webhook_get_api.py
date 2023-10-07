@@ -59,22 +59,24 @@ def receive_wati_webhook():
                'timestamp': time.time()}
     chats.add_chat(payload=payload)
 
-    gpt_test_numbers = ['919176270768', '919445574311', '918754563901']
+    #Disable GPT for now
 
-    if not check_status(phone_num, wa_message_id) and str(phone_num) in gpt_test_numbers:
-        try:
-            response = gpt_inference.get_response(phone_num, text)
-            print('\nresponse:', str(response), 'contact number:', "'" + phone_num + "'", 'person name:', "'" + person_name + "'")
-            wati_triggers.send_text_message_response(text_to_send=str(response), contact_number=str(phone_num), contact_name=str(person_name))
-            print('\nsent response back to the user')
-            update_status(phone_num, wa_message_id)
-        except Exception as e:
-            print(str(e))
-            print('\nERROR send failed')
-    elif str(phone_num) not in gpt_test_numbers:
-        print("It's NOT the test number")
-    else:
-        print('\ncheck_status failed, duplicate message')
+    # gpt_test_numbers = ['919176270768', '919445574311', '918754563901']
+    #
+    # if not check_status(phone_num, wa_message_id) and str(phone_num) in gpt_test_numbers:
+    #     try:
+    #         response = gpt_inference.get_response(phone_num, text)
+    #         print('\nresponse:', str(response), 'contact number:', "'" + phone_num + "'", 'person name:', "'" + person_name + "'")
+    #         wati_triggers.send_text_message_response(text_to_send=str(response), contact_number=str(phone_num), contact_name=str(person_name))
+    #         print('\nsent response back to the user')
+    #         update_status(phone_num, wa_message_id)
+    #     except Exception as e:
+    #         print(str(e))
+    #         print('\nERROR send failed')
+    # elif str(phone_num) not in gpt_test_numbers:
+    #     print("It's NOT the test number")
+    # else:
+    #     print('\ncheck_status failed, duplicate message')
     return jsonify(webhook_response), 200
 
 if __name__ == '__main__':
