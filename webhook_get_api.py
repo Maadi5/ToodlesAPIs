@@ -52,11 +52,12 @@ def receive_wati_webhook():
     wa_message_id = webhook_response['whatsappMessageId']
     print('\ntext received from user ',text)
     person_name = webhook_response['senderName']
+    timestamp = webhook_response['timestamp']
 
     payload = {'name': person_name,
                'phone_num': phone_num,
                'message': text,
-               'timestamp': time.time()}
+               'timestamp': float(timestamp)}
     chats.add_chat(payload=payload)
 
     #Disable GPT for now
