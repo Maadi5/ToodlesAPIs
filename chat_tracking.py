@@ -40,7 +40,7 @@ class chat_tracker():
         message_items = chat_history_payload['messages']['items']
         chat_interactions = []
         chat_track = 0
-        print('message_items: ', message_items)
+        # print('message_items: ', message_items)
         if include_latest == False:
             messagelist = message_items[1:]
         else:
