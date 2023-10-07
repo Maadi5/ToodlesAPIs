@@ -40,6 +40,7 @@ class chat_tracker():
         message_items = chat_history_payload['messages']['items']
         chat_interactions = []
         chat_track = 0
+        print('message_items: ', message_items)
         for item in message_items:
             if item['eventType'] == 'ticket':
                     wati_time = item['created']
@@ -57,7 +58,7 @@ class chat_tracker():
                     break
             chat_track += 1
         chat_interactions = sorted(chat_interactions, key=lambda x: x[0], reverse=True)
-        print(chat_interactions)
+        print('chat interactions: ', chat_interactions)
         chat_interactions_list = []
         for val in chat_interactions:
             print('val: ', val)
