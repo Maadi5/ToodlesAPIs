@@ -47,7 +47,7 @@ def invoice_number_to_platform(invoice_number):
     return platform
 
 def tracking_logic_CTA(old_tracking_code_update, order_date_epoch, bluedart_statustype, delivery_est_epoch, delivery_update_message,
-                       shipping_mode, delivery_delay_push, promised_date_epoch,
+                       shipping_mode, delivery_delay_message, promised_date_epoch,
                        standard_daygap_wati = 5, express_daygap_wati = 2, first_time_data = False):
     actions = {'update values': False, 'usermanual2 push': False, 'order pickup delay alarm': False,
                'delivery update push': False, 'delivery delay alarm': False, 'delivery delay push': False}
@@ -82,7 +82,7 @@ def tracking_logic_CTA(old_tracking_code_update, order_date_epoch, bluedart_stat
                 actions['delivery update push'] = True
                 actions['update values'] = True
 
-        if delivery_delay_push != 'Success' and days_del_est_minus_current<= -1:
+        if delivery_delay_message != 'Success' and days_del_est_minus_current<= -1:
             actions['delivery delay push'] = True
             actions['update values'] = True
             if days_del_est_minus_current<=-1 or current_time>= promised_date_epoch:
@@ -189,7 +189,7 @@ def bluedart_tracking_checker():
                 #Run pipeline
                 else:
                     id = str(row['unique_id'])
-                    if id == '14915705761':
+                    if id == '14812778173':
                         print('checkpoint')
                     sku = str(row['sku'])
                     awb = str(row['awb'])
@@ -305,7 +305,7 @@ def bluedart_tracking_checker():
                         try:
                             actions = tracking_logic_CTA(old_tracking_code_update=old_tracking_code_update,order_date_epoch=order_date_epoch, bluedart_statustype=tracking_code_update,
                                                delivery_est_epoch=est_date_epoch, delivery_update_message=delivery_update_message,
-                                   shipping_mode=shipping_mode, delivery_delay_push=delivery_delay_message, promised_date_epoch=promised_date_epoch,
+                                   shipping_mode=shipping_mode, delivery_delay_message=delivery_delay_message, promised_date_epoch=promised_date_epoch,
                                                          first_time_data=first_time)
                         except:
                             skip_values = mark_row_as_skipped(row_number=rowcount, column_dict=column_dict, message = 'track logic failed', skip_bluedart_status = True)
