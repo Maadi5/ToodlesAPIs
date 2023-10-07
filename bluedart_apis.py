@@ -27,9 +27,9 @@ class bluedart_apis():
             return tracking_status
         else:
             return None
-
-bluedartapis = bluedart_apis()
-tracking_status = bluedartapis.get_tracking_details(awb = '50914538931')
-#print(tracking_status['ExpectedDeliveryDate'])
-#print(tracking_status['Status'])
-print(tracking_status['StatusType'])
+#
+# bluedartapis = bluedart_apis()
+# tracking_status = bluedartapis.get_tracking_details(awb = '50914538931')
+# #print(tracking_status['ExpectedDeliveryDate'])
+# #print(tracking_status['Status'])
+# print(tracking_status['StatusType'])

@@ -61,7 +61,7 @@ class chat_tracker():
         for val in chat_interactions:
             print('val: ', val)
             print('val.items(): ', val.items())
-            chat_interactions_list.append(list(val.items())[1])
+            chat_interactions_list.append(list(val.items())[0][1])
         return chat_interactions_list
 
     def chat_manager_cron(self):
@@ -88,6 +88,10 @@ class chat_tracker():
                     self.crm.add_alert_to_sheet(payload=payload, sla_value= float(24-time_since_message - 10))
             elif 'has been closed' in list(sheet_df['Message'])[-1].lower():
                 gsheets.remove_sheet(phone_num)
+if __name__ == '__main__':
+    chats = chat_tracker()
+
+    output = chats.get_previous_chat_chunk(phone_num='919176270768', n=5)
 
 
 
