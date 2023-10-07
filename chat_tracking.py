@@ -56,8 +56,11 @@ class chat_tracker():
                     break
             chat_track += 1
         chat_interactions = sorted(chat_interactions, key=lambda x: x[0], reverse=True)
+        print(chat_interactions)
         chat_interactions_list = []
         for val in chat_interactions:
+            print('val: ', val)
+            print('val.items(): ', val.items())
             chat_interactions_list.append(list(val.items())[1])
         return chat_interactions_list
 
