@@ -30,7 +30,7 @@ class chat_tracker():
         get_prev_chat = self.get_previous_chat_chunk(phone_num= phone_num, n=10)
         get_prev_chat.append({'From': 'User: ' + name, 'Message': message, 'Time': time, 'Timestamp': timestamp})
         add_df = pd.DataFrame(get_prev_chat)
-        add_df.to_csv(self.add_to_csv_path)
+        add_df.to_csv(self.add_to_csv_path, index=False)
         self.gsheets.append_csv_to_google_sheets(csv_path=self.add_to_csv_path, sheet_name=phone_num)
 
 
