@@ -35,7 +35,7 @@ class chat_tracker():
 
 
     def get_previous_chat_chunk(self, phone_num, n=5):
-        chat_history_payload = self.wati.get_previous_n_chats(phone_num= phone_num, n=n)
+        chat_history_payload = self.wati.get_previous_n_chats(contact_number= phone_num, n=n)
         message_items = chat_history_payload['messages']['items']
         chat_interactions = []
         chat_track = 0
