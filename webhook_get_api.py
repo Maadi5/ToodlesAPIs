@@ -55,6 +55,7 @@ def receive_wati_webhook():
 
     payload = {'name': person_name,
                'phone_num': phone_num,
+               'message': text,
                'timestamp': time.time()}
     chats.add_chat(payload=payload)
 
