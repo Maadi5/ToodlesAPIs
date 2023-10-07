@@ -41,7 +41,7 @@ class chat_tracker():
         chat_interactions = []
         chat_track = 0
         print('message_items: ', message_items)
-        for item in message_items:
+        for item in message_items[1:]:
             if item['eventType'] == 'ticket':
                     wati_time = item['created']
                     timestamp = wati_date_to_epoch(wati_time)
