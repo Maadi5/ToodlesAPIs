@@ -75,10 +75,10 @@ def tracking_logic_CTA(old_tracking_code_update, order_date_epoch, bluedart_stat
     # elif bluedart_statustype == 'UD':
     #     actions['delivery delay alarm'] = True
     else:
-        if delivery_update_message != 'Success':
+        if delivery_update_message != 'Success' and delivery_delay_message != 'Success':
             if (shipping_mode == 'standard' and days_from_order_date>= standard_daygap_wati)\
                     or  (shipping_mode == 'express' and days_from_order_date>= express_daygap_wati)\
-                    or days_del_est_minus_current<=2:
+                    or 0<days_del_est_minus_current<=2:
                 actions['delivery update push'] = True
                 actions['update values'] = True
 
@@ -453,15 +453,15 @@ for idx, val in enumerate(range(0,24)):
 
 times_to_run = all_times
 
-print(times_to_run)
-## Schedule the job to run every day at 3pm (test)
-for time_str in times_to_run:
-    schedule.every().day.at(time_str).do(bluedart_tracking_checker)
-    break
-#
-print('running cron...')
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+# print(times_to_run)
+# ## Schedule the job to run every day at 3pm (test)
+# for time_str in times_to_run:
+#     schedule.every().day.at(time_str).do(bluedart_tracking_checker)
+#     break
+# #
+# print('running cron...')
+# while True:
+#     schedule.run_pending()
+#     time.sleep(1)
 
-# bluedart_tracking_checker()
+bluedart_tracking_checker()
