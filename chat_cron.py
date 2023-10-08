@@ -1,10 +1,10 @@
-from chat_tracking import chat_tracker
+from crm_sheet_mgr import crm_sheet
 import os
 from datetime import datetime
 import schedule
 import time
 
-chat_cron = chat_tracker()
+crm_cron = crm_sheet()
 
 all_times = []
 
@@ -24,7 +24,7 @@ for idx, val in enumerate(range(0,24)):
 print(all_times)
 # Schedule the job to run every day at 3pm (test)
 for time_str in all_times:
-    schedule.every().day.at(time_str).do(chat_cron.chat_manager_cron)
+    schedule.every().day.at(time_str).do(crm_cron.sheet_mgr_cron_job)
 #
 print('running cron...')
 while True:

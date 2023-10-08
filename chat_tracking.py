@@ -80,28 +80,32 @@ class chat_tracker():
 
 
         for s in sheet_names:
-            sheet_df = gsheets.load_sheet_as_csv(sheet_name=s)
-            phone_num = s
-            current_time = time.time()
-            if 'User' in list(sheet_df['From'])[-1]:
-                message = list(sheet_df['Message'])[-1]
-                timestamp = float(list(sheet_df['Timestamp'])[-1])
-                if (current_time-timestamp)>= (10*3600):
-                    time_since_message = round((current_time-timestamp)/3600, 1)
-                    time_of_message = list(sheet_df['Time'])[-1]
-                    #Add alarm to crm
-                    name = list(sheet_df['From'])[-1].split('User: ')[1]
-                    payload = {'Name': name,
-                               'Number': phone_num,
-                               'Suggested Context': 'Message: ' + message + '\nTime left to reply(hours): ' + 24-time_since_message + '\nTime of message: ' + time_of_message,
-                               'Alert Type': 'Reply delay'}
-                    self.crm.add_alert_to_sheet(payload=payload, sla_value= float(24-time_since_message - 10))
-            elif 'has been closed' in list(sheet_df['Message'])[-1].lower():
-                gsheets.remove_sheet(phone_num)
+            try:
+                sheet_df = gsheets.load_sheet_as_csv(sheet_name=s)
+                phone_num = s
+                current_time = time.time()
+                if 'User' in list(sheet_df['From'])[-1]:
+                    message = list(sheet_df['Message'])[-1]
+                    timestamp = float(list(sheet_df['Timestamp'])[-1])
+                    if (current_time-timestamp)>= (10*3600):
+                        time_since_message = round((current_time-timestamp)/3600, 1)
+                        time_of_message = list(sheet_df['Time'])[-1]
+                        #Add alarm to crm
+                        name = list(sheet_df['From'])[-1].split('User: ')[1]
+                        payload = {'Name': name,
+                                   'Number': phone_num,
+                                   'Suggested Context': 'Message: ' + message + '\nTime left to reply(hours): ' + str(24-time_since_message) + '\nTime of message: ' + str(time_of_message),
+                                   'Alert Type': 'Reply delay'}
+                        self.crm.add_alert_to_sheet(payload=payload, sla_value= float(24-time_since_message - 10))
+                elif 'has been closed' in list(sheet_df['Message'])[-1].lower():
+                    gsheets.remove_sheet(phone_num)
+            except:
+                print(s, ': processing failed.')
 if __name__ == '__main__':
     chats = chat_tracker()
 
-    output = chats.get_previous_chat_chunk(phone_num='919176270768', n=5)
+    chats.chat_manager_cron()
+
 
 
 
