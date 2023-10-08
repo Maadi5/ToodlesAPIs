@@ -1,4 +1,5 @@
 import os
+import traceback
 
 from google_sheets_apis import googlesheets_apis
 import config
@@ -61,7 +62,10 @@ class chat_tracker():
                 elif item['owner'] == False:
                     break
             chat_track += 1
-        chat_interactions = sorted(chat_interactions, key=lambda x: x[0], reverse=True)
+        try:
+            chat_interactions = sorted(chat_interactions, key=lambda x: list(x.keys())[0], reverse=True)
+        except:
+            traceback.format_exc()
         print('chat interactions: ', chat_interactions)
         chat_interactions_list = []
         for val in chat_interactions:
@@ -97,7 +101,7 @@ class chat_tracker():
 if __name__ == '__main__':
     chats = chat_tracker()
 
-    output = chats.get_previous_chat_chunk(phone_num='918174955152', n=5)
+    output = chats.get_previous_chat_chunk(phone_num='919176270768', n=5)
 
 
 
