@@ -187,7 +187,7 @@ class crm_sheet():
                         if float(row['SLA(Hours)'])<=10:
                             sla_breach_types.add(str(row['Alert Type']))
 
-                        if row['SLA(Hours)'] > 1:
+                        if float(row['SLA(Hours)']) > 1:
                             values_to_update.extend([{'col': self.column_dict['SLA(Hours)'],
                                                      'row': rowcount,
                                                      'value': float(row['SLA(Hours)'])-update_freq},
