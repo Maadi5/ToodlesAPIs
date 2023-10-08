@@ -24,7 +24,7 @@ for idx, val in enumerate(range(0,24)):
 print(all_times)
 # Schedule the job to run every day at 3pm (test)
 for time_str in all_times:
-    schedule.every().day.at(time_str).do(crm_cron.sheet_mgr_cron_job(update_freq = every_n_hours))
+    schedule.every().day.at(time_str).do(lambda: crm_cron.sheet_mgr_cron_job(update_freq= every_n_hours))
 #
 print('running cron...')
 while True:
