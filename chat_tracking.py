@@ -25,15 +25,50 @@ class chat_tracker():
         name = payload['name']
         time = epoch_to_dd_mm_yy_time(timestamp)
         message = payload['message']
+
         if phone_num not in sheet_names:
             self.gsheets.add_new_sheet(new_sheet_name=phone_num)
             self.gsheets.append_csv_to_google_sheets(csv_path=os.path.join(os.getcwd(), 'temp_new_df.csv'))
-        get_prev_chat = self.get_previous_chat_chunk(phone_num= phone_num, n=10)
-        print('previous chats: ', get_prev_chat)
-        get_prev_chat.append({'From': 'User: ' + name, 'Message': message, 'Time': time, 'Timestamp': timestamp})
-        add_df = pd.DataFrame(get_prev_chat)
-        add_df.to_csv(self.add_to_csv_path, index=False)
-        self.gsheets.append_csv_to_google_sheets(csv_path=self.add_to_csv_path, sheet_name=phone_num)
+
+        ##Check if messsage is repeating
+        current_sheet  = self.gsheets.load_sheet_as_csv(sheet_name=phone_num)
+        already_exists = False
+        for idx, row in current_sheet.iterrows():
+            if row['Message'] == message and row['Timestamp'] == timestamp:
+                already_exists = True
+                break
+
+        if not already_exists:
+            get_prev_chat = self.get_previous_chat_chunk(phone_num= phone_num, n=8, include_latest=True)
+            print('previous chats: ', get_prev_chat)
+            try:
+                last_message = list(current_sheet['Message'])[-1]
+                last_timestamp = list(current_sheet['Timestamp'][-1])
+            except:
+                last_message = ''
+                last_timestamp = ''
+                new_chats = []
+                start_collecting = False
+                for chat in get_prev_chat:
+                    if chat['Message'] == last_message and chat['Timestamp'] == last_timestamp:
+                        start_collecting = True
+                    if start_collecting:
+                        new_chats.append(chat)
+
+                if new_chats == []:
+                    for i in reversed(range(len(get_prev_chat))):
+                        if 'user' not in get_prev_chat[i]['From'].lower():
+                            new_chats.append(get_prev_chat[i])
+                        else:
+                            break
+                    new_chats.reverse()
+
+
+
+            get_prev_chat.append({'From': 'User: ' + name, 'Message': message, 'Time': time, 'Timestamp': timestamp})
+            add_df = pd.DataFrame(get_prev_chat)
+            add_df.to_csv(self.add_to_csv_path, index=False)
+            self.gsheets.append_csv_to_google_sheets(csv_path=self.add_to_csv_path, sheet_name=phone_num)
 
 
     def get_previous_chat_chunk(self, phone_num, n=5, include_latest = False):
@@ -55,12 +90,12 @@ class chat_tracker():
                         {chat_track: {'From': item['actor'], 'Message': item['eventDescription'], 'Time': time, 'Timestamp': timestamp}})
 
             elif item['eventType'] == 'message':
-                if item['owner'] == True:
-                    timestamp = float(item['timestamp'])
-                    time = epoch_to_dd_mm_yy_time(timestamp)
-                    chat_interactions.append({chat_track: {'From': 'Admin', 'Message': item['text'], 'Time': time, 'Timestamp': timestamp}})
-                elif item['owner'] == False:
-                    break
+                # if item['owner'] == True:
+                timestamp = float(item['timestamp'])
+                time = epoch_to_dd_mm_yy_time(timestamp)
+                chat_interactions.append({chat_track: {'From': 'Admin', 'Message': item['text'], 'Time': time, 'Timestamp': timestamp}})
+                # elif item['owner'] == False:
+                #     break
             chat_track += 1
         try:
             chat_interactions = sorted(chat_interactions, key=lambda x: list(x.keys())[0], reverse=True)
@@ -104,7 +139,8 @@ class chat_tracker():
 if __name__ == '__main__':
     chats = chat_tracker()
 
-    chats.chat_manager_cron()
+    # chats.chat_manager_cron()
+    chats.get_previous_chat_chunk(phone_num='919176270768')
 
 
 
