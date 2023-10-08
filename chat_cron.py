@@ -24,7 +24,7 @@ for idx, val in enumerate(range(0,24)):
 print(all_times)
 # Schedule the job to run every day at 3pm (test)
 for time_str in all_times:
-    schedule.every().day.at(time_str).do(chats.chat_manager_cron())
+    schedule.every().day.at(time_str).do(chats.chat_manager_cron)
 #
 print('running cron...')
 while True:
