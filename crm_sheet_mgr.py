@@ -40,17 +40,17 @@ class crm_sheet():
 
     def check_recurrance_chat_ticket(self, opendf, closeddf, phone_num):
         already_exists = False
-        if phone_num in list(closeddf['Phone']):
+        if phone_num in list(closeddf['Number']):
             index = None
             count = 0
-            for val in list(closeddf['Phone']):
+            for val in list(closeddf['Number']):
                 if val == phone_num:
                     index= count
                     break
                 count += 1
             realtime_gsheet = googlesheets_apis(spreadsheet_id=config.crm_spreadsheet_id)
             realtime_gsheet.delete_rows2(rowids=index, sheet_name=config.crm_closed_sheet_name)
-        elif phone_num in list(opendf['Phone']):
+        elif phone_num in list(opendf['Number']):
             already_exists = True
         return already_exists
 
@@ -61,10 +61,11 @@ class crm_sheet():
         try:
             opendf = self.gsheets.load_sheet_as_csv(sheet_name=config.crm_open_sheet_name)
             closeddf = self.gsheets.load_sheet_as_csv(sheet_name=config.crm_closed_sheet_name)
-            order_number = payload['Order Number']
             alert = payload['Alert Type']
-            phone_num = payload['Phone']
+            phone_num = payload['Number']
+            sla_value = round(sla_value, 2)
             if alert in {'Delivery delay', 'Pickup delay'}:
+                order_number = payload['Order Number']
                 already_exists = self.check_recurrance_ops_ticket(opendf=opendf, closeddf=closeddf, order_number=order_number, alert=alert)
             elif alert in {'Reply delay'}:
                 already_exists = self.check_recurrance_chat_ticket(opendf=opendf, closeddf=closeddf, phone_num=phone_num)
@@ -110,6 +111,20 @@ class crm_sheet():
                 status = self.wati.send_template_message(contact_name=name, contact_number=phone_num,
                                                     template_name='delivery_delay_opsmessage')
 
+    def update_context_time(self, suggested_context):
+        context_params = suggested_context.split('\n')
+        new_context = []
+        for line in context_params:
+            if 'Time left to reply(hours):' in line:
+                timeval = float(line.split(':')[1].replace(' ', ''))
+                updated_timestr = str(timeval-1)
+                newstr = 'Time left to reply(hours): ' + updated_timestr
+                new_context.append(newstr)
+            else:
+                new_context.append(line)
+        return '\n'.join(new_context)
+
+
     def sheet_mgr_cron_job(self):
         print('Running crm script...')
         '''
@@ -132,6 +147,9 @@ class crm_sheet():
         add_buttons = []
         for idx, row in realtime_df.iterrows():
             ## Remove from opened sheet
+            current_context = row['Suggested Context']
+            updated_context = self.update_context_time(current_context)
+            row['Suggested Context'] = updated_context
             if rowcount>2:
                 if row['Alert Type'] in {'Delivery delay', 'Pickup delay'}:
                     if str(row['SLA(Hours)']) == 'NA':
@@ -141,9 +159,14 @@ class crm_sheet():
                     else:
                         if float(row['SLA(Hours)'])<=2:
                             sla_breach_types.add(str(row['Alert Type']))
-                        values_to_update.append({'col': self.column_dict['SLA(Hours)'],
+
+                        values_to_update.extend([{'col': self.column_dict['SLA(Hours)'],
                                                  'row': rowcount,
-                                                 'value': float(row['SLA(Hours)'])-1})
+                                                 'value': float(row['SLA(Hours)'])-1},
+                                                {'col': self.column_dict['Suggested Context'],
+                                                 'row': rowcount,
+                                                 'value': updated_context}
+                                                ])
                         ##Decrease SLAs by 1h
                 elif row['Alert Type'] in {'Reply delay'}:
                     if str(row['SLA(Hours)']).lower() == 'revive requested':
@@ -166,9 +189,13 @@ class crm_sheet():
                             if float(row['SLA(Hours)'])<=0:
                                 add_buttons.append({'text': 'Revive chat', 'row': rowcount, 'col': self.col_index['Status']})
 
-                        values_to_update.append({'col': self.column_dict['SLA(Hours)'],
+                        values_to_update.extend([{'col': self.column_dict['SLA(Hours)'],
                                                  'row': rowcount,
-                                                 'value': float(row['SLA(Hours)'])-1})
+                                                 'value': float(row['SLA(Hours)'])-1},
+                                                {'col': self.column_dict['Suggested Context'],
+                                                 'row': rowcount,
+                                                 'value': updated_context}
+                                                ])
 
             rowcount += 1
 

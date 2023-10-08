@@ -94,7 +94,7 @@ class chat_tracker():
                         name = list(sheet_df['From'])[-1].split('User: ')[1]
                         payload = {'Name': name,
                                    'Number': phone_num,
-                                   'Suggested Context': 'Message: ' + message + '\nTime left to reply(hours): ' + str(24-time_since_message) + '\nTime of message: ' + str(time_of_message),
+                                   'Suggested Context': 'Message: ' + message + '\nTime left to reply(hours): ' + str(round(24-time_since_message,2)) + '\nTime of message: ' + str(time_of_message),
                                    'Alert Type': 'Reply delay'}
                         self.crm.add_alert_to_sheet(payload=payload, sla_value= float(24-time_since_message - 10))
                 elif 'has been closed' in list(sheet_df['Message'])[-1].lower():
