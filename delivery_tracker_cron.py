@@ -349,6 +349,7 @@ def bluedart_tracking_checker():
                             if actions['delivery update push'] and (delivery_update_message != 'Success' and delivery_update_message != 'NA'):
                                 status = delivery_reminder_whatsapp(name=name, products= ', '.join(list(product_list)),
                                                                     phone_num=phone_num, delivery_date=tracking_est_update, wati=wati)
+                                delivery_update_message = status
                                 for idx, val in enumerate(cinds):
                                     print('updating cind values...', val, val+2)
                                     values_to_update.append({'col': column_dict['delivery_update_message'],
@@ -368,6 +369,7 @@ def bluedart_tracking_checker():
                             if actions['delivery delay push'] and (delivery_delay_message != 'Success' and delivery_delay_message != 'NA'):
                                 status = delivery_delay_whatsapp(name=name, phone_num=phone_num,
                                                                  products= ', '.join(list(product_list)), wati= wati)
+                                delivery_delay_message = status
                                 for idx, val in enumerate(cinds):
                                     values_to_update.append({'col': column_dict['delivery_delay_message'],
                                                              'row': val+2,
