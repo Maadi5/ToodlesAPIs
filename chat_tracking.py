@@ -47,21 +47,21 @@ class chat_tracker():
             except:
                 last_message = ''
                 last_timestamp = ''
-                new_chats = []
-                start_collecting = False
-                for chat in get_prev_chat:
-                    if chat['Message'] == last_message and chat['Timestamp'] == last_timestamp:
-                        start_collecting = True
-                    if start_collecting:
-                        new_chats.append(chat)
+            new_chats = []
+            start_collecting = False
+            for chat in get_prev_chat:
+                if chat['Message'] == last_message and chat['Timestamp'] == last_timestamp:
+                    start_collecting = True
+                if start_collecting:
+                    new_chats.append(chat)
 
-                if new_chats == []:
-                    for i in reversed(range(len(get_prev_chat))):
-                        if 'user' not in get_prev_chat[i]['From'].lower():
-                            new_chats.append(get_prev_chat[i])
-                        else:
-                            break
-                    new_chats.reverse()
+            if new_chats == []:
+                for i in reversed(range(len(get_prev_chat))):
+                    if 'user' not in get_prev_chat[i]['From'].lower():
+                        new_chats.append(get_prev_chat[i])
+                    else:
+                        break
+                new_chats.reverse()
 
 
 
