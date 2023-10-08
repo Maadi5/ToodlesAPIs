@@ -186,16 +186,24 @@ class crm_sheet():
                     else:
                         if float(row['SLA(Hours)'])<=4:
                             sla_breach_types.add(str(row['Alert Type']))
-                            if float(row['SLA(Hours)'])<=0:
-                                add_buttons.append({'text': 'Revive chat', 'row': rowcount, 'col': self.col_index['Status']})
 
-                        values_to_update.extend([{'col': self.column_dict['SLA(Hours)'],
-                                                 'row': rowcount,
-                                                 'value': float(row['SLA(Hours)'])-update_freq},
-                                                {'col': self.column_dict['Suggested Context'],
-                                                 'row': rowcount,
-                                                 'value': updated_context}
-                                                ])
+                        if row['SLA(Hours)'] > 1:
+                            values_to_update.extend([{'col': self.column_dict['SLA(Hours)'],
+                                                     'row': rowcount,
+                                                     'value': float(row['SLA(Hours)'])-update_freq},
+                                                    {'col': self.column_dict['Suggested Context'],
+                                                     'row': rowcount,
+                                                     'value': updated_context}
+                                                    ])
+                        else:
+                            values_to_update.extend([{'col': self.column_dict['SLA(Hours)'],
+                                                     'row': rowcount,
+                                                     'value': 'Expired'},
+                                                    {'col': self.column_dict['Suggested Context'],
+                                                     'row': rowcount,
+                                                     'value': updated_context}
+                                                    ])
+
 
             rowcount += 1
 
@@ -222,8 +230,8 @@ class crm_sheet():
         realtime_gsheet.append_csv_to_google_sheets(csv_path=self.tempdf_to_closed_path,
                                                sheet_name=config.crm_closed_sheet_name)
         realtime_gsheet.update_cell(values_to_update=values_to_update, sheet_name=config.crm_open_sheet_name)
-        if add_buttons:
-            realtime_gsheet.add_buttons(button_locations=add_buttons, sheet_name=config.crm_open_sheet_name)
+        # if add_buttons:
+        #     realtime_gsheet.add_buttons(button_locations=add_buttons, sheet_name=config.crm_open_sheet_name)
         try:
             realtime_gsheet.delete_rows2(rowids= remove_from_opened, sheet_name = config.crm_open_sheet_name)
         except:
