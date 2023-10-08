@@ -459,6 +459,7 @@ class googlesheets_apis():
 
 
     def add_buttons(self, button_locations, sheet_name):
+        print('button_locations')
         sheet_id = self.get_sheet_id(sheet_name)
         requests = []
         for b in button_locations:
