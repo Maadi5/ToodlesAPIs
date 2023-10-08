@@ -184,7 +184,7 @@ class crm_sheet():
                                                      'row': rowcount,
                                                      'value': 'Revive failed'})
                     else:
-                        if float(row['SLA(Hours)'])<=4:
+                        if float(row['SLA(Hours)'])<=10:
                             sla_breach_types.add(str(row['Alert Type']))
 
                         if row['SLA(Hours)'] > 1:
