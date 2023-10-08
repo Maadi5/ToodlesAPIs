@@ -111,13 +111,13 @@ class crm_sheet():
                 status = self.wati.send_template_message(contact_name=name, contact_number=phone_num,
                                                     template_name='delivery_delay_opsmessage')
 
-    def update_context_time(self, suggested_context):
+    def update_context_time(self, suggested_context, update_freq):
         context_params = suggested_context.split('\n')
         new_context = []
         for line in context_params:
             if 'Time left to reply(hours):' in line:
                 timeval = float(line.split(':')[1].replace(' ', ''))
-                updated_timestr = str(timeval-1)
+                updated_timestr = str(timeval-update_freq)
                 newstr = 'Time left to reply(hours): ' + updated_timestr
                 new_context.append(newstr)
             else:
@@ -125,7 +125,7 @@ class crm_sheet():
         return '\n'.join(new_context)
 
 
-    def sheet_mgr_cron_job(self):
+    def sheet_mgr_cron_job(self, update_freq):
         print('Running crm script...')
         '''
         Goals-
@@ -148,7 +148,7 @@ class crm_sheet():
         for idx, row in realtime_df.iterrows():
             ## Remove from opened sheet
             current_context = row['Suggested Context']
-            updated_context = self.update_context_time(current_context)
+            updated_context = self.update_context_time(current_context, update_freq=update_freq)
             row['Suggested Context'] = updated_context
             if rowcount>2:
                 if row['Alert Type'] in {'Delivery delay', 'Pickup delay'}:
@@ -162,7 +162,7 @@ class crm_sheet():
 
                         values_to_update.extend([{'col': self.column_dict['SLA(Hours)'],
                                                  'row': rowcount,
-                                                 'value': float(row['SLA(Hours)'])-1},
+                                                 'value': float(row['SLA(Hours)'])-update_freq},
                                                 {'col': self.column_dict['Suggested Context'],
                                                  'row': rowcount,
                                                  'value': updated_context}
@@ -191,7 +191,7 @@ class crm_sheet():
 
                         values_to_update.extend([{'col': self.column_dict['SLA(Hours)'],
                                                  'row': rowcount,
-                                                 'value': float(row['SLA(Hours)'])-1},
+                                                 'value': float(row['SLA(Hours)'])-update_freq},
                                                 {'col': self.column_dict['Suggested Context'],
                                                  'row': rowcount,
                                                  'value': updated_context}
