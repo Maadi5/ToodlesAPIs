@@ -22,8 +22,9 @@ def wati_date_to_epoch(date_string):
 
     # Convert the datetime object to epoch time (Unix timestamp)
     epoch_time = datetime_obj.timestamp()
+    return epoch_time
 
-    print(epoch_time)
+    # print(epoch_time)
 
 def epoch_to_dd_mm_yy_time(epoch_timestamp, with_time = True):
     # Convert the epoch timestamp to a datetime object

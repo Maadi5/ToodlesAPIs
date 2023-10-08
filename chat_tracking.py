@@ -97,7 +97,7 @@ class chat_tracker():
 if __name__ == '__main__':
     chats = chat_tracker()
 
-    output = chats.get_previous_chat_chunk(phone_num='971585345883', n=5)
+    output = chats.get_previous_chat_chunk(phone_num='918174955152', n=5)
 
 
 
