@@ -139,10 +139,10 @@ def marketing_campaign_wati(template, wati, skus = None):
     number_of_applicable_customers = 0
     customers.fillna('', inplace = True)
     status_of_each_message = []
-    valid = False
     numbers_sent_to = set()
     for idx, row in customers.iterrows():
         try:
+            valid = False
             customer_name = row['Name']
             customer_phone_number = row['Phone'] #9176270768 #
             order_skus = str(row['order skus'])
