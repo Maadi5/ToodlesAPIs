@@ -494,6 +494,12 @@ class googlesheets_apis():
             body=drawing_request
         ).execute()
 
+    def sort_all_sheets(self):# Replace with your spreadsheet name
+        # Sort each sheet based on column D
+        for sheet in self.gspread_spreadsheet.worksheets():
+            data_range = sheet.get_all_values()
+            data_range[1:] = sorted(data_range[1:], key=lambda x: x[3])  # Sort rows 2 and onwards based on the fourth column (0-based index)
+            sheet.update(data_range)
     def delete_rows2(self, sheet_name, rowids):
         # Get the worksheet by title or other methods
         if rowids:

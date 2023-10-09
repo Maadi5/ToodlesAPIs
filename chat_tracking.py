@@ -32,11 +32,7 @@ class chat_tracker():
 
         ##Check if messsage is repeating
         current_sheet  = self.gsheets.load_sheet_as_csv(sheet_name=phone_num)
-        already_exists = False
-        for idx, row in current_sheet.iterrows():
-            if row['Message'] == message and row['Timestamp'] == timestamp:
-                already_exists = True
-                break
+        already_exists = self.check_if_already_exists(originaldf=current_sheet, payload={'Message': message, 'Timestamp': timestamp})
 
         if not already_exists:
             get_prev_chat = self.get_previous_chat_chunk(name=name, phone_num= phone_num, n=8, include_latest=True)
@@ -52,21 +48,42 @@ class chat_tracker():
             for chat in get_prev_chat:
                 if chat['Message'] == last_message and chat['Timestamp'] == last_timestamp:
                     start_collecting = True
-                if start_collecting:
+                if start_collecting and not self.check_if_already_exists(originaldf=current_sheet, payload=chat) and not self.check_if_already_exists(originaldf=new_chats, payload=chat):
                     new_chats.append(chat)
 
             if new_chats == []:
                 for i in reversed(range(len(get_prev_chat))):
                     if 'user' not in get_prev_chat[i]['From'].lower():
-                        new_chats.append(get_prev_chat[i])
+                        if not self.check_if_already_exists(originaldf=current_sheet, payload=get_prev_chat[i]) and not self.check_if_already_exists(originaldf=new_chats, payload=get_prev_chat[i]):
+                            new_chats.append(get_prev_chat[i])
                     else:
                         break
                 new_chats.reverse()
 
             get_prev_chat.append({'From': 'User: ' + name, 'Message': message, 'Time': time, 'Timestamp': timestamp})
+            get_prev_chat = sorted(get_prev_chat, key=lambda x:x['Timestamp'])
             add_df = pd.DataFrame(get_prev_chat)
             add_df.to_csv(self.add_to_csv_path, index=False)
             self.gsheets.append_csv_to_google_sheets(csv_path=self.add_to_csv_path, sheet_name=phone_num)
+
+
+    def check_if_already_exists(self, originaldf, payload):
+        exists = False
+        try:
+            if str(type(originaldf)) == "<class 'pandas.core.frame.DataFrame'>":
+                for idx, row in originaldf.iterrows():
+                    if row['Message'] == payload['Message'] and row['Timestamp'] == payload['Timestamp']:
+                        exists = True
+                        break
+            elif type(originaldf) == list:
+                for idx, row in enumerate(originaldf):
+                    if row['Message'] == payload['Message'] and row['Timestamp'] == payload['Timestamp']:
+                        exists = True
+                        break
+        except:
+            pass
+        return exists
+
 
     def update_chats(self):
         sheet_names = self.gsheets.get_sheet_names()
@@ -82,7 +99,10 @@ class chat_tracker():
                 name = None
 
             if name is not None:
-                get_prev_chat = self.get_previous_chat_chunk(name=name, phone_num=phone_num, n=8, include_latest=True)
+                try:
+                    get_prev_chat = self.get_previous_chat_chunk(name=name, phone_num=phone_num, n=25, include_latest=True)
+                except:
+                    get_prev_chat = []
                 print('previous chats: ', get_prev_chat)
                 try:
                     last_message = list(current_sheet['Message'])[-1]
@@ -93,16 +113,16 @@ class chat_tracker():
                 new_chats = []
                 start_collecting = False
                 for chat in get_prev_chat:
+                    if start_collecting and not self.check_if_already_exists(originaldf=current_sheet, payload=chat) and not self.check_if_already_exists(originaldf=new_chats, payload=chat):
+                        new_chats.append(chat)
                     if chat['Message'] == last_message and chat['Timestamp'] == last_timestamp:
                         start_collecting = True
-                    if start_collecting:
-                        new_chats.append(chat)
-
                 if new_chats == []:
                     try:
                         for i in reversed(range(len(get_prev_chat))):
                             if 'user' not in get_prev_chat[i]['From'].lower():
-                                new_chats.append(get_prev_chat[i])
+                                if not self.check_if_already_exists(originaldf=current_sheet, payload=get_prev_chat[i]) and not self.check_if_already_exists(originaldf=new_chats, payload=get_prev_chat[i]):
+                                    new_chats.append(get_prev_chat[i])
                             else:
                                 break
                         new_chats.reverse()
@@ -113,6 +133,7 @@ class chat_tracker():
                 add_df = pd.DataFrame(get_prev_chat)
                 add_df.to_csv(self.add_to_csv_path, index=False)
                 self.gsheets.append_csv_to_google_sheets(csv_path=self.add_to_csv_path, sheet_name=phone_num)
+                self.gsheets.sort_all_sheets()
 
     def get_previous_chat_chunk(self, name, phone_num, n=5, include_latest = False):
         chat_history_payload = self.wati.get_previous_n_chats(contact_number= phone_num, n=n)
