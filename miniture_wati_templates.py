@@ -5,6 +5,9 @@ import pandas as pd
 usermanual_skus_without_video = {'YK-PZ-007 - BLUE', 'YK-PZ-007 - PINK', 'YK-PZ-007 - WHITE','YK-KW-080',
                                  'YK-KW-012'}
 
+miniture_marketing_team = {'M A Adithya': '919176270768', 'Sanaa Syed': '919731011565',
+                           'Srishti': '919830687860', 'Shashank M': '919791900777'}
+
 
 def chat_revive_message(wati, name, phone_num, wati_template='miniture_message_reply_plain'):
     wati_status = wati.send_template_message(contact_name=name, contact_number=phone_num,
@@ -137,6 +140,7 @@ def marketing_campaign_wati(template, wati, skus = None):
     customers.fillna('', inplace = True)
     status_of_each_message = []
     valid = False
+    numbers_sent_to = set()
     for idx, row in customers.iterrows():
         try:
             customer_name = row['Name']
@@ -158,6 +162,7 @@ def marketing_campaign_wati(template, wati, skus = None):
                                                     template_name=template)
                 if wati_status:
                     status = 1
+                    numbers_sent_to.add(customer_phone_number)
                 else:
                     status = 0
             else:
@@ -168,6 +173,10 @@ def marketing_campaign_wati(template, wati, skus = None):
         status_of_each_message.append(status)
         # if idx>1:
         #     break
+    for customer_name, customer_phone_number in miniture_marketing_team.items():
+        if customer_phone_number not in numbers_sent_to:
+            wati_status = wati.send_template_message(contact_name=customer_name, contact_number=customer_phone_number,
+                                                 template_name=template)
     total_success_count = sum(status_of_each_message)
 
     return  str(total_success_count) + ' out of ' + str(number_of_applicable_customers) + ' succeeded'

@@ -99,12 +99,15 @@ class chat_tracker():
                         new_chats.append(chat)
 
                 if new_chats == []:
-                    for i in reversed(range(len(get_prev_chat))):
-                        if 'user' not in get_prev_chat[i]['From'].lower():
-                            new_chats.append(get_prev_chat[i])
-                        else:
-                            break
-                    new_chats.reverse()
+                    try:
+                        for i in reversed(range(len(get_prev_chat))):
+                            if 'user' not in get_prev_chat[i]['From'].lower():
+                                new_chats.append(get_prev_chat[i])
+                            else:
+                                break
+                        new_chats.reverse()
+                    except:
+                        pass
 
                 # get_prev_chat.append({'From': 'User: ' + name, 'Message': message, 'Time': time, 'Timestamp': timestamp})
                 add_df = pd.DataFrame(get_prev_chat)
