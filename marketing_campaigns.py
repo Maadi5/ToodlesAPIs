@@ -74,6 +74,10 @@ def marketing_campaign_cron():
     for idx, row in marketing_sheet.iterrows():
         try:
             print('idx: ', idx, ' row: ', rowcount)
+            try:
+                print(row['WATI template'])
+            except:
+                pass
             date = row['Date']
             timeval = row['Time']
             status = row['Sent?']
