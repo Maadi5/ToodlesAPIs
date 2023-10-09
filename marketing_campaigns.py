@@ -75,7 +75,7 @@ def marketing_campaign_cron():
         try:
             print('idx: ', idx, ' row: ', rowcount)
             try:
-                print(row['WATI template'])
+                print('Template: ', row['WATI template'])
             except:
                 pass
             date = row['Date']
