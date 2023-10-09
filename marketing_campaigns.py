@@ -96,7 +96,7 @@ def marketing_campaign_cron():
             date_time_obj = datetime.strptime(date_time_str, '%m/%d/%Y %I:%M %p')
 
             # Convert the datetime object to an epoch timestamp (seconds since January 1, 1970)
-            epoch_timestamp = int(date_time_obj.timestamp())
+            epoch_timestamp = int(date_time_obj.timestamp()) - (5.5*3600)
 
             #Provide a 10-12 hour timeframe to send message
             if epoch_timestamp-1800<time.time()<=epoch_timestamp+1800 and status =='FALSE':
