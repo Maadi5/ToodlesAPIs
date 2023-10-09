@@ -128,7 +128,8 @@ for idx, val in enumerate(range(0,24)):
 # Schedule the job to run every day at 3pm (test)
 for time_str in all_times:
     schedule.every().day.at(time_str).do(marketing_campaign_cron)
-#
+
+print(all_times)
 print('running cron...')
 while True:
     schedule.run_pending()
