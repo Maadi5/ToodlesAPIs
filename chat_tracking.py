@@ -77,12 +77,14 @@ class chat_tracker():
                 for idx, row in originaldf.iterrows():
                     # print('row: ', row)
                     if row['Message'] == payload['Message'] and row['Timestamp'] == str(payload['Timestamp']):
+                        print("message exists: ", payload['Message'])
                         exists = True
                         break
             elif type(originaldf) == list:
                 for idx, row in enumerate(originaldf):
                     # print('row: ', row)
                     if row['Message'] == payload['Message'] and row['Timestamp'] == str(payload['Timestamp']):
+                        print("message exists: ", payload['Message'])
                         exists = True
                         break
         except:
@@ -187,8 +189,6 @@ class chat_tracker():
     def chat_manager_cron(self):
         gsheets = googlesheets_apis(spreadsheet_id=config.chats_spreadsheet_id)
         sheet_names = self.gsheets.get_sheet_names()
-
-
         for s in sheet_names:
             try:
                 sheet_df = gsheets.load_sheet_as_csv(sheet_name=s)
