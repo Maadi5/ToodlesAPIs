@@ -210,6 +210,11 @@ class crm_sheet():
                                                      'row': rowcount,
                                                      'value': updated_context}
                                                     ])
+                            dropdowns_to_update = [
+                                {'dropdown': self.dropdown_payload_chat, 'row': rowcount,
+                                 'col': self.col_index['Status']}]
+                            self.gsheets.update_dropdowns(dropdowns_to_update=dropdowns_to_update,
+                                                          sheet_name=config.crm_open_sheet_name)
 
 
             rowcount += 1
