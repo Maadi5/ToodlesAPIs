@@ -63,7 +63,7 @@ class chat_tracker():
                         break
                 new_chats.reverse()
 
-            get_prev_chat.append({'From': 'User: ' + name, 'Message': message, 'Time': time, 'Timestamp': timestamp})
+            # get_prev_chat.append({'From': 'User: ' + name, 'Message': message, 'Time': time, 'Timestamp': timestamp})
             get_prev_chat = sorted(get_prev_chat, key=lambda x:x['Timestamp'])
             add_df = pd.DataFrame(get_prev_chat)
             add_df.to_csv(self.add_to_csv_path, index=False)
