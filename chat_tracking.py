@@ -1,6 +1,5 @@
 import os
 import traceback
-
 from google_sheets_apis import googlesheets_apis
 import config
 import pandas as pd
@@ -8,6 +7,7 @@ from utils import epoch_to_dd_mm_yy_time, wati_date_to_epoch
 import time
 from crm_sheet_mgr import crm_sheet
 from wati_apis import WATI_APIS
+
 class chat_tracker():
     def __init__(self):
         self.gsheets = googlesheets_apis(spreadsheet_id=config.chats_spreadsheet_id)
@@ -39,7 +39,7 @@ class chat_tracker():
             print('previous chats: ', get_prev_chat)
             try:
                 last_message = list(current_sheet['Message'])[-1]
-                last_timestamp = list(current_sheet['Timestamp'][-1])
+                last_timestamp = list(current_sheet['Timestamp'])[-1]
             except:
                 last_message = ''
                 last_timestamp = ''
@@ -48,7 +48,10 @@ class chat_tracker():
             for chat in get_prev_chat:
                 if chat['Message'] == last_message and chat['Timestamp'] == last_timestamp:
                     start_collecting = True
-                if start_collecting and not self.check_if_already_exists(originaldf=current_sheet, payload=chat) and not self.check_if_already_exists(originaldf=new_chats, payload=chat):
+                check_if_already_exists_in_sheet = self.check_if_already_exists(originaldf=current_sheet, payload=chat)
+                check_if_already_exists_in_list = self.check_if_already_exists(originaldf=new_chats, payload=chat)
+
+                if start_collecting and not check_if_already_exists_in_sheet and not check_if_already_exists_in_list:
                     new_chats.append(chat)
 
             if new_chats == []:
@@ -72,12 +75,14 @@ class chat_tracker():
         try:
             if str(type(originaldf)) == "<class 'pandas.core.frame.DataFrame'>":
                 for idx, row in originaldf.iterrows():
-                    if row['Message'] == payload['Message'] and row['Timestamp'] == payload['Timestamp']:
+                    # print('row: ', row)
+                    if row['Message'] == payload['Message'] and row['Timestamp'] == str(payload['Timestamp']):
                         exists = True
                         break
             elif type(originaldf) == list:
                 for idx, row in enumerate(originaldf):
-                    if row['Message'] == payload['Message'] and row['Timestamp'] == payload['Timestamp']:
+                    # print('row: ', row)
+                    if row['Message'] == payload['Message'] and row['Timestamp'] == str(payload['Timestamp']):
                         exists = True
                         break
         except:
@@ -113,7 +118,10 @@ class chat_tracker():
                 new_chats = []
                 start_collecting = False
                 for chat in get_prev_chat:
-                    if start_collecting and not self.check_if_already_exists(originaldf=current_sheet, payload=chat) and not self.check_if_already_exists(originaldf=new_chats, payload=chat):
+                    check_if_already_exists_in_sheet = self.check_if_already_exists(originaldf=current_sheet,
+                                                                                    payload=chat)
+                    check_if_already_exists_in_list = self.check_if_already_exists(originaldf=new_chats, payload=chat)
+                    if start_collecting and not check_if_already_exists_in_sheet and not check_if_already_exists_in_list:
                         new_chats.append(chat)
                     if chat['Message'] == last_message and chat['Timestamp'] == last_timestamp:
                         start_collecting = True
@@ -208,7 +216,9 @@ if __name__ == '__main__':
 
     # chats.chat_manager_cron()
     # chats.get_previous_chat_chunk(phone_num='919176270768')
-    chats.update_chats()
+    # chats.update_chats()
+    chats.add_chat(payload={'name': 'M A Adithya', 'phone_num': '919176270768',
+                            'timestamp': time.time(), 'message': 'This is a test message'})
 
 
 

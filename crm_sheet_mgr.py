@@ -23,6 +23,13 @@ class crm_sheet():
         },
         "showCustomUi": True
         }
+        self.dropdown_payload_chat = {
+        "condition": {
+            "type": "ONE_OF_LIST",
+            "values": [{'userEnteredValue': 'Revive chat'}]
+        },
+        "showCustomUi": True
+        }
         self.crm_alarm_contacts = {'Javith': '919698606713', 'Milan': '919445574311',
                                  'Sanaa': '919731011565', 'Adithya': '919176270768'}
         self.wati = WATI_APIS()
