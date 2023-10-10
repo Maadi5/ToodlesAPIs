@@ -200,8 +200,7 @@ class crm_sheet():
                                                      'value': float(row['SLA(Hours)'])-update_freq},
                                                     {'col': self.column_dict['Suggested Context'],
                                                      'row': rowcount,
-                                                     'value': updated_context}
-                                                    ])
+                                                     'value': updated_context}])
                         else:
                             values_to_update.extend([{'col': self.column_dict['SLA(Hours)'],
                                                      'row': rowcount,
@@ -211,7 +210,7 @@ class crm_sheet():
                                                      'value': updated_context}
                                                     ])
                             dropdowns_to_update = [
-                                {'dropdown': self.dropdown_payload_chat, 'row': rowcount,
+                                {'dropdown': self.dropdown_payload_chat, 'row': rowcount-1,
                                  'col': self.col_index['Status']}]
                             self.gsheets.update_dropdowns(dropdowns_to_update=dropdowns_to_update,
                                                           sheet_name=config.crm_open_sheet_name)
@@ -251,7 +250,18 @@ class crm_sheet():
 
 if __name__ == '__main__':
     crm_obj = crm_sheet()
-    crm_obj.sheet_mgr_cron_job()
+    payload_to_add = {'Order Number': '9996',
+                      'Platform': 'Shopify',
+                      'Name': 'Adithya2',
+                      'Number': '919176270768',
+                      }
+    # crm_obj.sheet_mgr_cron_job()
+    pickup_delay_alarm = payload_to_add
+    pickup_delay_alarm['Suggested Context'] = 'Order date: ' + '\nShipping mode: ' + '\nDelivery Status: ' + '\nTime left to reply(hours): ' + '1'
+    pickup_delay_alarm['Alert Type'] = 'Reply delay'
+
+    # crm_obj.add_alert_to_sheet(payload=pickup_delay_alarm, sla_value=float(1))
+    crm_obj.sheet_mgr_cron_job(update_freq=1)
 
 
 
