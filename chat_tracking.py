@@ -56,16 +56,16 @@ class chat_tracker():
 
             if new_chats == []:
                 for i in reversed(range(len(get_prev_chat))):
-                    if 'user' not in get_prev_chat[i]['From'].lower():
-                        if not self.check_if_already_exists(originaldf=current_sheet, payload=get_prev_chat[i]) and not self.check_if_already_exists(originaldf=new_chats, payload=get_prev_chat[i]):
-                            new_chats.append(get_prev_chat[i])
+                    # if 'user' not in get_prev_chat[i]['From'].lower():
+                    if not self.check_if_already_exists(originaldf=current_sheet, payload=get_prev_chat[i]) and not self.check_if_already_exists(originaldf=new_chats, payload=get_prev_chat[i]):
+                        new_chats.append(get_prev_chat[i])
                     else:
                         break
                 new_chats.reverse()
 
             # get_prev_chat.append({'From': 'User: ' + name, 'Message': message, 'Time': time, 'Timestamp': timestamp})
-            get_prev_chat = sorted(get_prev_chat, key=lambda x:x['Timestamp'])
-            add_df = pd.DataFrame(get_prev_chat)
+            new_chats = sorted(new_chats, key=lambda x:x['Timestamp'])
+            add_df = pd.DataFrame(new_chats)
             add_df.to_csv(self.add_to_csv_path, index=False)
             self.gsheets.append_csv_to_google_sheets(csv_path=self.add_to_csv_path, sheet_name=phone_num)
 
@@ -217,8 +217,8 @@ if __name__ == '__main__':
     # chats.chat_manager_cron()
     # chats.get_previous_chat_chunk(phone_num='919176270768')
     # chats.update_chats()
-    chats.add_chat(payload={'name': 'M A Adithya', 'phone_num': '919176270768',
-                            'timestamp': time.time(), 'message': 'This is a test message'})
+    chats.add_chat(payload={'name': 'Srish', 'phone_num': '919830687860',
+                            'timestamp': time.time(), 'message': 'Test3'})
 
 
 
