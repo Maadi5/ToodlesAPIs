@@ -35,7 +35,7 @@ class chat_tracker():
         already_exists = self.check_if_already_exists(originaldf=current_sheet, payload={'Message': message, 'Timestamp': timestamp})
 
         if not already_exists:
-            get_prev_chat = self.get_previous_chat_chunk(name=name, phone_num= phone_num, n=8, include_latest=True)
+            get_prev_chat = self.get_previous_chat_chunk(name=name, phone_num= phone_num, n=6, include_latest=True)
             print('previous chats: ', get_prev_chat)
             try:
                 last_message = list(current_sheet['Message'])[-1]
