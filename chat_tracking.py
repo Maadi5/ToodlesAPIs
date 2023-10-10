@@ -194,7 +194,7 @@ class chat_tracker():
                 sheet_df = gsheets.load_sheet_as_csv(sheet_name=s)
                 phone_num = s
                 current_time = time.time()
-                if 'User' in list(sheet_df['From'])[-1]:
+                if not 'Admin' in list(sheet_df['From'])[-1] and not 'has been closed' in list(sheet_df['Message'])[-1].lower():
                     message = list(sheet_df['Message'])[-1]
                     timestamp = float(list(sheet_df['Timestamp'])[-1])
                     if (current_time-timestamp)>= (10*3600):
