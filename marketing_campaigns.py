@@ -99,7 +99,7 @@ def marketing_campaign_cron():
             epoch_timestamp = int(date_time_obj.timestamp()) - (5.5*3600)
 
             #Provide a 10-12 hour timeframe to send message
-            if epoch_timestamp-1800<time.time()<=epoch_timestamp+1800 and status =='FALSE':
+            if (epoch_timestamp-1600)< time.time()<= (epoch_timestamp+1600) and status =='FALSE':
                 print('Trigger campaign function')
                 status_response = marketing_campaign_wati(wati=wati, template=template_name, skus=sku_payload)
                 values_to_update.append({'col': column_dict['Sent?'],

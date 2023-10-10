@@ -189,7 +189,7 @@ def bluedart_tracking_checker():
                 #Run pipeline
                 else:
                     id = str(row['unique_id'])
-                    if id == '14812778173':
+                    if id == '14962853305':
                         print('checkpoint')
                     sku = str(row['sku'])
                     awb = str(row['awb'])
@@ -374,7 +374,7 @@ def bluedart_tracking_checker():
                                     values_to_update.append({'col': column_dict['delivery_delay_message'],
                                                              'row': val+2,
                                                              'value': status})
-                                    trackerdf.at[val, 'delivery_update_message'] = status
+                                    trackerdf.at[val, 'delivery_delay_message'] = status
                                 gsheets.update_cell(values_to_update=values_to_update, sheet_name=config.db_sheet_name)
                                 values_to_update = []
                             else:
@@ -453,17 +453,17 @@ for idx, val in enumerate(range(0,24)):
         all_times.append(hour + ':' + minute)
 
 
-times_to_run = all_times
-
-print(times_to_run)
-## Schedule the job to run every day at 3pm (test)
-for time_str in times_to_run:
-    schedule.every().day.at(time_str).do(bluedart_tracking_checker)
-    break
+# times_to_run = all_times
 #
-print('running cron...')
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+# print(times_to_run)
+# ## Schedule the job to run every day at 3pm (test)
+# for time_str in times_to_run:
+#     schedule.every().day.at(time_str).do(bluedart_tracking_checker)
+#     break
+# #
+# print('running cron...')
+# while True:
+#     schedule.run_pending()
+#     time.sleep(1)
 
-# bluedart_tracking_checker()
+bluedart_tracking_checker()
