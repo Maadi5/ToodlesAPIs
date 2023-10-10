@@ -190,7 +190,7 @@ class crm_sheet():
                             values_to_update.append({'col': self.column_dict['SLA(Hours)'],
                                                      'row': rowcount,
                                                      'value': 'Revive failed'})
-                    else:
+                    elif str(row['SLA(Hours)']).lower() != 'expired':
                         if float(row['SLA(Hours)'])<=10:
                             sla_breach_types.add(str(row['Alert Type']))
 
