@@ -187,11 +187,11 @@ class chat_tracker():
         return chat_interactions_list
 
     def chat_manager_cron(self):
-        gsheets = googlesheets_apis(spreadsheet_id=config.chats_spreadsheet_id)
+        # gsheets = googlesheets_apis(spreadsheet_id=config.chats_spreadsheet_id)
         sheet_names = self.gsheets.get_sheet_names()
         for s in sheet_names:
             try:
-                sheet_df = gsheets.load_sheet_as_csv(sheet_name=s)
+                sheet_df = self.gsheets.load_sheet_as_csv(sheet_name=s)
                 phone_num = s
                 current_time = time.time()
                 if not 'Admin' in list(sheet_df['From'])[-1] and not 'has been closed' in list(sheet_df['Message'])[-1].lower():
@@ -208,7 +208,7 @@ class chat_tracker():
                                    'Alert Type': 'Reply delay'}
                         self.crm.add_alert_to_sheet(payload=payload, sla_value= round(24-time_since_message,2))
                 elif 'has been closed' in list(sheet_df['Message'])[-1].lower():
-                    gsheets.remove_sheet(phone_num)
+                    self.gsheets.remove_sheet(phone_num)
             except:
                 print(s, ': processing failed.')
 if __name__ == '__main__':
