@@ -16,7 +16,7 @@ class crm_sheet():
         self.columns_list, self.column_dict, self.col_index = self.gsheets.get_column_names(sheet_name=config.crm_open_sheet_name)
         # self.col_list =
         self.update_csv_path = os.path.join(os.getcwd(), 'update_csv_temp.csv')
-        self.dropdown_payload = {
+        self.dropdown_payload_delivery = {
         "condition": {
             "type": "ONE_OF_LIST",
             "values": [{'userEnteredValue': 'Resolved'}, {'userEnteredValue': 'Delay by 2 hours'}]
@@ -24,6 +24,13 @@ class crm_sheet():
         "showCustomUi": True
         }
         self.dropdown_payload_chat = {
+        "condition": {
+            "type": "ONE_OF_LIST",
+            "values": [{'userEnteredValue': 'Resolved'}]
+        },
+        "showCustomUi": True
+        }
+        self.dropdown_payload_chat_expired = {
         "condition": {
             "type": "ONE_OF_LIST",
             "values": [{'userEnteredValue': 'Revive chat'}]
@@ -104,8 +111,12 @@ class crm_sheet():
                                                        sheet_name=config.crm_open_sheet_name)
 
                 if alert in {'Delivery delay', 'Pickup delay'}:
-                    dropdowns_to_update = [{'dropdown': self.dropdown_payload, 'row': number_of_tickets_in_open+1, 'col': self.col_index['Status']}]
-                    self.gsheets.update_dropdowns(dropdowns_to_update=dropdowns_to_update, sheet_name=config.crm_open_sheet_name)
+                    dropdowns_to_update = [{'dropdown': self.dropdown_payload_delivery, 'row': number_of_tickets_in_open+1, 'col': self.col_index['Status']}]
+                elif alert in {'Reply delay'}:
+                    dropdowns_to_update = [
+                        {'dropdown': self.dropdown_payload_chat, 'row': number_of_tickets_in_open + 1,
+                         'col': self.col_index['Status']}]
+                self.gsheets.update_dropdowns(dropdowns_to_update=dropdowns_to_update, sheet_name=config.crm_open_sheet_name)
                 print('google sheets api call to add content done')
         except:
             print('Add to CRM failed')
@@ -190,7 +201,7 @@ class crm_sheet():
                             values_to_update.append({'col': self.column_dict['SLA(Hours)'],
                                                      'row': rowcount,
                                                      'value': 'Revive failed'})
-                    elif str(row['SLA(Hours)']).lower() != 'expired':
+                    elif str(row['SLA(Hours)']).lower() != 'expired' and str(row['SLA(Hours)']) != 'NA':
                         if float(row['SLA(Hours)'])<=10:
                             sla_breach_types.add(str(row['Alert Type']))
 
@@ -210,10 +221,14 @@ class crm_sheet():
                                                      'value': updated_context}
                                                     ])
                             dropdowns_to_update = [
-                                {'dropdown': self.dropdown_payload_chat, 'row': rowcount-1,
+                                {'dropdown': self.dropdown_payload_chat_expired, 'row': rowcount-1,
                                  'col': self.col_index['Status']}]
                             self.gsheets.update_dropdowns(dropdowns_to_update=dropdowns_to_update,
                                                           sheet_name=config.crm_open_sheet_name)
+                    elif str(row['SLA(Hours)']) == 'NA':
+                        remove_from_opened.append(rowcount)
+                        row['Date Closed'] = epoch_to_dd_mm_yy_time(int(time.time()))
+                        rows_to_add_to_closed.append(row)
 
 
             rowcount += 1
