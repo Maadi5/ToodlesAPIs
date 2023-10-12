@@ -20,6 +20,9 @@ current_year = datetime.now().year
 wati = WATI_APIS()
 gsheets = googlesheets_apis(spreadsheet_id=config.marketing_campaigns_gsheets_id)
 
+community_gsheets = googlesheets_apis(spreadsheet_id=config.community_sheet_id)
+
+
 columns_list, column_dict,_ = gsheets.get_column_names(sheet_name=config.marketing_all_sheet_name)
 # Configure the logger
 logging.basicConfig(
@@ -28,6 +31,13 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
+
+def phone_number_format(phone):
+    phone = phone[1:] if phone[0] == '0' else phone
+    phone = phone.replace('-', '')
+    phone = ''.join(''.join(phone.split(' ')).split('+'))
+    phone = '91' + phone if len(phone) != 12 else phone
+    return phone
 
 def epoch_to_dd_mm_yy_time(epoch_timestamp, with_time = True):
     # Convert the epoch timestamp to a datetime object
@@ -68,6 +78,17 @@ def date_string_to_epoch(date_str):
 
 def marketing_campaign_cron():
     marketing_sheet = gsheets.load_sheet_as_csv(sheet_name=config.marketing_all_sheet_name)
+    community_members = community_gsheets.load_sheet_as_csv(sheet_name='Sheet7')
+    number_lists = {'community_members': []}
+    for idx, row in community_members.iterrows():
+        if str(row['Valid']).lower() == 'yes':
+            name = str(row['Name'])
+            phone_num = str(row['Number'])
+            phone_num = phone_number_format(phone=phone_num)
+            number_lists['community_members'].append(phone_num)
+    print('number list: ', number_lists)
+
+
     marketing_sheet.fillna('', inplace = True)
     values_to_update = []
     rowcount = 2
@@ -84,10 +105,12 @@ def marketing_campaign_cron():
             template_name = row['WATI template']
             skus = str(row['SKU'])
             sku_payload = None
+
             if skus != '':
                 sku_payload = skus.split(',')
             print('Status: ', status)
 
+            sku_payload = ['non-community']
 
             # Define the date and time as a string
             date_time_str = f'{date} {timeval}'
@@ -99,9 +122,11 @@ def marketing_campaign_cron():
             epoch_timestamp = int(date_time_obj.timestamp()) - (5.5*3600)
 
             #Provide a 10-12 hour timeframe to send message
+            # if True:
             if (epoch_timestamp-1600)< time.time()<= (epoch_timestamp+1600) and status =='FALSE':
                 print('Trigger campaign function')
-                status_response = marketing_campaign_wati(wati=wati, template=template_name, skus=sku_payload)
+                status_response = marketing_campaign_wati(wati=wati, template=template_name, skus=sku_payload,
+                                                          number_lists=number_lists)
                 values_to_update.append({'col': column_dict['Sent?'],
                                                      'row': rowcount,
                                                      'value': status_response})
@@ -129,14 +154,14 @@ for idx, val in enumerate(range(0,24)):
         minute = date_time_obj.strftime('%M')
         all_times.append(hour + ':' + minute)
 
-# Schedule the job to run every day at 3pm (test)
-for time_str in all_times:
-    schedule.every().day.at(time_str).do(marketing_campaign_cron)
+# # Schedule the job to run every day at 3pm (test)
+# for time_str in all_times:
+#     schedule.every().day.at(time_str).do(marketing_campaign_cron)
+#
+# print(all_times)
+# print('running cron...')
+# while True:
+#     schedule.run_pending()
+#     time.sleep(1)
 
-print(all_times)
-print('running cron...')
-while True:
-    schedule.run_pending()
-    time.sleep(1)
-
-# marketing_campaign_cron()
+marketing_campaign_cron()
