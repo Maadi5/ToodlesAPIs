@@ -10,15 +10,14 @@ from wati_apis import WATI_APIS
 
 class chat_tracker():
     def __init__(self):
-        self.gsheets = googlesheets_apis(spreadsheet_id=config.chats_spreadsheet_id)
-        self.tempdf_new = pd.DataFrame([{'From': 'NEWCHAT', 'Message': 'NEWCHAT', 'Time': 'NEWCHAT', 'Timestamp': 'NEWCHAT'}])
-        self.tempdf_new.to_csv(os.path.join(os.getcwd(), 'temp_new_df.csv'), index=False)
+        tempdf_new = pd.DataFrame([{'From': 'NEWCHAT', 'Message': 'NEWCHAT', 'Time': 'NEWCHAT', 'Timestamp': 'NEWCHAT'}])
+        tempdf_new.to_csv(os.path.join(os.getcwd(), 'temp_new_df.csv'), index=False)
         self.add_to_csv_path = os.path.join(os.getcwd(), 'tempdf.csv')
-        self.crm = crm_sheet()
-        self.wati = WATI_APIS()
 
     def add_chat(self, payload):
-        sheet_names = self.gsheets.get_sheet_names()
+        wati = WATI_APIS()
+        gsheets = googlesheets_apis(spreadsheet_id=config.chats_spreadsheet_id)
+        sheet_names = gsheets.get_sheet_names()
         print('Sheet names: ', sheet_names)
         phone_num = payload['phone_num']
         timestamp = payload['timestamp']
@@ -27,15 +26,15 @@ class chat_tracker():
         message = payload['message']
 
         if phone_num not in sheet_names:
-            self.gsheets.add_new_sheet(new_sheet_name=phone_num)
-            self.gsheets.append_csv_to_google_sheets(csv_path=os.path.join(os.getcwd(), 'temp_new_df.csv'), sheet_name=phone_num)
+            gsheets.add_new_sheet(new_sheet_name=phone_num)
+            gsheets.append_csv_to_google_sheets(csv_path=os.path.join(os.getcwd(), 'temp_new_df.csv'), sheet_name=phone_num)
 
         ##Check if messsage is repeating
-        current_sheet  = self.gsheets.load_sheet_as_csv(sheet_name=phone_num)
+        current_sheet  = gsheets.load_sheet_as_csv(sheet_name=phone_num)
         already_exists = self.check_if_already_exists(originaldf=current_sheet, payload={'Message': message, 'Timestamp': timestamp})
 
         if not already_exists:
-            get_prev_chat = self.get_previous_chat_chunk(name=name, phone_num= phone_num, n=6, include_latest=True)
+            get_prev_chat = self.get_previous_chat_chunk(name=name, phone_num= phone_num, n=6, include_latest=True, wati=wati)
             print('previous chats: ', get_prev_chat)
             try:
                 last_message = list(current_sheet['Message'])[-1]
@@ -67,7 +66,7 @@ class chat_tracker():
             new_chats = sorted(new_chats, key=lambda x:x['Timestamp'])
             add_df = pd.DataFrame(new_chats)
             add_df.to_csv(self.add_to_csv_path, index=False)
-            self.gsheets.append_csv_to_google_sheets(csv_path=self.add_to_csv_path, sheet_name=phone_num)
+            gsheets.append_csv_to_google_sheets(csv_path=self.add_to_csv_path, sheet_name=phone_num)
 
 
     def check_if_already_exists(self, originaldf, payload):
@@ -145,8 +144,8 @@ class chat_tracker():
                 self.gsheets.append_csv_to_google_sheets(csv_path=self.add_to_csv_path, sheet_name=phone_num)
                 self.gsheets.sort_all_sheets()
 
-    def get_previous_chat_chunk(self, name, phone_num, n=5, include_latest = False):
-        chat_history_payload = self.wati.get_previous_n_chats(contact_number= phone_num, n=n)
+    def get_previous_chat_chunk(self, name, phone_num, wati, n=5, include_latest = False):
+        chat_history_payload = wati.get_previous_n_chats(contact_number= phone_num, n=n)
         message_items = chat_history_payload['messages']['items']
         chat_interactions = []
         chat_track = 0
@@ -178,20 +177,21 @@ class chat_tracker():
             chat_interactions = sorted(chat_interactions, key=lambda x: list(x.keys())[0], reverse=True)
         except:
             traceback.format_exc()
-        print('chat interactions: ', chat_interactions)
+        # print('chat interactions: ', chat_interactions)
         chat_interactions_list = []
         for val in chat_interactions:
-            print('val: ', val)
-            print('val.items(): ', val.items())
+            # print('val: ', val)
+            # print('val.items(): ', val.items())
             chat_interactions_list.append(list(val.items())[0][1])
         return chat_interactions_list
 
     def chat_manager_cron(self):
-        # gsheets = googlesheets_apis(spreadsheet_id=config.chats_spreadsheet_id)
-        sheet_names = self.gsheets.get_sheet_names()
+        gsheets = googlesheets_apis(spreadsheet_id=config.chats_spreadsheet_id)
+        sheet_names = gsheets.get_sheet_names()
+        add_alerts_to_crm_sheet = []
         for s in sheet_names:
             try:
-                sheet_df = self.gsheets.load_sheet_as_csv(sheet_name=s)
+                sheet_df = gsheets.load_sheet_as_csv(sheet_name=s)
                 phone_num = s
                 current_time = time.time()
                 if not 'Admin' in list(sheet_df['From'])[-1] and not 'has been closed' in list(sheet_df['Message'])[-1].lower():
@@ -206,11 +206,18 @@ class chat_tracker():
                                    'Number': phone_num,
                                    'Suggested Context': 'Message: ' + message + '\nTime left to reply(hours): ' + str(round(24-time_since_message,2)) + '\nTime of message: ' + str(time_of_message),
                                    'Alert Type': 'Reply delay'}
-                        self.crm.add_alert_to_sheet(payload=payload, sla_value= round(24-time_since_message,2))
+                        add_alerts_to_crm_sheet.append({'payload': payload, 'sla_value': round(24-time_since_message,2)})
+                        # crm.add_alert_to_sheet(payload=payload, sla_value= round(24-time_since_message,2))
                 elif 'has been closed' in list(sheet_df['Message'])[-1].lower():
-                    self.gsheets.remove_sheet(phone_num)
+                    gsheets.remove_sheet(phone_num)
             except:
                 print(s, ': processing failed.')
+        del gsheets
+        crm = crm_sheet()
+        for payload_dict in add_alerts_to_crm_sheet:
+            crm.add_alert_to_sheet(payload=payload_dict['payload'], sla_value= payload_dict['sla_value'])
+
+
 if __name__ == '__main__':
     chats = chat_tracker()
 

@@ -14,7 +14,6 @@ class crm_sheet():
         self.wati = WATI_APIS()
         self.gsheets = googlesheets_apis(spreadsheet_id=config.crm_spreadsheet_id)
         self.columns_list, self.column_dict, self.col_index = self.gsheets.get_column_names(sheet_name=config.crm_open_sheet_name)
-        # self.col_list =
         self.update_csv_path = os.path.join(os.getcwd(), 'update_csv_temp.csv')
         self.dropdown_payload_delivery = {
         "condition": {
@@ -33,13 +32,12 @@ class crm_sheet():
         self.dropdown_payload_chat_expired = {
         "condition": {
             "type": "ONE_OF_LIST",
-            "values": [{'userEnteredValue': 'Revive chat'}]
+            "values": [{'userEnteredValue': 'Revive chat'}, {'userEnteredValue': 'Resolved'}]
         },
         "showCustomUi": True
         }
         self.crm_alarm_contacts = {'Javith': '919698606713', 'Milan': '919445574311',
                                  'Sanaa': '919731011565', 'Adithya': '919176270768'}
-        self.wati = WATI_APIS()
         self.alert_types = ['Delivery delay', 'Query reply SLA']
         self.tempdf_to_closed_path = os.path.join(os.getcwd(), 'tempdf_to_closed.csv')
 
@@ -152,9 +150,7 @@ class crm_sheet():
         3.Push resolved issues to the closed section
         :return:
         '''
-        #Load sheet again for each cron job
-        realtime_gsheet = googlesheets_apis(spreadsheet_id=config.crm_spreadsheet_id)
-        realtime_df = realtime_gsheet.load_sheet_as_csv(sheet_name=config.crm_open_sheet_name)
+        realtime_df = self.gsheets.load_sheet_as_csv(sheet_name=config.crm_open_sheet_name)
         rowcount = 2
         rows_to_add_to_closed = []
         values_to_update = []
@@ -253,17 +249,19 @@ class crm_sheet():
 
         new_to_closed = pd.DataFrame(rows_to_add_to_closed)
         new_to_closed.to_csv(self.tempdf_to_closed_path, index=False)
-        realtime_gsheet.append_csv_to_google_sheets(csv_path=self.tempdf_to_closed_path,
+        self.gsheets.append_csv_to_google_sheets(csv_path=self.tempdf_to_closed_path,
                                                sheet_name=config.crm_closed_sheet_name)
-        realtime_gsheet.update_cell(values_to_update=values_to_update, sheet_name=config.crm_open_sheet_name)
+        self.gsheets.update_cell(values_to_update=values_to_update, sheet_name=config.crm_open_sheet_name)
         # if add_buttons:
         #     realtime_gsheet.add_buttons(button_locations=add_buttons, sheet_name=config.crm_open_sheet_name)
         try:
-            realtime_gsheet.delete_rows2(rowids= remove_from_opened, sheet_name = config.crm_open_sheet_name)
+            self.gsheets .delete_rows2(rowids= remove_from_opened, sheet_name = config.crm_open_sheet_name)
         except:
             print('row delete failed')
 
 if __name__ == '__main__':
+    from copy import deepcopy
+
     crm_obj = crm_sheet()
     payload_to_add = {'Order Number': '9996',
                       'Platform': 'Shopify',
@@ -271,12 +269,32 @@ if __name__ == '__main__':
                       'Number': '919176270768',
                       }
     # crm_obj.sheet_mgr_cron_job()
-    pickup_delay_alarm = payload_to_add
-    pickup_delay_alarm['Suggested Context'] = 'Order date: ' + '\nShipping mode: ' + '\nDelivery Status: ' + '\nTime left to reply(hours): ' + '1'
-    pickup_delay_alarm['Alert Type'] = 'Reply delay'
+    delivery_delay_alarm = payload_to_add
+    delivery_delay_alarm['Suggested Context'] = 'Promised hard date: ' + '20th September 2023' + '\nEstimated date: ' + '4th October 2023' + '\nDelivery Status: ' + 'IN TRANSIT' \
+                               + '\nDelivery update message: ' + 'Success' + '\nDelivery delay message: ' + 'Not Sent'
+    delivery_delay_alarm['Alert Type'] = 'Delivery delay'
 
-    crm_obj.add_alert_to_sheet(payload=pickup_delay_alarm, sla_value=float(1))
-    # crm_obj.sheet_mgr_cron_job(update_freq=1)
+    pickup_delay_alarm = deepcopy(payload_to_add)
+    pickup_delay_alarm['Number'] = '919176270765'
+    pickup_delay_alarm['Order Number'] = '9991'
+    pickup_delay_alarm['Name'] = 'Adithya0'
+
+    pickup_delay_alarm[
+        'Suggested Context'] = 'Order date: ' + '13th Oct 2023' + '\nShipping mode: ' + 'Standard' + '\nDelivery Status: ' + 'PICKUP REGISTERED'
+    pickup_delay_alarm['Alert Type'] = 'Pickup delay'
+
+
+
+    reply_delay_alarm = {'Name': 'Adithya3',
+                                   'Number': '919176270769',
+                                   'Suggested Context': 'Message: ' + 'Hey, can you help me with something?' + '\nTime left to reply(hours): ' + str(round(1)) + '\nTime of message: ' + '20th september 2023',
+                                   'Alert Type': 'Reply delay'}
+
+
+    # crm_obj.add_alert_to_sheet(payload=delivery_delay_alarm, sla_value=float(2))
+    # crm_obj.add_alert_to_sheet(payload=pickup_delay_alarm, sla_value=float(2))
+    # crm_obj.add_alert_to_sheet(payload=reply_delay_alarm, sla_value=float(1))
+    crm_obj.sheet_mgr_cron_job(update_freq=1)
 
 
 
