@@ -218,7 +218,7 @@ def bluedart_tracking_checker():
                 #Run pipeline
                 else:
                     id = str(row['unique_id'])
-                    if id == '15023630521':
+                    if id == '14970408791':
                         print('checkpoint')
                     sku = str(row['sku'])
                     awb = str(row['awb'])
@@ -266,16 +266,17 @@ def bluedart_tracking_checker():
 
                     product_list = {}
                     # indexes = []
-                    for ind in cinds:
+                    for c, ind in enumerate(cinds):
                         sku = trackerdf.at[ind, 'sku']
                         try:
                             product_name, product_manual = get_product_name_manual(sku=sku)
                             product_list[product_name] = product_manual
+                            valid_products = True
                         except:
-                            pass
+                            product_list['invalid_' + str(c)] = ''
                     valid_products = False
-                    if product_list != {}:
-                        valid_products = True
+                    # if product_list != {}:
+
                     order_date_epoch = ''
                     try:
                         order_date_epoch = date_string_to_epoch(order_date)
@@ -357,12 +358,15 @@ def bluedart_tracking_checker():
                             if actions['usermanual2 push'] and (usermanual_during_delivery_whatsapp != 'Success' and usermanual_during_delivery_whatsapp != 'NA'):
                                 count = 0
                                 for product_name, product_manual in product_list.items():
-                                    status = usermanual_delivery_whatsapp(sku=sku, product_name=product_name,
-                                                                 product_manual=product_manual, name=name,phone_num=phone_num, wati=wati)
+                                    if 'invalid' not in product_name:
+                                        status = usermanual_delivery_whatsapp(sku=sku, product_name=product_name,
+                                                                     product_manual=product_manual, name=name,phone_num=phone_num, wati=wati)
+                                    else:
+                                        status = 'NA'
                                     values_to_update.append({'col': column_dict['usermanual_during_delivery_whatsapp'],
                                                          'row': cinds[count] + 2,
                                                          'value': status})
-                                    trackerdf.at[cinds[count]+2, 'usermanual_during_delivery_whatsapp'] = status
+                                    trackerdf.at[cinds[count], 'usermanual_during_delivery_whatsapp'] = status
                                     count += 1
 
                                 gsheets.update_cell(values_to_update=values_to_update, sheet_name=config.db_sheet_name)
@@ -483,16 +487,16 @@ for idx, val in enumerate(range(0,24)):
 
 
 times_to_run = all_times
-
-print(times_to_run)
-# Schedule the job to run every day at 3pm (test)
-for time_str in times_to_run:
-    schedule.every().day.at(time_str).do(bluedart_tracking_checker)
-    # break
 #
-print('running cron...')
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+# print(times_to_run)
+# # Schedule the job to run every day at 3pm (test)
+# for time_str in times_to_run:
+#     schedule.every().day.at(time_str).do(bluedart_tracking_checker)
+#     # break
+# #
+# print('running cron...')
+# while True:
+#     schedule.run_pending()
+#     time.sleep(1)
 
-# bluedart_tracking_checker()
+bluedart_tracking_checker()
