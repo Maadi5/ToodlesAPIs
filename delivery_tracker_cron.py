@@ -147,6 +147,35 @@ def mark_row_as_skipped(row_number, column_dict, message = 'Skipped', skip_blued
                                                  ]
     return update_values
 
+def mark_row_as_skipped_bluedart(row_number, column_dict, message = 'Skipped', skip_bluedart_status= False):
+    if skip_bluedart_status:
+        update_values = [{'col': column_dict['tracking_status_update'],
+                                                  'row': row_number,
+                                                  'value': message},
+                                                 {'col': column_dict['tracking_est_update'],
+                                                  'row': row_number,
+                                                  'value': message},
+                                                 {'col': column_dict['last_tracked_time'],
+                                                  'row': row_number,
+                                                  'value': message},
+                                                 ]
+    else:
+        update_values = [{'col': column_dict['tracking_code_update'],
+                                                  'row': row_number,
+                                                  'value': message},
+                                             {'col': column_dict['tracking_status_update'],
+                                              'row': row_number,
+                                              'value': message},
+                                                 {'col': column_dict['tracking_est_update'],
+                                                  'row': row_number,
+                                                  'value': message},
+                                                 {'col': column_dict['last_tracked_time'],
+                                                  'row': row_number,
+                                                  'value': message},
+                                                 ]
+    return update_values
+
+
 columns_list, column_dict,_ = gsheets.get_column_names(sheet_name=config.db_sheet_name)
 bluedart = bluedart_apis()
 
@@ -189,7 +218,7 @@ def bluedart_tracking_checker():
                 #Run pipeline
                 else:
                     id = str(row['unique_id'])
-                    if id == '14962853305':
+                    if id == '15023630521':
                         print('checkpoint')
                     sku = str(row['sku'])
                     awb = str(row['awb'])
@@ -308,7 +337,7 @@ def bluedart_tracking_checker():
                                    shipping_mode=shipping_mode, delivery_delay_message=delivery_delay_message, promised_date_epoch=promised_date_epoch,
                                                          first_time_data=first_time)
                         except:
-                            skip_values = mark_row_as_skipped(row_number=rowcount, column_dict=column_dict, message = 'track logic failed', skip_bluedart_status = True)
+                            skip_values = mark_row_as_skipped_bluedart(row_number=rowcount, column_dict=column_dict, message = 'track logic failed', skip_bluedart_status = True)
                             skip_values.append({'col': column_dict['tracking_code_update'],
                                                   'row': rowcount,
                                                   'value': tracking_code_update})
@@ -333,8 +362,8 @@ def bluedart_tracking_checker():
                                     values_to_update.append({'col': column_dict['usermanual_during_delivery_whatsapp'],
                                                          'row': cinds[count] + 2,
                                                          'value': status})
-                                    count += 1
                                     trackerdf.at[cinds[count]+2, 'usermanual_during_delivery_whatsapp'] = status
+                                    count += 1
 
                                 gsheets.update_cell(values_to_update=values_to_update, sheet_name=config.db_sheet_name)
                                 values_to_update = []
@@ -412,13 +441,13 @@ def bluedart_tracking_checker():
                                                       'value': epoch_to_dd_mm_yy_time(int(time.time())+19800)}
                                                      ])
                     else:
-                        skip_values = mark_row_as_skipped(row_number=rowcount, column_dict=column_dict, message='tracking api failed')
+                        skip_values = mark_row_as_skipped_bluedart(row_number=rowcount, column_dict=column_dict, message='tracking api failed')
                         values_to_update.extend(skip_values)
 
 
             except:
                 print('Exception at checking tracking')
-                skip_values = mark_row_as_skipped(row_number=rowcount, column_dict=column_dict,
+                skip_values = mark_row_as_skipped_bluedart(row_number=rowcount, column_dict=column_dict,
                                                   message='Loop failed')
                 values_to_update.extend(skip_values)
                 logging.error('Failed at iteration of eta checker')
@@ -457,13 +486,13 @@ times_to_run = all_times
 
 print(times_to_run)
 ## Schedule the job to run every day at 3pm (test)
-for time_str in times_to_run:
-    schedule.every().day.at(time_str).do(bluedart_tracking_checker)
-    # break
-#
-print('running cron...')
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+# for time_str in times_to_run:
+#     schedule.every().day.at(time_str).do(bluedart_tracking_checker)
+#     # break
+# #
+# print('running cron...')
+# while True:
+#     schedule.run_pending()
+#     time.sleep(1)
 
-# bluedart_tracking_checker()
+bluedart_tracking_checker()
