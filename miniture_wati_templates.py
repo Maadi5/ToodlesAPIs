@@ -107,6 +107,15 @@ def awb_whatsapp(awb,name, phone_num, wati):
     return status
 
 
+ignore2 = ['919971997642','919835586429','919952845817','918787856737',
+                                                 '919435019176','919884877777','919825018314','919160622316',
+                                                 '918299565721','919900960315','917020803637','917007696573','919167191916',
+                                                 '919884891983','918414881488','917721014349','917760107444','919663088339',
+                                                 '919884323118','919673799555','919620120888','919744233302','919148384737',
+                                                 '919686800333','919427805905','919811445268','919990162300','918438160249',
+                                                 ]
+
+
 def marketing_campaign_wati(template, wati, number_lists, skus = None):
     customers = pd.read_csv(r'woocommerce_customers_w_orders4.csv')
     total_number_of_customers = customers.shape[0]
@@ -123,13 +132,6 @@ def marketing_campaign_wati(template, wati, number_lists, skus = None):
         avoid_list.extend(number_lists['community_members'])
         skus.pop(skus.index('non-community'))
 
-    ignore2 = ['919971997642','919835586429','919952845817','918787856737',
-                                                     '919435019176','919884877777','919825018314','919160622316',
-                                                     '918299565721','919900960315','917020803637','917007696573','919167191916',
-                                                     '919884891983','918414881488','917721014349','917760107444','919663088339',
-                                                     '919884323118','919673799555','919620120888','919744233302','919148384737',
-                                                     '919686800333','919427805905','919811445268','919990162300','918438160249',
-                                                     ]
 
     if skus == []:
         skus = None
@@ -153,9 +155,8 @@ def marketing_campaign_wati(template, wati, number_lists, skus = None):
 
             if valid == True:
                 if avoid == True and customer_phone_number not in avoid_list:
-                    if customer_phone_number not in ignore2:
-                        wati_status = wati.send_template_message(contact_name=customer_name, contact_number=customer_phone_number,
-                                                            template_name=template)
+                    wati_status = wati.send_template_message(contact_name=customer_name, contact_number=customer_phone_number,
+                                                        template_name=template)
                     if wati_status:
                         status = 1
                         numbers_sent_to.add(customer_phone_number)
