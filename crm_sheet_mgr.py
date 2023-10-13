@@ -118,6 +118,7 @@ class crm_sheet():
                 print('google sheets api call to add content done')
         except:
             print('Add to CRM failed')
+            print(traceback.format_exc())
             # self.gsheets.sort_sheet(sheet_name=config.crm_open_sheet_name,
             #                        sorting_rule={'col': self.col_index['SLA(Hours)'], 'direction': 'ASCENDING'})
 
