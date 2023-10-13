@@ -61,7 +61,7 @@ class crm_sheet():
                     break
                 count += 1
             # realtime_gsheet = googlesheets_apis(spreadsheet_id=config.crm_spreadsheet_id)
-            self.gsheets.delete_rows2(rowids=index, sheet_name=config.crm_closed_sheet_name)
+            self.gsheets.delete_rows2(rowids=[index], sheet_name=config.crm_closed_sheet_name)
         if phone_num in list(opendf['Number']):
             already_exists = True
         return already_exists
