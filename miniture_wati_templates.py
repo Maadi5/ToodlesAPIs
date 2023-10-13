@@ -52,9 +52,9 @@ def usermanual_whatsapp(sku, product_name, product_manual, name,phone_num, wati)
 def usermanual_delivery_whatsapp(sku, product_name, product_manual, name,phone_num, wati):
     status = 'Failure'
     if sku in usermanual_skus_without_video:
-        wati_template = 'miniture_usermanual2_push'
+        wati_template = 'miniture_product_received'
     else:
-        wati_template = 'miniture_usermanual2_push'
+        wati_template = 'miniture_product_received'
 
     custom_params = [{'name': 'product_name', 'value': str(product_name)},
                      {'name': 'media_url', 'value': str(product_manual)}]

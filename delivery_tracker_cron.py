@@ -12,7 +12,7 @@ import config
 from datetime import datetime
 from bluedart_apis import bluedart_apis
 from crm_sheet_mgr import crm_sheet
-from miniture_wati_templates import delivery_reminder_whatsapp, usermanual_whatsapp, delivery_delay_whatsapp
+from miniture_wati_templates import delivery_reminder_whatsapp, usermanual_whatsapp, delivery_delay_whatsapp, usermanual_delivery_whatsapp
 import logging
 
 from utils import epoch_to_dd_mm_yy_time, date_string_to_epoch, date_str_to_epoch2
@@ -357,7 +357,7 @@ def bluedart_tracking_checker():
                             if actions['usermanual2 push'] and (usermanual_during_delivery_whatsapp != 'Success' and usermanual_during_delivery_whatsapp != 'NA'):
                                 count = 0
                                 for product_name, product_manual in product_list.items():
-                                    status = usermanual_whatsapp(sku=sku, product_name=product_name,
+                                    status = usermanual_delivery_whatsapp(sku=sku, product_name=product_name,
                                                                  product_manual=product_manual, name=name,phone_num=phone_num, wati=wati)
                                     values_to_update.append({'col': column_dict['usermanual_during_delivery_whatsapp'],
                                                          'row': cinds[count] + 2,
