@@ -9,7 +9,7 @@ import time
 from wati_apis import WATI_APIS
 
 chats = chat_tracker()
-wati_triggers = WATI_APIS()
+# wati_triggers = WATI_APIS()
 # gpt_inference = GPT_Inference()
 app = Flask(__name__)
 
