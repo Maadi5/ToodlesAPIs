@@ -52,40 +52,43 @@ class crm_sheet():
 
     def check_recurrance_chat_ticket(self, opendf, closeddf, phone_num, ticket_suggested_context):
         already_exists = False
-        if phone_num in list(closeddf['Number']):
+        if phone_num in list(closeddf['Number'][2:]):
             index = None
             count = 0
 
             ticket_context_list = ticket_suggested_context.split('\n')
             ticket_details = {}
             for l in ticket_context_list:
-                if 'Message: ' in l:
+                if 'Message:' in l:
                     ticket_details['message'] = l.split('Message:')[1][1:]
                 if 'Time of message:' in l:
                     ticket_details['time'] = l.split('Time of message:')[1][1:]
 
             for val in list(closeddf['Number']):
-                context_message = list(closeddf['Suggested Context'])[count]
-                context_list = context_message.split('\n')
-                message_details = {}
-                for l in context_list:
-                    if 'Message: ' in l:
-                        message_details['message'] = l.split('Message:')[1][1:]
-                    if 'Time of message:' in l:
-                        message_details['time'] = l.split('Time of message:')[1][1:]
+                try:
+                    context_message = list(closeddf['Suggested Context'])[count]
+                    context_list = context_message.split('\n')
+                    message_details = {}
+                    for l in context_list:
+                        if 'Message:' in l:
+                            message_details['message'] = l.split('Message:')[1][1:]
+                        if 'Time of message:' in l:
+                            message_details['time'] = l.split('Time of message:')[1][1:]
 
-                if val == phone_num:
-                    if message_details['message'] == ticket_details['message'] and message_details['time'] == ticket_details['time']:
-                        already_exists = True
-                        break
-                    else:
-                        index= count
-                        break
+                    if val == phone_num:
+                        if message_details['message'] == ticket_details['message'] and message_details['time'] == ticket_details['time']:
+                            already_exists = True
+                            break
+                        elif list(closeddf['Alert Type'])[count] == 'Reply delay':
+                            index= count
+                            break
+                except:
+                    pass
                 count += 1
             # realtime_gsheet = googlesheets_apis(spreadsheet_id=config.crm_spreadsheet_id)
             if index is not None:
-                self.gsheets.delete_rows2(rowids=[index], sheet_name=config.crm_closed_sheet_name)
-        if phone_num in list(opendf['Number']):
+                self.gsheets.delete_rows2(rowids=[index+1], sheet_name=config.crm_closed_sheet_name)
+        if phone_num in list(opendf['Number'][1:]):
             already_exists = True
         return already_exists
 
