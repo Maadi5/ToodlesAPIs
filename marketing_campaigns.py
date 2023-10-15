@@ -161,7 +161,10 @@ for time_str in all_times:
 print(all_times)
 print('running cron...')
 while True:
-    schedule.run_pending()
-    time.sleep(1)
+    try:
+        schedule.run_pending()
+        time.sleep(1)
+    except:
+        pass
 
 # marketing_campaign_cron()
