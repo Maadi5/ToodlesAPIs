@@ -191,7 +191,8 @@ class CSVProcessing(Resource):
                         valid_manual = False
                         try:
                             product_name, product_manual = get_product_name_manual(sku=sku)
-                            valid_manual = True
+                            if product_manual != '':
+                                valid_manual = True
                         except:
                             pass
                         #product_name, product_manual = get_product_name_manual(sku=sku)

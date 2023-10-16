@@ -271,10 +271,12 @@ def bluedart_tracking_checker():
                         try:
                             product_name, product_manual = get_product_name_manual(sku=sku)
                             product_list[product_name] = product_manual
-                            valid_products = True
+                            if product_manual != '':
+                                valid_products = True
                         except:
-                            product_list['invalid_' + str(c)] = ''
-                    valid_products = False
+                            # product_list['invalid_' + str(c)] = ''
+                            pass
+                    # valid_products = False
                     # if product_list != {}:
 
                     order_date_epoch = ''
@@ -358,9 +360,12 @@ def bluedart_tracking_checker():
                             if actions['usermanual2 push'] and (usermanual_during_delivery_whatsapp != 'Success' and usermanual_during_delivery_whatsapp != 'NA'):
                                 count = 0
                                 for product_name, product_manual in product_list.items():
-                                    if 'invalid' not in product_name:
-                                        status = usermanual_delivery_whatsapp(sku=sku, product_name=product_name,
-                                                                     product_manual=product_manual, name=name,phone_num=phone_num, wati=wati)
+                                    if product_manual != '':
+                                        try:
+                                            status = usermanual_delivery_whatsapp(sku=sku, product_name=product_name,
+                                                                         product_manual=product_manual, name=name,phone_num=phone_num, wati=wati)
+                                        except:
+                                            status = 'Failure'
                                     else:
                                         status = 'NA'
                                     values_to_update.append({'col': column_dict['usermanual_during_delivery_whatsapp'],
