@@ -49,6 +49,28 @@ def usermanual_whatsapp(sku, product_name, product_manual, name,phone_num, wati)
     return status
 
 
+def review_prompt(name, phone_num, product_name, sku, wati):
+    review_csv = pd.read_csv(r'Product_review_links.csv')
+    status = 'Failure'
+    phone_num = '919176270768'
+    try:
+        index = list(review_csv['SKU']).index(sku)
+        sku_review_url = list(review_csv['URL'])[index]
+        url_dynamic_component = sku_review_url.split('miniture.in/')[1]
+        custom_params = [{'name': 'review_url', 'value': url_dynamic_component},
+                         {'name': 'product_name', 'value': product_name}]
+        wati_status = wati.send_template_message(contact_name=name, contact_number=phone_num,
+                                            template_name='miniture_capture_review',
+                                            custom_params=custom_params)
+        if wati_status:
+            status = 'Success'
+        else:
+            status = 'Failure'
+    except:
+        status = 'Failure'
+
+    return status
+
 def usermanual_delivery_whatsapp(sku, product_name, product_manual, name,phone_num, wati):
     status = 'Failure'
     if sku in usermanual_skus_without_video:

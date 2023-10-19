@@ -90,6 +90,7 @@ def get_order_details(browntape_df, tracker_df):
             dfdict['usermanual_during_delivery_whatsapp'] = ''
             dfdict['usermanual_during_delivery_email'] = ''
             dfdict['delivery_delay_message'] = ''
+            dfdict['review_prompt_status'] = ''
 
 
             trackerdf.append(dfdict)
