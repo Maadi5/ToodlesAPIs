@@ -53,7 +53,6 @@ def usermanual_whatsapp(sku, product_name, product_manual, name,phone_num, wati)
 def review_prompt(name, phone_num, product_name, sku, wati):
     review_csv = pd.read_csv(r'Product_review_links.csv')
     status = 'Failure'
-    phone_num = '919176270768'
     try:
         index = list(review_csv['SKU']).index(sku)
         sku_review_url = list(review_csv['URL'])[index]
