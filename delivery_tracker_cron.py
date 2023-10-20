@@ -49,7 +49,7 @@ def invoice_number_to_platform(invoice_number):
     return platform
 
 def tracking_logic_CTA(old_tracking_code_update, order_date_epoch, bluedart_statustype, delivery_est_epoch, delivery_update_message,
-                       shipping_mode, delivery_delay_message, promised_date_epoch,
+                       shipping_mode, delivery_delay_message, promised_date_epoch, home_platform,
                        standard_daygap_wati = 5, express_daygap_wati = 2, first_time_data = False):
     actions = {'update values': False, 'usermanual2 push': False, 'order pickup delay alarm': False,
                'delivery update push': False, 'delivery delay alarm': False, 'delivery delay push': False, 'review_prompt': False, 'usermanual1 push': False}
@@ -100,6 +100,11 @@ def tracking_logic_CTA(old_tracking_code_update, order_date_epoch, bluedart_stat
 
     if actions['usermanual2 push'] == True:
         actions['usermanual1 push'] = False
+
+    if not home_platform:
+        actions['delivery update push'] = False
+        actions['delivery delay push'] = False
+        actions['delivery delay alarm'] = False
 
     return actions
 
@@ -225,25 +230,26 @@ def bluedart_tracking_checker():
         for idx, row in trackerdf.iterrows():
             # status = 'Failure'
             try:
+                id = str(row['unique_id'])
+                if id == '15143305486':
+                    print('checkpoint')
                 status = str(row['status'])
                 awb = str(row['status'])
+                invoice_number = str(row['invoice_number'])
+                platform = invoice_number_to_platform(invoice_number)
+                home_platform = True if platform.lower() in {'shopify', 'woocommerce'} else False
                 #Code to skip 'processing' or 'cancelled' orders
-                if status in {'cancelled', 'processing'}:
+                if status in {'cancelled', 'processing'}: # or platform.lower() not in {'shopify'}:
                     skip_values = mark_row_as_skipped(row_number=rowcount, column_dict=column_dict)
                     values_to_update.extend(skip_values)
                 #Run pipeline
                 else:
-                    id = str(row['unique_id'])
-                    if id == '10000000001':
-                        print('checkpoint')
                     sku = str(row['sku'])
                     awb = str(row['awb'])
                     name = str(row['name'])
                     email = str(row['email_id'])
                     #Temporarily put my number
-                    phone_num = str(row['phone_num'])
-                    invoice_number = str(row['invoice_number'])
-                    platform = invoice_number_to_platform(invoice_number)
+                    phone_num = str(row['phone_num'])#'919176270768'#str(row['phone_num'])
                     channel_order_num = str(row['channel_order_number'])
                     tracking_code_update = str(row['tracking_code_update'])
                     tracking_status_update = str(row['tracking_status_update'])
@@ -360,7 +366,7 @@ def bluedart_tracking_checker():
                         actions = tracking_logic_CTA(old_tracking_code_update=old_tracking_code_update,order_date_epoch=order_date_epoch, bluedart_statustype=tracking_code_update,
                                            delivery_est_epoch=est_date_epoch, delivery_update_message=delivery_update_message,
                                shipping_mode=shipping_mode, delivery_delay_message=delivery_delay_message, promised_date_epoch=promised_date_epoch,
-                                                     first_time_data=first_time)
+                                                     first_time_data=first_time, home_platform = home_platform)
                     except:
                         skip_values = mark_row_as_skipped_bluedart(row_number=rowcount, column_dict=column_dict, message = 'track logic failed', skip_bluedart_status = True)
                         skip_values.append({'col': column_dict['tracking_code_update'],
