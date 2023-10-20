@@ -191,8 +191,8 @@ class CSVProcessing(Resource):
                         valid_manual = False
                         try:
                             product_name, product_manual = get_product_name_manual(sku=sku)
-                            # if product_manual != '':
-                                # valid_manual = True
+                            if product_manual != '':
+                                valid_manual = True
                         except:
                             pass
                         #product_name, product_manual = get_product_name_manual(sku=sku)
@@ -267,32 +267,32 @@ class CSVProcessing(Resource):
                             #send user manual whatsapp
                             if valid_manual:
                                 try:
-                                    if sku in usermanual_skus_without_video:
-                                        wati_template = 'miniture_usermanual_5'
-                                    else:
-                                        wati_template = 'miniture_usermanual_5'
-                                    custom_params = [{'name': 'product_name', 'value': str(product_name)},
-                                                     {'name': 'media_url', 'value': str(product_manual)}]
-                                    status = wati.send_template_message(contact_name=name, contact_number=phone_num,
-                                                                        template_name= wati_template,
-                                                                        custom_params=custom_params)
-                                    #print('Status of whatsapp: ', status)
-                                    if not status:
-                                        ## Store timeframe n number of times based on number of rows per order
-                                        # idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                                        # print('idx: ', idx)
-                                        # for idx in idxs:
-                                        live_data.at[idx, 'usermanual_whatsapp_status'] = 'Failure'
-                                        wa_status_usermanual = 'Failure'
-                                    else:
-                                        ## Store timeframe n number of times based on number of rows per order
-                                        # idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                                        # # idx = live_data.index[live_data['unique_id'] == id].tolist()[0]
-                                        # # print('idx: ', idx)
-                                        # for ix in idxs:
-                                        live_data.at[idx, 'usermanual_whatsapp_status'] = 'Success'
+                                    # if sku in usermanual_skus_without_video:
+                                    #     wati_template = 'miniture_usermanual_5'
+                                    # else:
+                                    #     wati_template = 'miniture_usermanual_5'
+                                    # custom_params = [{'name': 'product_name', 'value': str(product_name)},
+                                    #                  {'name': 'media_url', 'value': str(product_manual)}]
+                                    # status = wati.send_template_message(contact_name=name, contact_number=phone_num,
+                                    #                                     template_name= wati_template,
+                                    #                                     custom_params=custom_params)
+                                    # #print('Status of whatsapp: ', status)
+                                    # if not status:
+                                    #     ## Store timeframe n number of times based on number of rows per order
+                                    #     # idxs = live_data.index[live_data['unique_id'] == id].tolist()
+                                    #     # print('idx: ', idx)
+                                    #     # for idx in idxs:
+                                    #     live_data.at[idx, 'usermanual_whatsapp_status'] = 'Failure'
+                                    #     wa_status_usermanual = 'Failure'
+                                    # else:
+                                    #     ## Store timeframe n number of times based on number of rows per order
+                                    #     # idxs = live_data.index[live_data['unique_id'] == id].tolist()
+                                    #     # # idx = live_data.index[live_data['unique_id'] == id].tolist()[0]
+                                    #     # # print('idx: ', idx)
+                                    #     # for ix in idxs:
+                                        live_data.at[idx, 'usermanual_whatsapp_status'] = 'Not Sent'
                                             #live_data.at[idx, 'awb_message_timestamp'] = time.time()
-                                        wa_status_usermanual = 'Success'
+                                        wa_status_usermanual = 'Not Sent'
                                 except:
                                     try:
                                         # idxs = live_data.index[live_data['unique_id'] == id].tolist()
@@ -358,13 +358,13 @@ class CSVProcessing(Resource):
                             ## send email for usermanual
                             if valid_manual:
                                 try:
-                                    status = send_usermanual_email(name=name, to_address=email, product_name=product_name,
-                                                                   product_manual_link=product_manual)
-                                    # idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                                    # for ix in idxs:
-                                    live_data.at[idx, 'usermanual_email_status'] = status
+                                    # status = send_usermanual_email(name=name, to_address=email, product_name=product_name,
+                                    #                                product_manual_link=product_manual)
+                                    # # idxs = live_data.index[live_data['unique_id'] == id].tolist()
+                                    # # for ix in idxs:
+                                    live_data.at[idx, 'usermanual_email_status'] = 'Not Sent'
                                         #live_data.at[idx, 'awb_message_timestamp'] = time.time()
-                                    email_status_usermanual = status
+                                    email_status_usermanual = 'Not Sent'
                                 except:
                                     # idxs = live_data.index[live_data['unique_id'] == id].tolist()
                                     # for ix in idxs:
@@ -420,8 +420,12 @@ class CSVProcessing(Resource):
             #trackerdf = pd.concat([trackerdf_original,trackerdf])
 
             try:
+                print('Failed ids: ', failed_ids)
                 live_data = live_data.drop(failed_ids)
+                print('live data: ', live_data)
+                print('columns_list: ', columns_list)
                 live_data = match_cols(live_data, col_names=columns_list)
+                print('post match cols: ', live_data)
                 #print('live_data before pushing: ')
                 #print(live_data['whatsapp_status'])
                 live_data.to_csv(os.path.join(os.getcwd(), 'livedata.csv'), index=False)

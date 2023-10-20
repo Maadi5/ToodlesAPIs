@@ -66,6 +66,51 @@ def send_dispatch_email(name, awb_number, to_address):
         print(f"An error occurred while sending the email: {str(e)}")
         return "Failure"
 
+def send_delivery_usermanual_email(name, product_name, product_manual_link, to_address):
+    try:
+        sender_name = 'Miniture (Formerly Toodles)'
+        sender_email = 'operations@miniture.in'
+        sender_password = config.gmail_key
+
+        email_message = MIMEMultipart()
+        email_message['From'] = formataddr((sender_name, sender_email))#sender_email
+        email_message['To'] = to_address
+        email_message['Subject'] = "Your Miniture product has arrived! Here's the assembly guide"
+
+        message = 'Hi ' + name + '!\n' + \
+                  "This is Miniture (formerly Toodles).\n\n" + \
+                  'Here is the installation manual for assembling your ' + product_name + ': ' + '<a href="' + product_manual_link + '">click here</a>\n\n' + \
+                  "Feel free to ask us here if you have any queries. 📞\n\n" + \
+                  'Yours truly,\n' + 'Team Toodles'
+
+        message_html = '<body style=”font-family: Georgia !important;”><pre>Hi ' + name + '!\n' + \
+                "We heard you've received your Miniture product!" + \
+                'Here is the installation manual for assembling your ' + product_name + ' :' + ' <a href="' + product_manual_link + '">click here</a>\n\n' + \
+                "Feel free to ask us here if you have any queries. 📞\n\n" + \
+                'Yours truly,\n' + 'Team Miniture (Formerly Toodles)</pre></body>'
+
+        email_message.attach(MIMEText(message_html, 'html'))
+
+        smtp_server = 'smtp.gmail.com'
+        smtp_port = 587
+        smtp_connection = smtplib.SMTP(smtp_server, smtp_port)
+        smtp_connection.starttls()
+
+        try:
+            smtp_connection.login(sender_email, sender_password)
+            smtp_connection.send_message(email_message)
+            smtp_connection.quit()
+            return "Success"
+
+        except Exception as e:
+            print(f"An error occurred while sending the email: {str(e)}")
+            return "Failure"
+
+    except Exception as e:
+        print('email send error main loop: ', {str(e)})
+        return "Failure"
+
+
 def send_usermanual_email(name, product_name, product_manual_link, to_address):
     try:
         sender_name = 'Miniture (Formerly Toodles)'
@@ -75,7 +120,7 @@ def send_usermanual_email(name, product_name, product_manual_link, to_address):
         email_message = MIMEMultipart()
         email_message['From'] = formataddr((sender_name, sender_email))#sender_email
         email_message['To'] = to_address
-        email_message['Subject'] = 'Toodles: ' + product_name + '- Assembly Guide'
+        email_message['Subject'] = 'Miniture: ' + product_name + '- Assembly Guide'
 
         message = 'Hi ' + name + '!\n' + \
                   "This is Miniture (formerly Toodles).\n\n" + \
