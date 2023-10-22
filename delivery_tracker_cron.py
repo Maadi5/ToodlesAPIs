@@ -52,7 +52,8 @@ def tracking_logic_CTA(old_tracking_code_update, order_date_epoch, bluedart_stat
                        shipping_mode, delivery_delay_message, promised_date_epoch, home_platform,
                        standard_daygap_wati = 5, express_daygap_wati = 2, first_time_data = False):
     actions = {'update values': False, 'usermanual2 push': False, 'order pickup delay alarm': False,
-               'delivery update push': False, 'delivery delay alarm': False, 'delivery delay push': False, 'review_prompt': False, 'usermanual1 push': False}
+               'delivery update push': False, 'delivery delay alarm': False, 'delivery delay push': False, 'review_prompt': False,
+               'usermanual1 push': False, 'return_alarm': False}
     if first_time_data:
         actions['update values'] = True
     current_time = float(time.time())
@@ -68,6 +69,9 @@ def tracking_logic_CTA(old_tracking_code_update, order_date_epoch, bluedart_stat
 
     if bluedart_statustype == 'bluedart failed':
         actions['usermanual1 push'] = True
+    elif bluedart_statustype == 'RT':
+        actions['return_alarm'] = True
+        actions['update values'] = True
     elif bluedart_statustype == 'DL':
         if (current_time - delivery_est_epoch)<= (3600*24) and old_tracking_code_update != 'DL':
             actions['usermanual2 push'] = True
@@ -379,7 +383,8 @@ def bluedart_tracking_checker():
                     if not tracking_failed:
                         '''
                             actions = {'update values': False, 'usermanual2 push': False, 'order pickup delay alarm': False,
-                       'delivery update push': False, 'delivery delay alarm': False, 'delivery delay push': False, 'review_prompt': False}
+                       'delivery update push': False, 'delivery delay alarm': False, 'delivery delay push': False, 
+                       'review_prompt': False, 'return_alarm': False}
                         '''
                         if actions['update values'] == False:
                             rowcount +=1
@@ -600,6 +605,12 @@ def bluedart_tracking_checker():
                                 pickup_delay_alarm['Suggested Context'] = 'Order date: ' + order_date + '\nShipping mode: ' + shipping_mode + '\nDelivery Status: ' + tracking_status_update
                                 pickup_delay_alarm['Alert Type'] = 'Pickup delay'
                                 crm_sheet_parser.add_alert_to_sheet(payload=pickup_delay_alarm)
+
+                            if actions['return_alarm']:
+                                return_alarm = payload_to_add
+                                return_alarm['Suggested Context'] = 'Order date: ' + order_date + '\nShipping mode: ' + shipping_mode + '\nDelivery Status: ' + tracking_status_update
+                                return_alarm['Alert Type'] = 'Return alert'
+                                crm_sheet_parser.add_alert_to_sheet(payload=return_alarm)
 
 
                             values_to_update.extend([{'col': column_dict['tracking_code_update'],

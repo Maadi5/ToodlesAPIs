@@ -40,6 +40,8 @@ class crm_sheet():
                                  'Sanaa': '919731011565', 'Adithya': '919176270768'}
         self.alert_types = ['Delivery delay', 'Query reply SLA']
         self.tempdf_to_closed_path = os.path.join(os.getcwd(), 'tempdf_to_closed.csv')
+        self.delivery_alerts = {'Delivery delay', 'Pickup delay', 'Return alert'}
+        self.customer_alerts = {'Reply delay'}
 
 
     def check_recurrance_ops_ticket(self, opendf, closeddf, order_number, alert):
@@ -102,10 +104,10 @@ class crm_sheet():
             alert = payload['Alert Type']
             phone_num = payload['Number']
             sla_value = round(sla_value, 2)
-            if alert in {'Delivery delay', 'Pickup delay'}:
+            if alert in self.delivery_alerts:
                 order_number = payload['Order Number']
                 already_exists = self.check_recurrance_ops_ticket(opendf=opendf, closeddf=closeddf, order_number=order_number, alert=alert)
-            elif alert in {'Reply delay'}:
+            elif alert in self.customer_alerts:
                 suggested_context = payload['Suggested Context']
                 already_exists = self.check_recurrance_chat_ticket(opendf=opendf, closeddf=closeddf, phone_num=phone_num, ticket_suggested_context=suggested_context)
             self.columns_list, self.column_dict, self.col_index = self.gsheets.get_column_names(sheet_name=config.crm_open_sheet_name)
@@ -120,7 +122,7 @@ class crm_sheet():
                 payload['SLA(Hours)'] = sla_value
                 payload['Date Opened'] = epoch_to_dd_mm_yy_time(int(time.time()))
                 # payload['Suggested Context'] = 'Promised date: ' + payload['Promised Date'] + '\nEstimated date: ' + payload['Estimated Date'] + '\nDelivery Status: ' + payload['Delivery Status']
-                # if alert in {'Reply delay'}: #{'Delivery delay', 'Pickup delay'}:
+                # if alert in self.customer_alerts: #self.delivery_alerts:
                 push_csv_dict = {}
                 for val in self.columns_list:
                     if val in payload:
@@ -135,9 +137,9 @@ class crm_sheet():
                 self.gsheets.append_csv_to_google_sheets(csv_path=self.update_csv_path,
                                                        sheet_name=config.crm_open_sheet_name)
 
-                if alert in {'Delivery delay', 'Pickup delay'}:
+                if alert in self.delivery_alerts:
                     dropdowns_to_update = [{'dropdown': self.dropdown_payload_delivery, 'row': number_of_tickets_in_open+1, 'col': self.col_index['Status']}]
-                elif alert in {'Reply delay'}:
+                elif alert in self.customer_alerts:
                     dropdowns_to_update = [
                         {'dropdown': self.dropdown_payload_chat, 'row': number_of_tickets_in_open + 1,
                          'col': self.col_index['Status']}]
@@ -193,7 +195,7 @@ class crm_sheet():
             updated_context = self.update_context_time(current_context, update_freq=update_freq)
             row['Suggested Context'] = updated_context
             if rowcount>2:
-                if row['Alert Type'] in {'Delivery delay', 'Pickup delay'}:
+                if row['Alert Type'] in self.delivery_alerts:
                     if str(row['SLA(Hours)']) == 'NA':
                         remove_from_opened.append(rowcount)
                         row['Date Closed'] = epoch_to_dd_mm_yy_time(int(time.time()))
@@ -210,7 +212,7 @@ class crm_sheet():
                                                  'value': updated_context}
                                                 ])
                         ##Decrease SLAs by 1h
-                elif row['Alert Type'] in {'Reply delay'}:
+                elif row['Alert Type'] in self.customer_alerts:
                     if str(row['SLA(Hours)']).lower() == 'revive requested':
                         try:
                             status = chat_revive_message(wati=self.wati, name=row['Name'], phone_num='919176270768')
@@ -262,9 +264,9 @@ class crm_sheet():
             delay_trigger = False
             customer_message_delay = False
             for val in sla_breach_types:
-                if val in {'Delivery delay', 'Pickup delay'}:
+                if val in self.delivery_alerts:
                     delay_trigger = True
-                elif val in {'Reply delay'}:
+                elif val in self.customer_alerts:
                     customer_message_delay = True
 
             if delay_trigger:
