@@ -256,7 +256,7 @@ def bluedart_tracking_checker():
                     name = str(row['name'])
                     email = str(row['email_id'])
                     #Temporarily put my number
-                    phone_num = str('919176270768')#'919176270768'#str(row['phone_num'])
+                    phone_num = str(row['phone_num'])#'919176270768'#str(row['phone_num'])
                     channel_order_num = str(row['channel_order_number'])
                     tracking_code_update = str(row['tracking_code_update'])
                     tracking_status_update = str(row['tracking_status_update'])
