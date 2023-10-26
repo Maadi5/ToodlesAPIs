@@ -69,11 +69,14 @@ def tracking_logic_CTA(old_tracking_code_update, order_date_epoch, bluedart_stat
 
     if bluedart_statustype == 'bluedart failed':
         actions['usermanual1 push'] = True
+        actions['update values'] = True
     elif bluedart_statustype == 'RT':
         actions['return_alarm'] = True
         actions['update values'] = True
     elif bluedart_statustype == 'DL':
-        if (current_time - delivery_est_epoch)<= (3600*24) and old_tracking_code_update != 'DL':
+        if old_tracking_code_update != 'DL':
+            actions['update values'] = True
+        if (current_time - delivery_est_epoch)<= (3600*24)*4 and old_tracking_code_update != 'DL':
             actions['usermanual2 push'] = True
             actions['update values'] = True
         elif -1*days_del_est_minus_current >= 6:
@@ -235,7 +238,7 @@ def bluedart_tracking_checker():
             # status = 'Failure'
             try:
                 id = str(row['unique_id'])
-                if id == '15143305486':
+                if id == '15173277717':
                     print('checkpoint')
                 status = str(row['status'])
                 awb = str(row['status'])
@@ -253,7 +256,7 @@ def bluedart_tracking_checker():
                     name = str(row['name'])
                     email = str(row['email_id'])
                     #Temporarily put my number
-                    phone_num = str(row['phone_num'])#'919176270768'#str(row['phone_num'])
+                    phone_num = str('919176270768')#'919176270768'#str(row['phone_num'])
                     channel_order_num = str(row['channel_order_number'])
                     tracking_code_update = str(row['tracking_code_update'])
                     tracking_status_update = str(row['tracking_status_update'])
@@ -749,15 +752,15 @@ for idx, val in enumerate(range(0,24)):
 
 times_to_run = all_times
 #
-print(times_to_run)
-# Schedule the job to run every day at 3pm (test)
-for time_str in times_to_run:
-    schedule.every().day.at(time_str).do(bluedart_tracking_checker)
-    # break
-#
-print('running cron...')
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+# print(times_to_run)
+# # Schedule the job to run every day at 3pm (test)
+# for time_str in times_to_run:
+#     schedule.every().day.at(time_str).do(bluedart_tracking_checker)
+#     # break
+# #
+# print('running cron...')
+# while True:
+#     schedule.run_pending()
+#     time.sleep(1)
 
-# bluedart_tracking_checker()
+bluedart_tracking_checker()
