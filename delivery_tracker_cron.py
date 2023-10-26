@@ -89,6 +89,7 @@ def tracking_logic_CTA(old_tracking_code_update, order_date_epoch, bluedart_stat
     # elif bluedart_statustype == 'UD':
     #     actions['delivery delay alarm'] = True
     else:
+        actions['update values'] = True
         if delivery_update_message != 'Success' and delivery_delay_message != 'Success':
             if (shipping_mode == 'standard' and days_from_order_date>= standard_daygap_wati)\
                     or  (shipping_mode == 'express' and days_from_order_date>= express_daygap_wati)\
@@ -238,7 +239,7 @@ def bluedart_tracking_checker():
             # status = 'Failure'
             try:
                 id = str(row['unique_id'])
-                if id == '15173277717':
+                if id == '15194627126':
                     print('checkpoint')
                 status = str(row['status'])
                 awb = str(row['status'])
