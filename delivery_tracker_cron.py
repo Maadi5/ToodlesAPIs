@@ -220,7 +220,12 @@ def time_difference_to_track(last_tracked_time, time_diff_hours = .002):
     return track
 
 def bluedart_tracking_checker():
-    trackerdf = gsheets.load_sheet_as_csv(sheet_name=config.db_sheet_name)
+    try:
+        trackerdf = gsheets.load_sheet_as_csv(sheet_name=config.db_sheet_name)
+    except:
+        gsheets = googlesheets_apis(spreadsheet_id=config.db_spreadsheet_id)
+        trackerdf = gsheets.load_sheet_as_csv(sheet_name=config.db_sheet_name)
+
     #bluedart_csv = pd.read_csv(os.path.join(os.getcwd(), 'bluedart_complete.csv'), index_col=False)
     #bluedart_approx_csv = pd.read_csv(os.path.join(os.getcwd(), 'approx_delivery_times.csv'), index_col=False)
     trackerdf.fillna('', inplace=True)
