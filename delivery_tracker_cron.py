@@ -223,7 +223,6 @@ def bluedart_tracking_checker():
     try:
         trackerdf = gsheets.load_sheet_as_csv(sheet_name=config.db_sheet_name)
     except:
-        del gsheets
         gsheets = googlesheets_apis(spreadsheet_id=config.db_spreadsheet_id)
         trackerdf = gsheets.load_sheet_as_csv(sheet_name=config.db_sheet_name)
 
