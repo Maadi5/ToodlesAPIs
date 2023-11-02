@@ -139,7 +139,7 @@ ignore2 = ['919971997642','919835586429','919952845817','918787856737',
 
 
 def marketing_campaign_wati(template, wati, number_lists, skus = None):
-    customers = pd.read_csv(r'woocommerce_customers_w_orders4.csv')
+    customers = pd.read_csv(r'shopify_woocommerce_w_orders.csv')
     total_number_of_customers = customers.shape[0]
     number_of_applicable_customers = 0
     customers.fillna('', inplace = True)
