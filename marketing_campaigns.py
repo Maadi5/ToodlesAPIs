@@ -139,6 +139,7 @@ def marketing_campaign_cron():
 
 
     gsheets.update_cell(values_to_update=values_to_update, sheet_name=config.marketing_all_sheet_name)
+    print('Cron finished running at: ', epoch_to_dd_mm_yy_time(time.time()))
 
 
 all_times = []
