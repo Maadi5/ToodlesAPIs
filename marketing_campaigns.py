@@ -155,17 +155,17 @@ for idx, val in enumerate(range(0,24)):
         minute = date_time_obj.strftime('%M')
         all_times.append(hour + ':' + minute)
 
-# Schedule the job to run every day at 3pm (test)
-for time_str in all_times:
-    schedule.every().day.at(time_str).do(marketing_campaign_cron)
+# # Schedule the job to run every day at 3pm (test)
+# for time_str in all_times:
+#     schedule.every().day.at(time_str).do(marketing_campaign_cron)
+#
+# print(all_times)
+# print('running cron...')
+# while True:
+#     try:
+#         schedule.run_pending()
+#         time.sleep(1)
+#     except:
+#         pass
 
-print(all_times)
-print('running cron...')
-while True:
-    try:
-        schedule.run_pending()
-        time.sleep(1)
-    except:
-        pass
-
-# marketing_campaign_cron()
+marketing_campaign_cron()
