@@ -33,7 +33,6 @@ def delivery_delay_alarm_message(wati, name, phone_num,wati_template='delivery_d
 
 def usermanual_whatsapp(sku, product_name, product_manual, name,phone_num, wati):
     status = 'Failure'
-    phone_num = '919176270768'
     if sku in usermanual_skus_without_video:
         wati_template = 'miniture_usermanual_5'
     else:
