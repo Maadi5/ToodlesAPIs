@@ -3,12 +3,12 @@ import requests
 import json
 from flask import Flask, request, jsonify
 # from gpt_base_v2 import GPT_Inference
-from chat_tracking import chat_tracker
+# from chat_tracking import chat_tracker
 import time
 
 from wati_apis import WATI_APIS
 
-chats = chat_tracker()
+# chats = chat_tracker()
 # wati_triggers = WATI_APIS()
 # gpt_inference = GPT_Inference()
 app = Flask(__name__)
