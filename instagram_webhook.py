@@ -43,7 +43,7 @@ def update_status(phone_number, whatsappMessageId):
             file.write(f"{whatsappMessageId}\n")
         print('\nappended the message ID to chatbot_response_tracker')
 
-@app.route('/wati_webhook', methods=['POST'])
+@app.route('/insta_webhook', methods=['POST'])
 def receive_wati_webhook():
     webhook_response = request.json
     print('\nwebhook response',webhook_response)
