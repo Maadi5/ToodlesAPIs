@@ -70,6 +70,26 @@ def review_prompt(name, phone_num, product_name, sku, wati):
 
     return status
 
+def post_purchase(name, phone_num, sku, wati):
+    status = 'Failure'
+    phone_num = '919176270768'
+    try:
+        if sku == 'YK-KW-006':
+
+            wati_status = wati.send_template_message(contact_name=name, contact_number=phone_num,
+                                                template_name='flexdesk_folding',
+                                                custom_params=None)
+            if wati_status:
+                status = 'Success'
+            else:
+                status = 'Failure'
+        else:
+            status = 'Skipped'
+    except:
+        status = 'Failure'
+
+    return status
+
 def usermanual_delivery_whatsapp(sku, product_name, product_manual, name,phone_num, wati):
     status = 'Failure'
     if sku in usermanual_skus_without_video:

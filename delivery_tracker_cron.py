@@ -13,7 +13,7 @@ from datetime import datetime
 from bluedart_apis import bluedart_apis
 from crm_sheet_mgr import crm_sheet
 from miniture_wati_templates import (delivery_reminder_whatsapp, usermanual_whatsapp,
-                                     delivery_delay_whatsapp, usermanual_delivery_whatsapp, review_prompt)
+                                     delivery_delay_whatsapp, usermanual_delivery_whatsapp, review_prompt, post_purchase)
 from email_sender import send_delivery_usermanual_email, send_usermanual_email
 import logging
 
@@ -53,7 +53,7 @@ def tracking_logic_CTA(old_tracking_code_update, order_date_epoch, bluedart_stat
                        standard_daygap_wati = 5, express_daygap_wati = 2, first_time_data = False):
     actions = {'update values': False, 'usermanual2 push': False, 'order pickup delay alarm': False,
                'delivery update push': False, 'delivery delay alarm': False, 'delivery delay push': False, 'review_prompt': False,
-               'usermanual1 push': False, 'return_alarm': False}
+               'usermanual1 push': False, 'return_alarm': False, 'post_purchase_tips': False}
     if first_time_data:
         actions['update values'] = True
     current_time = float(time.time())
@@ -78,6 +78,9 @@ def tracking_logic_CTA(old_tracking_code_update, order_date_epoch, bluedart_stat
             actions['update values'] = True
         if (current_time - delivery_est_epoch)<= (3600*24)*4 and old_tracking_code_update != 'DL':
             actions['usermanual2 push'] = True
+            actions['update values'] = True
+        elif -1*days_del_est_minus_current >= 2:
+            actions['post_purchase_tips'] = True
             actions['update values'] = True
         elif -1*days_del_est_minus_current >= 6:
             actions['review_prompt'] = True
@@ -281,6 +284,7 @@ def bluedart_tracking_checker():
                     delivery_update_message = str(row['delivery_update_message'])
                     delivery_delay_message = str(row['delivery_delay_message'])
                     review_prompt_status = str(row['review_prompt_status'])
+                    post_purchase_status = str(row['post_purchase_status'])
                     usermanual_during_delivery_whatsapp = str(row['usermanual_during_delivery_whatsapp'])
                     usermanual_during_delivery_email = str(row['usermanual_during_delivery_email'])
 
@@ -554,6 +558,40 @@ def bluedart_tracking_checker():
                                     if review_prompt_status != 'Success' and review_prompt_status != 'NA':
                                         status = 'Not Sent'
                                         values_to_update.append({'col': column_dict['review_prompt_status'],
+                                                                 'row': rowcount,
+                                                                 'value': status})
+                            except:
+                                if review_prompt_status != 'Success' and review_prompt_status != 'NA':
+                                    status = 'Not Sent'
+                                    values_to_update.append({'col': column_dict['review_prompt_status'],
+                                                             'row': rowcount,
+                                                             'value': status})
+
+                            #post purchase tips
+                            try:
+                                if actions['post_purchase_tips'] and (post_purchase_status != 'Success' \
+                                                                    and post_purchase_status != 'NA'):
+                                    count = 0
+                                    for product_name, product_manual in product_list.items():
+                                        if product_manual['manual_link'] != '':
+                                            try:
+                                                status = post_purchase(sku=product_manual['sku'], name=name,phone_num=phone_num, wati=wati)
+                                            except:
+                                                status = 'Failure'
+                                        else:
+                                            status = 'NA'
+                                        values_to_update.append({'col': column_dict['post_purchase_status'],
+                                                             'row': cinds[count] + 2,
+                                                             'value': status})
+                                        trackerdf.at[cinds[count], 'post_purchase_status'] = status
+                                        count += 1
+
+                                    gsheets.update_cell(values_to_update=values_to_update, sheet_name=config.db_sheet_name)
+                                    values_to_update = []
+                                else:
+                                    if post_purchase_status != 'Success' and post_purchase_status != 'NA':
+                                        status = 'Not Sent'
+                                        values_to_update.append({'col': column_dict['post_purchase_status'],
                                                                  'row': rowcount,
                                                                  'value': status})
                             except:
