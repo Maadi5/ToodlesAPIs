@@ -72,12 +72,12 @@ def review_prompt(name, phone_num, product_name, sku, wati):
 
 def post_purchase(name, phone_num, sku, wati):
     status = 'Failure'
-    # phone_num = '919176270768'
+    phone_num = '919176270768'
     try:
         if sku == 'YK-KW-006':
 
             wati_status = wati.send_template_message(contact_name=name, contact_number=phone_num,
-                                                template_name='flexdesk_folding',
+                                                template_name='flexdeskfolding_w_name',
                                                 custom_params=None)
             if wati_status:
                 status = 'Success'
