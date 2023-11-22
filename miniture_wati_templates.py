@@ -84,7 +84,7 @@ def post_purchase(name, phone_num, sku, wati):
             else:
                 status = 'Failure'
         else:
-            status = 'Skipped'
+            status = 'NA'
     except:
         status = 'Failure'
 
