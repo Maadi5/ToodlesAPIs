@@ -72,7 +72,7 @@ def review_prompt(name, phone_num, product_name, sku, wati):
 
 def post_purchase(name, phone_num, sku, wati):
     status = 'Failure'
-    phone_num = '919176270768'
+    # phone_num = '919176270768'
     try:
         if sku == 'YK-KW-006':
 
