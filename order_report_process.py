@@ -91,7 +91,7 @@ def get_order_details(browntape_df, tracker_df):
             dfdict['usermanual_during_delivery_email'] = ''
             dfdict['delivery_delay_message'] = ''
             dfdict['review_prompt_status'] = ''
-
+            dfdict['post_purchase_status'] = ''
 
             trackerdf.append(dfdict)
             new_orders_browntape_subset.append(row)
@@ -218,7 +218,8 @@ def create_zoho_invoice_csv(new_browntape_df):
         'GST Treatment': 'business_gst'
     }
 
-    bt_zoho_static_vals = {'Invoice Status': 'Overdue',
+    bt_zoho_static_vals = {
+                           'Invoice Status': 'Overdue',
                            'Currency Code': 'INR',
                            'GST Treatment': 'consumer',
                            'Discount Type': 'entity_level',
@@ -350,14 +351,14 @@ def create_zoho_invoice_csv(new_browntape_df):
 
 
 if __name__ == '__main__':
-    browntape_df = pd.read_csv(r'/Users/adithyam.a/Downloads/btreport_908201.csv', index_col = False)
+    browntape_df = pd.read_csv(r'/Users/adithyam.a/Downloads/btreport_10_2.csv', index_col = False)
     # browntape_df = input_df_preprocessing(browntape_df)
     # tracker_df = pd.read_csv(r'/Users/adithyam.a/Downloads/MinitureUserData - Main Dataset.csv')
     # to_be_pushed_df, incomplete_orders_csv, cancelled_cod_orders_csv, new_browntape_subset_df = get_order_details(browntape_df= browntape_df, tracker_df=tracker_df)
     # check_cod_cancellations(tracker_df=tracker_df, cancelled_orders_df=cancelled_cod_orders_csv)
     # testdf = input_df_preprocessing(testdf)
     newdf,_ = create_zoho_invoice_csv(new_browntape_df=browntape_df)
-    newdf.to_csv(r'/Users/adithyam.a/Downloads/zoho_invoices_september.csv', index= False)
+    newdf.to_csv(r'/Users/adithyam.a/Downloads/zoho_invoices_october2.csv', index= False)
 
 
         
