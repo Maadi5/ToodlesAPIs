@@ -48,8 +48,8 @@ def invoice_number_to_platform(invoice_number):
 
     return platform
 
-def tracking_logic_CTA(old_tracking_code_update, order_date_epoch, bluedart_statustype, delivery_est_epoch, delivery_update_message,
-                       shipping_mode, delivery_delay_message, promised_date_epoch, home_platform,
+def tracking_logic_CTA(old_tracking_code_update, order_date_epoch, bluedart_statustype, delivery_est_epoch,
+                       delivery_update_message, shipping_mode, delivery_delay_message, promised_date_epoch, home_platform,
                        standard_daygap_wati = 5, express_daygap_wati = 2, first_time_data = False):
     actions = {'update values': False, 'usermanual2 push': False, 'order pickup delay alarm': False,
                'delivery update push': False, 'delivery delay alarm': False, 'delivery delay push': False, 'review_prompt': False,
@@ -75,8 +75,6 @@ def tracking_logic_CTA(old_tracking_code_update, order_date_epoch, bluedart_stat
         actions['update values'] = True
     elif bluedart_statustype == 'DL':
         if old_tracking_code_update != 'DL':
-            actions['update values'] = True
-        if (current_time - delivery_est_epoch)<= (3600*24)*4 and old_tracking_code_update != 'DL':
             actions['usermanual2 push'] = True
             actions['update values'] = True
         elif -1*days_del_est_minus_current >= 2:
@@ -247,7 +245,7 @@ def bluedart_tracking_checker():
             # status = 'Failure'
             try:
                 id = str(row['unique_id'])
-                if id == '15194627126':
+                if id == '15425146803':
                     print('checkpoint')
                 status = str(row['status'])
                 awb = str(row['status'])
@@ -435,7 +433,7 @@ def bluedart_tracking_checker():
                                 gsheets.update_cell(values_to_update=values_to_update, sheet_name=config.db_sheet_name)
                                 values_to_update = []
                             else:
-                                if usermanual_whatsapp_status != 'Success' and usermanual_whatsapp_status != 'NA':
+                                if usermanual_whatsapp_status != 'Success' and usermanual_whatsapp_status != 'NA' and usermanual_whatsapp_status != 'Not Sent' and usermanual_whatsapp_status!= 'Skipped':
                                     status = 'NA'
                                     values_to_update.append({'col': column_dict['usermanual_whatsapp_status'],
                                                              'row': rowcount,
@@ -470,7 +468,7 @@ def bluedart_tracking_checker():
                                 gsheets.update_cell(values_to_update=values_to_update, sheet_name=config.db_sheet_name)
                                 values_to_update = []
                             else:
-                                if usermanual_email_status != 'Success' and usermanual_email_status != 'NA':
+                                if usermanual_email_status != 'Success' and usermanual_email_status != 'NA' and usermanual_email_status != 'Not Sent' and usermanual_email_status != 'Skipped':
                                     status = 'NA'
                                     values_to_update.append({'col': column_dict['usermanual_email_status'],
                                                              'row': rowcount,
@@ -714,7 +712,7 @@ def bluedart_tracking_checker():
                                 gsheets.update_cell(values_to_update=values_to_update, sheet_name=config.db_sheet_name)
                                 values_to_update = []
                             else:
-                                if usermanual_whatsapp_status != 'Success' and usermanual_whatsapp_status != 'NA':
+                                if usermanual_whatsapp_status != 'Success' and usermanual_whatsapp_status != 'NA' and usermanual_whatsapp_status != 'Not Sent' and usermanual_whatsapp_status != 'Skipped':
                                     status = 'NA'
                                     values_to_update.append({'col': column_dict['usermanual_whatsapp_status'],
                                                              'row': rowcount,
@@ -749,7 +747,7 @@ def bluedart_tracking_checker():
                                 gsheets.update_cell(values_to_update=values_to_update, sheet_name=config.db_sheet_name)
                                 values_to_update = []
                             else:
-                                if usermanual_email_status != 'Success' and usermanual_email_status != 'NA':
+                                if usermanual_email_status != 'Success' and usermanual_email_status != 'NA' and usermanual_email_status != 'Not Sent' and usermanual_email_status != 'Skipped':
                                     status = 'NA'
                                     values_to_update.append({'col': column_dict['usermanual_email_status'],
                                                              'row': rowcount,
