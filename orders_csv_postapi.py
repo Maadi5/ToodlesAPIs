@@ -62,6 +62,20 @@ incomplete_csv_path = os.path.join(os.getcwd(), 'incomplete_csv.csv')
 zoho_invoice_csv_path = os.path.join(os.getcwd(), 'zohocsv.csv')
 cancelled_csv_path = os.path.join(os.getcwd(), 'cancelled_csv.csv')
 
+def check_existence_in_df(row, df):
+    '''
+    check existence in terms of sku and orderid
+    :param row:
+    :param df:
+    :return:
+    '''
+    exists = False
+    for idx, rw in df.iterrows():
+        if rw['unique_id'] == row['unique_id'] and rw['sku'] == row['sku']:
+            exists = True
+            break
+    return exists
+
 
 def updated_cancelled_records_in_db(cancelled_ids):
     col_id = column_dict['unique_id']
@@ -91,6 +105,7 @@ class CSVProcessing(Resource):
             logging.info("read file")
             df = input_df_preprocessing(df)
             tracker_df = gsheets_db.load_sheet_as_csv(sheet_name=config.db_sheet_name)
+            preorder_df = gsheets_preorders.load_sheet_as_csv(sheet_name= config.preorder_sheet_name)
             live_data, incomplete_csv, cancelled_orders_csv, browntape_new_csv = get_order_details(browntape_df=df, tracker_df=tracker_df)
 
             if browntape_new_csv is not None:
@@ -161,7 +176,11 @@ class CSVProcessing(Resource):
                 ##Validate all variables
                 sku = str(row['sku'])
                 if sku in pre_order_skus:
-                    preorder_list.append(row)
+                    exists = check_existence_in_df(df= preorder_df, row= row)
+                    if not exists:
+                        preorder_list.append(row)
+                    else:
+                        print(row['unique_id'], ' already exists in preorder sheet with sku ', row['sku'])
                     failed_ids.add(idx)
                 else:
                     try:
