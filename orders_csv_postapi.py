@@ -169,6 +169,7 @@ class CSVProcessing(Resource):
                         failure_reasons = []
                         for c in cols:
                             verdict = check_fields(val=row[c], field=c)
+                            print('verdict: ', verdict)
                             if verdict is not True:
                                 failure_reasons.append(verdict)
                                 valid = False
@@ -177,6 +178,8 @@ class CSVProcessing(Resource):
                         logging.error(traceback.format_exc())
                         failure_reasons = []
                         valid = False
+
+                    print('valid: ', valid)
 
                     if valid is not True:
                         id = str(row['unique_id'])

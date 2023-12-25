@@ -5,6 +5,7 @@ from datetime import datetime
 import traceback
 from dateutil.parser import parse
 from utils import input_df_preprocessing,set_shipping_mode
+import time
 import re
 
 import logging
@@ -35,7 +36,30 @@ def get_order_details(browntape_df, tracker_df):
     print('unique_ids: ', unique_ids)
     browntape_ids = [str(val) for val in list(browntape_df['Order Id'])]
     new_ids = [val for val in browntape_ids if val not in unique_ids]
+    recurring_ids = set([val for val in browntape_ids if val in unique_ids])
+
+    skus_to_add_recurring_ids = {}
+    for r_id in recurring_ids:
+        idxs_tracker = tracker_df.index[tracker_df['unique_id'] == r_id].tolist()
+        tracker_skus = set()
+        for ix in idxs_tracker:
+            tracker_skus.add(tracker_df.loc[ix, 'sku'])
+
+        bt_skus = set()
+        idxs_browntape = browntape_df.index[browntape_df['Order Id'] == r_id].tolist()
+        for ix in idxs_browntape:
+            bt_skus.add(browntape_df.loc[ix, 'SKU Codes'])
+
+        extra_skus_in_id = bt_skus.difference(tracker_skus)
+        print('tracker skus: ', tracker_skus)
+        print('bt_skus: ', bt_skus)
+        if len(list(extra_skus_in_id))>0:
+            skus_to_add_recurring_ids[r_id] =  list(extra_skus_in_id)
+
+
     print('new ids: ', new_ids)
+    print('recurring ids: ', recurring_ids)
+    print('recurring SKU to add: ', skus_to_add_recurring_ids)
     
     to_be_pushed = []
     trackerdf = []
@@ -45,7 +69,8 @@ def get_order_details(browntape_df, tracker_df):
 
     for idx, row in browntape_df.iterrows():
         dfdict = {}
-        if str(row['Order Id']) in new_ids and row['Fulfillment Status'] in {'shipped', 'delivered', 'packed','packing', 'manifested', 'processing'}:
+        if str(row['Order Id']) in new_ids and row['Fulfillment Status'] in {'shipped', 'delivered', 'packed','packing', 'manifested', 'processing'} \
+                or str(row['Order Id']) in list(skus_to_add_recurring_ids.keys()) and str(row['SKU Codes']) in skus_to_add_recurring_ids[str(row['Order Id'])]:
             phone_num = ''.join(''.join(str(row['Phone']).split(' ')).split('+'))
             if len(phone_num)>10 and phone_num[0] == '0':
                 phone_num = ''.join(phone_num[1:])
