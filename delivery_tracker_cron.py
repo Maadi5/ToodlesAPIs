@@ -80,9 +80,9 @@ def tracking_logic_CTA(old_tracking_code_update, order_date_epoch, bluedart_stat
         if -1*days_del_est_minus_current >= 2:
             actions['post_purchase_tips'] = True
             actions['update values'] = True
-        if -1*days_del_est_minus_current >= 6:
-            actions['review_prompt'] = True
-            actions['update values'] = True
+        # if -1*days_del_est_minus_current >= 6:
+        #     actions['review_prompt'] = True
+        #     actions['update values'] = True
     elif bluedart_statustype == 'PU':
         if days_from_order_date>=2:
             actions['order pickup delay alarm'] = True
