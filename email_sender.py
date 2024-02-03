@@ -193,9 +193,9 @@ def send_dispatch_usermanual_email(name, product_name, product_manual_link, to_a
 
 
 def send_csv(csvfile, subject='order_report'):
-    sender_email = 'operations@toodles.in'
+    sender_email = 'operations@miniture.in'
     sender_password = config.gmail_key
-
+    message = 'PFA Daily Report'
     email_message = MIMEMultipart()
     email_message['From'] = sender_email
     date_time = d.now()
@@ -209,9 +209,11 @@ def send_csv(csvfile, subject='order_report'):
     elif subject == 'cancelled_orders':
         email_message['Subject'] = 'New Cancellations ' + str(date_time)
         email_message['To'] = 'finance@miniture.in'
+    elif subject == 'wati_list':
+        email_message['Subject'] = 'WATI list ' + str(date_time)
+        email_message['To'] = sender_email
+        message = 'PFA updated WATI list'
 
-    
-    message = 'PFA Daily Report'
 
     email_message.attach(MIMEText(message, 'text'))
     ctype, encoding = mimetypes.guess_type(csvfile)
