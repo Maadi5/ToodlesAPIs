@@ -27,6 +27,24 @@ upload_parser = api.parser()
 upload_parser.add_argument('file', location='files',
                            type=FileStorage, required=True)
 
+
+def update_wati_df(tracker_df, wati_df):
+    wati_new_list = []
+    for idx, row in wati_df.iterrows():
+        wati_number = str(row['Phone'])
+        if wati_number in list(tracker_df['phone_num']):
+            # number exists. Check if not 'cancelled'
+            if list(tracker_df[tracker_df['phone_num'] == wati_number]['status'])[0] not in {'cancelled'}:
+                print(list(tracker_df[tracker_df['phone_num'] == wati_number]['status'])[0])
+                row['attribute 1'] = 'customer'
+            else:
+                row['attribute 1'] = 'non_customer'
+        else:
+            row['attribute 1'] = 'non_customer'
+        wati_new_list.append(row)
+    wati_updated_df = pd.DataFrame(wati_new_list)
+    return wati_updated_df
+
 print('API Parser')
 
 @api.route('/process_csv')
@@ -48,19 +66,7 @@ class CSVProcessing(Resource):
             logging.info("read file")
             # df = input_df_preprocessing(df)
             tracker_df = gsheets_db.load_sheet_as_csv(sheet_name=config.db_sheet_name)
-            wati_new_list = []
-            for idx, row in df.iterrows():
-                wati_number = row['Phone']
-                if wati_number in list(tracker_df['phone_num']):
-                    #number exists. Check if not 'cancelled'
-                    if list(tracker_df[tracker_df['phone_num'] == wati_number]['status'])[0] not in {'cancelled'}:
-                        row['attribute 1'] = 'customer'
-                    else:
-                        row['attribute 1'] = 'non_customer'
-                else:
-                    row['attribute 1'] = 'non_customer'
-                wati_new_list.append(row)
-            wati_updated_df = pd.DataFrame(wati_new_list)
+            wati_updated_df = update_wati_df(tracker_df=tracker_df, wati_df=df)
             wati_updated_df.to_csv(r'wati_df.csv', index= False)
             status = send_csv(csvfile='wati_df.csv', subject='wati_list')
             return 'success'
@@ -71,6 +77,13 @@ class CSVProcessing(Resource):
 
 
 if __name__ == '__main__':
+    # df = pd.read_csv('wati_contacts.csv', index_col=False)
+    # gsheets_db = googlesheets_apis(spreadsheet_id=config.db_spreadsheet_id)
+    # tracker_df = gsheets_db.load_sheet_as_csv(sheet_name=config.db_sheet_name)
+    # wati_updated_df = update_wati_df(tracker_df=tracker_df, wati_df=df)
+    # wati_updated_df.to_csv(r'wati_df.csv', index=False)
+
+
     # Custom Swagger UI template configuration
     @app.after_request
     def after_request(response):
