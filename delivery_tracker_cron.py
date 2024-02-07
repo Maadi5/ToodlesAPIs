@@ -782,7 +782,7 @@ starting_epoch = time.time()
 
 all_times = []
 
-every_n_hours = 3
+every_n_hours = 1
 
 for idx, val in enumerate(range(0,24)):
     if val%every_n_hours == 0:
