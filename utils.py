@@ -167,7 +167,12 @@ def forced_float_removal(val):
         val = val[:-2]
     return val
 
-def check_fields(val, field):
+def check_fields(val, field, awb_required= False):
+
+    if awb_required == True:
+        other_fields_to_account_for = {'awb', 'pincode', 'state', 'city', 'status'}
+    else:
+        other_fields_to_account_for = {'pincode', 'state', 'city', 'status'}
     if field == 'email_id':
         validate = validate_email(val)
         if validate == True:
