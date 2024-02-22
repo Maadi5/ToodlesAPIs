@@ -247,6 +247,10 @@ def bluedart_tracking_checker():
                 id = str(row['unique_id'])
                 if id == '15425146803':
                     print('checkpoint')
+                #
+                # else:
+                #     rowcount += 1
+                #     continue
                 status = str(row['status'])
                 awb = str(row['status'])
                 invoice_number = str(row['invoice_number'])
@@ -782,7 +786,7 @@ starting_epoch = time.time()
 
 all_times = []
 
-every_n_hours = 1
+every_n_hours = 3
 
 for idx, val in enumerate(range(0,24)):
     if val%every_n_hours == 0:
