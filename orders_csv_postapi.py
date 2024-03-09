@@ -481,7 +481,7 @@ class CSVProcessing(Resource):
                 failure_statements.append(failure_statement)
                 failed_ids.add(id)
 
-
+            print('failure_statements: ', failure_statement)
             try:
                 if failure_statements:
                         failure_message_alarm = '; '.join(failure_statements)
