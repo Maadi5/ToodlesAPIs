@@ -13,6 +13,7 @@ from google_sheets_apis import googlesheets_apis
 from utils import match_cols, input_df_preprocessing, check_fields
 import config
 import logging
+from wati_apis import WATI_APIS
 
 
 pre_order_skus = {'YK-KW-006', 'YK-KW-012','YK-KW-027','YK-PZ-007 - BLUE',
@@ -32,7 +33,7 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 print('after all imports')
-# wati = WATI_APIS()
+wati = WATI_APIS()
 
 gsheets_db = googlesheets_apis(spreadsheet_id= config.db_spreadsheet_id)
 gsheets_accounts = googlesheets_apis(spreadsheet_id= config.accounts_spreadsheet_id)
