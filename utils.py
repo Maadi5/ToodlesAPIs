@@ -191,7 +191,7 @@ def check_fields(val, field, awb_required= False):
                 verdict= 'phone-num unusual: ' + val
             else:
                 verdict = True
-    elif field in {'awb', 'pincode', 'state', 'city', 'status'}:
+    elif field in other_fields_to_account_for:
         if val:
             verdict = True
         else:
