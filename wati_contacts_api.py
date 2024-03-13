@@ -4,7 +4,7 @@ from werkzeug.datastructures import FileStorage
 import pandas as pd
 import os
 from google_sheets_apis import googlesheets_apis
-from utils import match_cols, input_df_preprocessing, check_fields
+from utils import clean_phone_number
 import config
 import traceback
 from wati_apis import WATI_APIS
@@ -86,7 +86,10 @@ def update_wati_df(tracker_df, wati_df):
         dictrow = deepcopy(dict(row))
         dictrow['attribute_1'] = ''
         dictrow['attribute_2'] = ''
-        if wati_number in list(tracker_df['phone_num']):
+
+        cleaned_wati_number = clean_phone_number(wati_number)
+        fixed_number = '91'+cleaned_wati_number
+        if fixed_number in list(tracker_df['phone_num']):
             # number exists. Check if not 'cancelled'
             if list(tracker_df[tracker_df['phone_num'] == wati_number]['status'])[0] not in {'cancelled'}:
                 primary_sku = None
