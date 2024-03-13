@@ -84,17 +84,21 @@ def update_wati_df(tracker_df, wati_df):
     for idx, row in wati_df.iterrows():
         wati_number = str(row['Phone'])
         dictrow = deepcopy(dict(row))
+        dictrow['CountryCode'] = deepcopy(row['Country code'])
+        del dictrow['Country code']
         dictrow['attribute_1'] = ''
         dictrow['attribute_2'] = ''
-
         cleaned_wati_number = clean_phone_number(wati_number)
-        fixed_number = '91'+cleaned_wati_number
+        if type(cleaned_wati_number) == str:
+            fixed_number = '91'+ cleaned_wati_number
+        else:
+            fixed_number = wati_number
         if fixed_number in list(tracker_df['phone_num']):
             # number exists. Check if not 'cancelled'
-            if list(tracker_df[tracker_df['phone_num'] == wati_number]['status'])[0] not in {'cancelled'}:
+            if list(tracker_df[tracker_df['phone_num'] == fixed_number]['status'])[0] not in {'cancelled'}:
                 primary_sku = None
                 try:
-                    skus_of_customer = list(tracker_df[tracker_df['phone_num'] == wati_number]['sku'])
+                    skus_of_customer = list(tracker_df[tracker_df['phone_num'] == fixed_number]['sku'])
                     for furn_sku in furniture_skus:
                         if furn_sku in skus_of_customer:
                             primary_sku = furn_sku
@@ -147,6 +151,7 @@ class CSVProcessing(Resource):
         except:
             logging.error("email csv failed for wati df")
             logging.error(traceback.format_exc())
+            print(traceback.format_exc())
             return 'failure'
 
 
