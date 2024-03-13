@@ -11,6 +11,7 @@ from wati_apis import WATI_APIS
 from email_sender import send_dispatch_email, send_usermanual_email, send_dispatch_usermanual_email, send_csv
 from google_sheets_apis import googlesheets_apis
 import logging
+from copy import deepcopy
 
 gsheets_db = googlesheets_apis(spreadsheet_id= config.db_spreadsheet_id)
 
@@ -27,22 +28,92 @@ upload_parser = api.parser()
 upload_parser.add_argument('file', location='files',
                            type=FileStorage, required=True)
 
+accessory_skus = {'MN-ACS-001',
+'MN-ACS-002',
+'MN-ACS-004',
+'MN-ACS-003-BLUE',
+'MN-ACS-003-GREEN',
+'MN-ACS-007',
+'MN-ACS-005',
+'MN-ACS-008',
+'MN-ACS-009-GREEN',
+'MN-ACS-009-BLUE',
+'MN-ACS-010',
+'SBI-ACS-001',
+'SBI-ACS-002',
+'SBI-ACS-003',
+'SBI-ACS-004',
+'SBI-ACS-005',
+'MN-ACS-003-PINK',
+'MN-ACS-003-PURPLE',
+'MN-ACS-009-PINK',
+'MN-ACS-009-PURPLE',
+'MN-O-005'}
+
+furniture_skus = {
+'YK-KW-007-2',
+'YK-KW-006',
+'YK-PZ-015-2',
+'YK-YH-001-3',
+'YK-KW-012',
+'YK-KW-006-1',
+'YK-SQ-022-3 - WHITE',
+'YK-SQ-022-3 - PINK',
+'YK-SQ-022-1',
+'YK-NH-006 - PINK',
+'YK-NH-006 - BLU & YEL',
+'YK-PZ-007 - BLUE',
+'YK-PZ-007 - PINK',
+'YK-PZ-007 - WHITE',
+'YK-PZ-002-2 - PINK',
+'YK-PZ-002-2 - GREY',
+'YK-PZ-002-2 - BLUE',
+'YK-SQ-022-4',
+'YK-SQ-022-2',
+'YK-KW-027',
+'YK-NH-006 - GREEN',
+'YK-KW-080',
+'YK-YH-001-3-YEL',
+'MN-O-005',
+'MN-B-002',
+'MN-O-006',
+}
 
 def update_wati_df(tracker_df, wati_df):
-    wati_new_list = []
+    wati_updated_list = []
     for idx, row in wati_df.iterrows():
         wati_number = str(row['Phone'])
+        dictrow = deepcopy(dict(row))
+        dictrow['attribute_1'] = ''
+        dictrow['attribute_2'] = ''
         if wati_number in list(tracker_df['phone_num']):
             # number exists. Check if not 'cancelled'
             if list(tracker_df[tracker_df['phone_num'] == wati_number]['status'])[0] not in {'cancelled'}:
-                print(list(tracker_df[tracker_df['phone_num'] == wati_number]['status'])[0])
-                row['attribute 1'] = 'customer'
+                primary_sku = None
+                try:
+                    skus_of_customer = list(tracker_df[tracker_df['phone_num'] == wati_number]['sku'])
+                    for furn_sku in furniture_skus:
+                        if furn_sku in skus_of_customer:
+                            primary_sku = furn_sku
+                            break
+                    if primary_sku is None:
+                        primary_sku = skus_of_customer[0]
+                    dictrow['attribute_2'] = primary_sku
+                except:
+                    print('sku capture failed')
+
+                dictrow['attribute_1'] = 'customer'
+
+                print('#######  NUMBER FOUND  ###########!')
             else:
-                row['attribute 1'] = 'non_customer'
+                dictrow['attribute_1'] = 'non_customer'
         else:
-            row['attribute 1'] = 'non_customer'
-        wati_new_list.append(row)
-    wati_updated_df = pd.DataFrame(wati_new_list)
+            dictrow['attribute_1'] = 'non_customer'
+        # print(dictrow)
+        wati_updated_list.append(dictrow)
+    print('FINAL DF LIST')
+    print(wati_updated_list)
+    wati_updated_df = pd.DataFrame(wati_updated_list)
     return wati_updated_df
 
 print('API Parser')
@@ -77,7 +148,7 @@ class CSVProcessing(Resource):
 
 
 if __name__ == '__main__':
-    # df = pd.read_csv('wati_contacts.csv', index_col=False)
+    # df = pd.read_csv('wati_contacts2.csv', index_col=False)
     # gsheets_db = googlesheets_apis(spreadsheet_id=config.db_spreadsheet_id)
     # tracker_df = gsheets_db.load_sheet_as_csv(sheet_name=config.db_sheet_name)
     # wati_updated_df = update_wati_df(tracker_df=tracker_df, wati_df=df)
