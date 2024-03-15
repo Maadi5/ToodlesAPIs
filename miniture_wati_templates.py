@@ -50,16 +50,19 @@ def usermanual_whatsapp(sku, product_name, product_manual, name,phone_num, wati)
 
 
 def review_prompt(name, phone_num, product_name, sku, wati):
-    review_csv = pd.read_csv(r'Product_review_links.csv')
+    review_csv = pd.read_csv(r'Product_review_links-2.csv')
     status = 'Failure'
     try:
         index = list(review_csv['SKU']).index(sku)
         sku_review_url = list(review_csv['URL'])[index]
+        cashback_amount = str(int(list(review_csv['Cashback'])[index]))
         url_dynamic_component = sku_review_url.split('miniture.in/')[1]
         custom_params = [{'name': 'review_url', 'value': url_dynamic_component},
                          {'name': 'product_name', 'value': product_name}]
+                         {'name': 'product_name', 'value': product_name},
+                         {'name': 'amount', 'value': cashback_amount}]
         wati_status = wati.send_template_message(contact_name=name, contact_number=phone_num,
-                                            template_name='miniture_capture_review',
+                                            template_name='cashback_review_template4',
                                             custom_params=custom_params)
         if wati_status:
             status = 'Success'
