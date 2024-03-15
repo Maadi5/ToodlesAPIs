@@ -58,7 +58,6 @@ def review_prompt(name, phone_num, product_name, sku, wati):
         cashback_amount = str(int(list(review_csv['Cashback'])[index]))
         url_dynamic_component = sku_review_url.split('miniture.in/')[1]
         custom_params = [{'name': 'review_url', 'value': url_dynamic_component},
-                         {'name': 'product_name', 'value': product_name}]
                          {'name': 'product_name', 'value': product_name},
                          {'name': 'amount', 'value': cashback_amount}]
         wati_status = wati.send_template_message(contact_name=name, contact_number=phone_num,
