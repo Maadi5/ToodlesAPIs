@@ -4,7 +4,7 @@ import json
 import os
 
 #updated code to point to the miniture manuals- updated product_shorthand, manual link
-product_manual_csv = pd.read_csv(os.path.join(os.getcwd(), 'product_manual_links_updated2.csv'))
+product_manual_csv = pd.read_csv(os.path.join(os.getcwd(), 'product_manual_links_updated3.csv'))
 product_manual_csv.fillna('', inplace= True)
 
 def get_product_name_manual(sku):

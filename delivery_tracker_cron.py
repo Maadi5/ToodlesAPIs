@@ -541,13 +541,13 @@ def bluedart_tracking_checker():
                                                                     and review_prompt_status != 'NA'):
                                     count = 0
                                     for product_name, product_manual in product_list.items():
-                                        if product_manual['manual_link'] != '':
-                                            try:
-                                                status = review_prompt(sku=product_manual['sku'], name=name,phone_num=phone_num, wati=wati, product_name= product_name)
-                                            except:
-                                                status = 'Failure'
-                                        else:
-                                            status = 'NA'
+                                        # if product_manual['manual_link'] != '':
+                                        try:
+                                            status = review_prompt(sku=product_manual['sku'], name=name,phone_num=phone_num, wati=wati, product_name= product_name)
+                                        except:
+                                            status = 'Failure'
+                                        # else:
+                                        #     status = 'NA'
                                         values_to_update.append({'col': column_dict['review_prompt_status'],
                                                              'row': cinds[count] + 2,
                                                              'value': status})
