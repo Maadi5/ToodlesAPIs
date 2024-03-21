@@ -101,13 +101,14 @@ def update_wati_df(tracker_df, wati_df):
                 primary_sku = None
                 try:
                     skus_of_customer = list(tracker_df[tracker_df['phone_num'] == fixed_number]['sku'])
-                    for furn_sku in furniture_skus:
-                        if furn_sku in skus_of_customer:
-                            primary_sku = furn_sku
-                            break
-                    if primary_sku is None:
-                        primary_sku = skus_of_customer[0]
-                    dictrow['attribute 2'] = primary_sku
+                    # for furn_sku in furniture_skus:
+                    #     if furn_sku in skus_of_customer:
+                    #         primary_sku = furn_sku
+                    #         break
+                    # if primary_sku is None:
+                    #     primary_sku = skus_of_customer[0]
+                    comma_separated_skus = ','.join(skus_of_customer)
+                    dictrow['attribute 2'] = comma_separated_skus
                 except:
                     print('sku capture failed')
 
