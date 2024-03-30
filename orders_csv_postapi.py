@@ -14,13 +14,28 @@ from utils import match_cols, input_df_preprocessing, check_fields
 import config
 import logging
 from wati_apis import WATI_APIS
+from config import ops_automation_alarm_contacts
+
+'''
+API that allows for 2 toggles:
+a. Order Processing
+b. Zoho Accounting CSV generation - and Email push to operations ID
+
+a. Order Processing Code: (args['toggle'] == 1)
+- Checks for Unprocessed (incomplete) or Cancelled orders
+- Sends tracking email + WhatsApp information if it's a Woocommerce order (some code might be unused now)
+- Validates data based on phone number and email format (check_fields function)
+- Failed order information captured and sent to ops team (based on check_fields function or if any other exception) 
+
+b. Zoho Accounting CSV generation: (args['toggle'] == 2)
+- Converts Browntape CSV into Zoho Books bulk import format CSV using create_zoho_invoice_csv function
+- Adds the processed sheet to a Google Sheets file connected to finance team
+'''
 
 
 pre_order_skus = {'YK-KW-006', 'YK-KW-012','YK-KW-027','YK-PZ-007 - BLUE',
                   'YK-PZ-007 - PINK','YK-KW-080', 'YK-KW-007-2','YK-SQ-022-3'}
 
-ops_automation_alarm_contacts = {'Javith': '919698606713', 'Milan': '919445574311',
-                                 'Adithya': '919176270768'}
 
 usermanual_skus_without_video = {'YK-PZ-007 - BLUE', 'YK-PZ-007 - PINK', 'YK-PZ-007 - WHITE','YK-KW-080',
                                  'YK-KW-012'}
@@ -116,13 +131,7 @@ class CSVProcessing(Resource):
                     ## send csv email for cancelled orders
                     try:
                         status = send_csv(csvfile=cancelled_csv_path, subject='cancelled_orders')
-                        # idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
-                        # trackerdf.at[idx, 'email_status'] = status
-                        # email_status = status
                     except:
-                        # idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
-                        # trackerdf.at[idx, 'email_status'] = 'Failure_exception'
-                        # email_status = 'Failure_exception'
                         print('email csv failed: ', traceback.format_exc())
                         logging.error("email csv failed for cancelled orders")
                         logging.error(traceback.format_exc())
@@ -134,13 +143,7 @@ class CSVProcessing(Resource):
                     ## send csv email for incomplete orders
                     try:
                         status = send_csv(csvfile=incomplete_csv_path, subject='incomplete_orders')
-                        # idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
-                        # trackerdf.at[idx, 'email_status'] = status
-                        # email_status = status
                     except:
-                        # idx = trackerdf.index[trackerdf['unique_id'] == id].tolist()[0]
-                        # trackerdf.at[idx, 'email_status'] = 'Failure_exception'
-                        # email_status = 'Failure_exception'
                         print('email csv failed: ', traceback.format_exc())
                         logging.error("email csv failed for incomplete orders")
                         logging.error(traceback.format_exc())
@@ -154,14 +157,6 @@ class CSVProcessing(Resource):
                 for idx, row in live_data.iterrows():
                     ##Validate all variables
                     sku = str(row['sku'])
-                    # if sku in pre_order_skus:
-                    #     exists = check_existence_in_df(df= preorder_df, row= row)
-                    #     if not exists:
-                    #         preorder_list.append(row)
-                    #     else:
-                    #         print(row['unique_id'], ' already exists in preorder sheet with sku ', row['sku'])
-                    #     failed_ids.add(idx)
-                    # else:
                     try:
                         valid = True
                         failure_reasons = []
@@ -207,11 +202,8 @@ class CSVProcessing(Resource):
                                     valid_manual = True
                             except:
                                 pass
-                            #product_name, product_manual = get_product_name_manual(sku=sku)
                             ## send template message
                             wa_status = 'NA'
-                            #print('invoice Number: ', invoice_number)
-                            #print('invoice_number[:3] : ', invoice_number[:3])
                             val = invoice_number[:3] in {'WOO'}
                             #print('bool: ', val)
                             if str(row['whatsapp_status']) == '' and invoice_number[:3] in {'WOO'}:
@@ -307,8 +299,6 @@ class CSVProcessing(Resource):
                                             wa_status_usermanual = 'Not Sent'
                                     except:
                                         try:
-                                            # idxs = live_data.index[live_data['unique_id'] == id].tolist()
-                                            # for ix in idxs:
                                             live_data.at[idx, 'usermanual_whatsapp_status'] = 'Failure_exception'
                                             wa_status_usermanual = 'Failure_exception'
                                             #print('whatsapp failed: ', traceback.format_exc())
@@ -462,7 +452,7 @@ class CSVProcessing(Resource):
                     failure_statements.append(failure_statement)
                     failed_ids.add(id)
 
-                print('failure_statements: ', failure_statement)
+                # print('failure_statements: ', failure_statement)
                 try:
                     if failure_statements:
                             failure_message_alarm = '; '.join(failure_statements)

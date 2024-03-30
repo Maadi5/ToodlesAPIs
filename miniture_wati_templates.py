@@ -1,12 +1,10 @@
 import os
 import json
 import pandas as pd
+from config import miniture_marketing_team, ops_automation_alarm_contacts
 
 usermanual_skus_without_video = {'YK-PZ-007 - BLUE', 'YK-PZ-007 - PINK', 'YK-PZ-007 - WHITE','YK-KW-080',
                                  'YK-KW-012'}
-
-miniture_marketing_team = {'M A Adithya': '919176270768', 'Sanaa Syed': '919731011565',
-                           'Srishti': '919830687860', 'Shashank M': '919791900777'}
 
 
 def chat_revive_message(wati, name, phone_num, wati_template='miniture_message_reply_plain'):
@@ -144,6 +142,12 @@ def delivery_delay_whatsapp(name, phone_num, products, wati):
         status = 'Success'
     else:
         status = 'Failure'
+
+    for k,v in ops_automation_alarm_contacts.items():
+        custom_params = [{'name': 'products', 'value': products}]
+        ops_message_status = wati.send_template_message(contact_name=name, contact_number=v,
+                                                 template_name='delivery_delay_message',
+                                                 custom_params=custom_params)
 
     return status
 

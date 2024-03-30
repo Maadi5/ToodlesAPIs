@@ -17,6 +17,32 @@ from miniture_wati_templates import (delivery_reminder_whatsapp, usermanual_what
 from email_sender import send_delivery_usermanual_email, send_usermanual_email
 import logging
 
+'''
+Tracking cron that calls Bluedart API:
+
+Codes-
+'PU'- pickup initiated
+'IT'- In transit
+'DL' - Delivered
+
+- Checks tracking information on orders:
+    - If order status changes from PU to IT, sends a message to the customer with estimated date of delivery
+    - If order delivery gets delayed beyond est provided to customer, a delivery delay apology message is sent
+    - Once product is reached, a delivery confirmation message is sent along with user manual PDF
+    - 1 day after delivery, review prompt message message is sent
+    - If bluedart API fails on a particular AWB anytime before delivery, the usermanual is directly sent 
+    - Once the bluedart status changes to 'DL', it stops hitting bluedart api for that AWB
+    
+- Notes:
+    - The 'usermanual2 push' key is the toggle for the WATI template that sends the delivery confirmation message along with the usermanual
+    - Whereas, 'usermanual1 push' is the fallback solution (just sending the usermanual) in the event that bluedart tracking fails for an AWB
+    - The usermanual PDFs are stored in a Google drive which is linked to- Product_review_links-2.csv file. 
+      These are compressed PDFs that can render on iOS without bugs.
+    - Toggles for 'alarm' or 'post_purchase_tips' are unused currently
+'''
+
+
+
 from utils import epoch_to_dd_mm_yy_time, date_string_to_epoch, date_str_to_epoch2
 
 crm_sheet_parser = crm_sheet()

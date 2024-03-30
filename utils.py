@@ -167,7 +167,7 @@ def forced_float_removal(val):
         val = val[:-2]
     return val
 
-def check_fields(val, field, awb_required= False):
+def check_fields(val, field, awb_required= True):
 
     if awb_required == True:
         other_fields_to_account_for = {'awb', 'pincode', 'state', 'city', 'status'}
