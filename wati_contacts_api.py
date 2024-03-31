@@ -98,7 +98,7 @@ def update_wati_df(tracker_df, wati_df):
         dictrow['attribute 2'] = ''
         cleaned_wati_number = clean_phone_number(wati_number)
         if type(cleaned_wati_number) == str:
-            fixed_number = '91'+ cleaned_wati_number
+            fixed_number = cleaned_wati_number
         else:
             fixed_number = wati_number
 
