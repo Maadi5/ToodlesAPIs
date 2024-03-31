@@ -101,6 +101,9 @@ def update_wati_df(tracker_df, wati_df):
             fixed_number = '91'+ cleaned_wati_number
         else:
             fixed_number = wati_number
+
+        dictrow['Phone'] = fixed_number
+
         if fixed_number in list(tracker_df['phone_num']):
             # number exists. Check if not 'cancelled'
             if list(tracker_df[tracker_df['phone_num'] == fixed_number]['status'])[0] not in {'cancelled'}:
