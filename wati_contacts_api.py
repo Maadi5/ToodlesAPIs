@@ -13,6 +13,10 @@ from google_sheets_apis import googlesheets_apis
 import logging
 from copy import deepcopy
 
+'''
+Compares WATI contact information with MinitureUserData to tag customer information
+'''
+
 gsheets_db = googlesheets_apis(spreadsheet_id= config.db_spreadsheet_id)
 
 app = Flask(__name__)
