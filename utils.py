@@ -148,6 +148,9 @@ def validate_email(email):
 
 
 def clean_phone_number(phone_number):
+
+    if len(phone_number) >=12 and phone_number.startswith('91'):
+        phone_number = phone_number[2:]
     # Remove all non-digit characters
     if len(phone_number)>10 and phone_number[0] == '0':
         phone_number = ''.join(phone_number[1:])

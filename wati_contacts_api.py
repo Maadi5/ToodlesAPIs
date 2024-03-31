@@ -84,10 +84,16 @@ def update_wati_df(tracker_df, wati_df):
     for idx, row in wati_df.iterrows():
         wati_number = str(row['Phone'])
         dictrow = deepcopy(dict(row))
-        dictrow['CountryCode'] = deepcopy(row['Country code'])
-        del dictrow['Country code']
-        del dictrow['attribute_1']
-        del dictrow['attribute_2']
+        try:
+            dictrow['CountryCode'] = deepcopy(row['Country code'])
+            del dictrow['Country code']
+        except:
+            pass
+        try:
+            del dictrow['attribute_1']
+            del dictrow['attribute_2']
+        except:
+            pass
         dictrow['attribute 1'] = ''
         dictrow['attribute 2'] = ''
         cleaned_wati_number = clean_phone_number(wati_number)
