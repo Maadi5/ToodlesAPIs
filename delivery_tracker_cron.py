@@ -103,12 +103,13 @@ def tracking_logic_CTA(old_tracking_code_update, order_date_epoch, bluedart_stat
         if old_tracking_code_update != 'DL':
             actions['usermanual2 push'] = True
             actions['update values'] = True
-        if -1*days_del_est_minus_current >= 2:
-            actions['post_purchase_tips'] = True
-            actions['update values'] = True
-        if -1*days_del_est_minus_current >= 1:
-            actions['review_prompt'] = True
-            actions['update values'] = True
+        else:
+            if -1*days_del_est_minus_current >= 2:
+                actions['post_purchase_tips'] = True
+                actions['update values'] = True
+            if -1*days_del_est_minus_current >= 1:
+                actions['review_prompt'] = True
+                actions['update values'] = True
     elif bluedart_statustype == 'PU':
         if days_from_order_date>=2:
             actions['order pickup delay alarm'] = True
@@ -344,8 +345,9 @@ def bluedart_tracking_checker():
                         sku = trackerdf.at[ind, 'sku']
                         if ind>= idx:
                             try:
-                                product_name, product_manual = get_product_name_manual(sku=sku)
-                                product_list[product_name] = {'manual_link': product_manual, 'sku': sku, 'index': ind,
+                                product_name, product_manual, review_url, cashback = get_product_name_manual(sku=sku)
+                                product_list[product_name] = {'manual_link': product_manual, 'sku': sku,
+                                                              'review_url' : review_url, 'cashback': cashback, 'index': ind,
                                                               'delivery_update_message': trackerdf.at[ind, 'delivery_update_message'],
                                                               'delivery_delay_message': trackerdf.at[ind, 'delivery_delay_message'],
                                                               'review_prompt_status': trackerdf.at[ind, 'review_prompt_status'],
@@ -588,7 +590,8 @@ def bluedart_tracking_checker():
                                     for product_name, product_manual in product_list.items():
                                         #if product_manual['review_prompt_status'] != 'Success' and product_manual['review_prompt_status'] != 'NA':
                                         try:
-                                            status = review_prompt(sku=product_manual['sku'],
+                                            status = review_prompt(sku=product_manual['sku'], sku_review_url = product_manual['review_url'],
+                                                                   cashback_amount = product_manual['cashback'],
                                                                    name=name,phone_num=phone_num, wati=wati,
                                                                    product_name= product_name)
                                         except:

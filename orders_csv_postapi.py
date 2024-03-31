@@ -197,7 +197,7 @@ class CSVProcessing(Resource):
                             invoice_number = str(row['invoice_number'])
                             valid_manual = False
                             try:
-                                product_name, product_manual = get_product_name_manual(sku=sku)
+                                product_name, product_manual, review_url, cashback = get_product_name_manual(sku=sku)
                                 if product_manual != '':
                                     valid_manual = True
                             except:
