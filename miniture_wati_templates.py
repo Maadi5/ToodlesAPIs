@@ -1,6 +1,3 @@
-import os
-import json
-import pandas as pd
 from config import miniture_marketing_team, ops_automation_alarm_contacts
 
 usermanual_skus_without_video = {'YK-PZ-007 - BLUE', 'YK-PZ-007 - PINK', 'YK-PZ-007 - WHITE','YK-KW-080',
