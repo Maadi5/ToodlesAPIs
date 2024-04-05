@@ -48,6 +48,7 @@ def usermanual_whatsapp(sku, product_name, product_manual, name,phone_num, wati)
 
 
 def review_prompt(name, phone_num, product_name, sku, sku_review_url, cashback_amount, wati):
+    #Hi
     review_csv = pd.read_csv(r'Product_review_links-2.csv')
     status = 'Failure'
     try:

@@ -119,6 +119,7 @@ class CSVProcessing(Resource):
             #print('read file')
             logging.info("read file")
             if args['toggle'] == 1:
+
                 df = input_df_preprocessing(input_df)
                 tracker_df = gsheets_db.load_sheet_as_csv(sheet_name=config.db_sheet_name)
                 preorder_df = gsheets_preorders.load_sheet_as_csv(sheet_name= config.preorder_sheet_name)

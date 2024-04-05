@@ -263,7 +263,7 @@ def create_zoho_invoice_csv(new_browntape_df):
     item_level_discount_add = []
     bt_cols = list(new_browntape_df.columns)
     for idx, row in new_browntape_df.iterrows():
-        if row['Fulfillment Status'] in {'shipped', 'delivered', 'packed','packing', 'manifested'}:
+        if row['Fulfillment Status'] in {'shipped', 'delivered', 'packed','packing', 'manifested', 'processing'}:
             dfdict = {}
             for c in bt_cols:
                 if c in bt_zoho_field_map and c!= 'State' and 'Date' not in c and c!= 'Invoice Number' and c!= 'HSN Code':
@@ -376,14 +376,14 @@ def create_zoho_invoice_csv(new_browntape_df):
 
 
 if __name__ == '__main__':
-    browntape_df = pd.read_csv(r'/Users/adithyam.a/Downloads/btreport_10_2.csv', index_col = False)
+    browntape_df = pd.read_csv(r'/Users/adithyam.a/Downloads/btreport_998299.csv', index_col = False)
     # browntape_df = input_df_preprocessing(browntape_df)
     # tracker_df = pd.read_csv(r'/Users/adithyam.a/Downloads/MinitureUserData - Main Dataset.csv')
     # to_be_pushed_df, incomplete_orders_csv, cancelled_cod_orders_csv, new_browntape_subset_df = get_order_details(browntape_df= browntape_df, tracker_df=tracker_df)
     # check_cod_cancellations(tracker_df=tracker_df, cancelled_orders_df=cancelled_cod_orders_csv)
     # testdf = input_df_preprocessing(testdf)
     newdf,_ = create_zoho_invoice_csv(new_browntape_df=browntape_df)
-    newdf.to_csv(r'/Users/adithyam.a/Downloads/zoho_invoices_october2.csv', index= False)
+    newdf.to_csv(r'/Users/adithyam.a/Downloads/zoho_invoices_march.csv', index= False)
 
 
         
