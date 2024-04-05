@@ -13,3 +13,17 @@ cp config.py.template config.py
 sudo cp ./toodles.service /etc/systemd/system/toodles.service
 sudo sytemctl start toodles.service
 sudo systemctl enable toodles.service
+
+
+ops goes to ec2 turns on the server
+browntape is where the order begins -> ops uploads some magic csv from here to the ec2 swagger
+
+the following script executes
+orders_csv_postapi -> receives the browntape payload and pushes to googles sheets daatabasse
+
+eveery 3 hours, delivery tracking cron - delivery_tracker_cron
+works out of the database google sheet. 
+
+wati_apis.py -> whenever ops wants to updates the wati contact list. Update some tags 
+
+

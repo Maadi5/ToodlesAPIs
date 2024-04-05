@@ -1,17 +1,11 @@
-import schedule
-import os
 import time
-import pandas as pd
 from product_manual_map import get_product_name_manual
 import traceback
-from email_sender import send_usermanual_email
 from wati_apis import WATI_APIS
 from google_sheets_apis import googlesheets_apis
-from utils import match_cols
 import config
-from datetime import datetime
 from bluedart_apis import bluedart_apis
-from crm_sheet_mgr import crm_sheet
+from crm.crm_sheet_mgr import crm_sheet
 from miniture_wati_templates import (delivery_reminder_whatsapp, usermanual_whatsapp,
                                      delivery_delay_whatsapp, usermanual_delivery_whatsapp, review_prompt, post_purchase)
 from email_sender import send_delivery_usermanual_email, send_usermanual_email
@@ -254,8 +248,6 @@ def bluedart_tracking_checker():
         gsheets = googlesheets_apis(spreadsheet_id=config.db_spreadsheet_id)
         trackerdf = gsheets.load_sheet_as_csv(sheet_name=config.db_sheet_name)
 
-    #bluedart_csv = pd.read_csv(os.path.join(os.getcwd(), 'bluedart_complete.csv'), index_col=False)
-    #bluedart_approx_csv = pd.read_csv(os.path.join(os.getcwd(), 'approx_delivery_times.csv'), index_col=False)
     trackerdf.fillna('', inplace=True)
 
     rowcount = 2
