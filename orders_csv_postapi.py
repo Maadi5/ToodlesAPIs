@@ -115,7 +115,7 @@ class CSVProcessing(Resource):
 
             args = upload_parser.parse_args()
             csv_file = args['file']
-            input_df = pd.read_csv(csv_file)
+            input_df = pd.read_csv(csv_file, index_col=False)
             #print('read file')
             logging.info("read file")
             if args['toggle'] == 1:
